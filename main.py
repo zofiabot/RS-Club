@@ -31,45 +31,8 @@ async def cmd_help(ctx: discord.ext.commands.Context):
     Rs.add_job(Rs.show_help, [ctx])
 
 
-########################################################################################################################
 # RS queue commands
 # module: m_redstar.py
-########################################################################################################################
-@bot.command(name='rs', help='Toggle RS access', aliases=params.rs_aliases)
-@commands.has_any_role(*(params.SERVER_MEMBER_ROLES + params.SERVER_ALLY_ROLES))
-async def cmd_rs(ctx: discord.ext.commands.Context):
-    """
-    :param ctx:
-    :return:
-    """
-    # callable from any channel!
-    pass
-
-    # standard handling of commands
-    await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
-    print(f'cmd_rs(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}')
-
-    # check the caller's roles
-    for r in ctx.author.roles:
-        # found RS role
-        if r.id == params.SERVER_RS_ROLE_ID:
-            # remove it
-            await ctx.author.remove_roles(r)
-            print(f'cmd_rs(): removed access for {ctx.author}')
-            # post feedback
-            m = await ctx.send(f'{ctx.author.mention} revoked your RS access!')
-            await m.delete(delay=params.MSG_DISPLAY_TIME)
-            # try to remove player in case they are queued up
-            Rs.add_job(Rs.leave_queue, [ctx.author])
-            return
-
-    await ctx.author.add_roles(ctx.guild.get_role(params.SERVER_RS_ROLE_ID))
-    print(f'cmd_rs(): restored access for {ctx.author}')
-
-    rsc = ctx.guild.get_channel(params.SERVER_RS_CHANNEL_ID)
-    m = await ctx.send(f'{ctx.author.mention} restored RS channel: {rsc.mention}!')
-    await m.delete(delay=params.MSG_DISPLAY_TIME)
-
 
 @bot.command(name='rshelp', help='rs help page', aliases=params.rs_help_aliases)
 async def cmd_rs_help(ctx: discord.ext.commands.Context):
@@ -109,7 +72,6 @@ async def cmd_rs_stats(ctx: discord.ext.commands.Context):
         lvl = int(rs.replace('RS', ''))
         if lvl == 11:
             break
-        # text += f'**RS**{Util.convert_int_to_icon(lvl)}: {cnt}\n'
         text += f'**{rs}**: {cnt} _({round(cnt/total*100)}%)_\n'
 
     embed.description = text

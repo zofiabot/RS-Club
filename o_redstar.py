@@ -233,15 +233,15 @@ class Rs:
         # if it was a queue embed
         # if qemb is not None and msg_id == qemb.id:
         if Rs.queue_status_embed is not None and msg_id == Rs.queue_status_embed.id:
-            if Rs.rs_roles.get(reaction.emoji, None) not in user.roles:
-                await msg.channel.send(f"{user.display_name} you don't have the proper role to join the {reaction.emoji} queue")
-                return
             if reaction.emoji == params.LEAVE_EMOJI:
                 print(
                     f'Rs.handle_reaction(): {user} trying to leave all queues via reaction'
                 )
                 # await Rs.leave_queue(user, caused_by_reaction=True)
                 Rs.add_job(Rs.leave_queue, [user, 0, True, False, False, None])
+            elif Rs.rs_roles.get(reaction.emoji, None) not in user.roles:
+                await msg.channel.send(f"{user.display_name} you don't have the proper role to join the {reaction.emoji} queue")
+                return
             elif reaction.emoji == params.RS4_EMOJI:
                 print(
                     f'Rs.handle_reaction(): {user} trying to join RS4 via reaction'
@@ -474,7 +474,7 @@ class Rs:
             # check this user's roles
             for r in caller.roles:
                 # has admin/mod powers
-                if r.name in params.SERVER_ADMIN_ROLES + params.SERVER_OFFICER_ROLES:
+                if r.name in params.SERVER_ADMIN_ROLES + params.SERVER_MODERATOR_ROLES:
                     authorized = True
                     print(
                         f'Rs.start_queue(): {caller} is authorized (moderator)'
@@ -523,7 +523,7 @@ class Rs:
         if p is None:
             for r in caller.roles:
                 if r.name in (params.SERVER_ADMIN_ROLES +
-                              params.SERVER_OFFICER_ROLES):
+                              params.SERVER_MODERATOR_ROLES):
                     authorized = True
                     print(
                         f'Rs.clear_queue(): {caller} is authorized (admin/mod)'
@@ -869,8 +869,8 @@ class Rs:
         try:
             #await Rs.queue_status_embed.add_reaction(params.RS4_EMOJI)
             #await Rs.queue_status_embed.add_reaction(params.RS5_EMOJI)
-            #await Rs.queue_status_embed.add_reaction(params.RS6_EMOJI)
-            #await Rs.queue_status_embed.add_reaction(params.RS7_EMOJI)
+            await Rs.queue_status_embed.add_reaction(params.RS6_EMOJI)
+            await Rs.queue_status_embed.add_reaction(params.RS7_EMOJI)
             await Rs.queue_status_embed.add_reaction(params.RS8_EMOJI)
             await Rs.queue_status_embed.add_reaction(params.RS9_EMOJI)
             await Rs.queue_status_embed.add_reaction(params.RS10_EMOJI)
@@ -975,8 +975,8 @@ class Rs:
         player_roles = caller.roles
         level = 0
         for r in player_roles:
-            # role must be 3 or 4 chars long, start with anycase "RS" followed by one or two digits
-            if len(r.name) in range(3, 5) and re.match('[rR][sS][14-9][0-1]?',
+            # role must be 3 or 4 chars long, start with anycase "VRS" followed by one or two digits
+            if len(r.name) in range(3, 5) and re.match('[vR][rR][sS][14-9][0-1]?',
                                                        r.name):
                 # extract rs level as integer and update highest if applicable
                 rsr = int(re.match('[14-9][0-1]?', r.name[2:]).string)
