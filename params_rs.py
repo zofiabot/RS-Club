@@ -7,11 +7,14 @@ SERVER_BUG_CHANNEL_ID = 808499006510596166 #bug reporting
 SERVER_DISCORD_ID = 760481068959662081
 SERVER_DISCORD_NAME = "RS Club"
 SERVER_DISCORD_ICON = "https://cdn.discordapp.com/icons/760481068959662081/12ed9c2aa500b992332a630dac7d101d.png?size=128"
+
 BOT_DISCORD_ICON = SERVER_DISCORD_ICON
 RS_ICON = '<:redstar:807239811068329985>'
 
 # CHANNEL IDs
 SERVER_RS_CHANNEL_ID = 806307789147602994 if DEBUG_MODE is False else SERVER_DEBUG_CHANNEL_ID
+
+SUPPORTED_RS_LEVELS = range(6, 12)      # rs4:11
 
 RS_CHANNELS = {
 'rs4': 807270877011116113,
@@ -40,6 +43,9 @@ MSG_DISPLAY_TIME = 15
 INFO_DISPLAY_TIME = 60 * 5
 PING_COOLDOWN = 60 * 5  # time that has to pass before ping_all_role can be mentioned again
 
+###################################################
+# ROLES                                           #
+###################################################
 SERVER_MEMBER_ROLE = 'rs'
 SERVER_MEMBER_ROLE_ID = 760976687068217375
 SERVER_RS_ROLE_ID = SERVER_MEMBER_ROLE_ID
@@ -85,7 +91,7 @@ clear_queue_aliases = ['c', 'C', 'Clear']
 EMBED_COLOR = 0xff6600
 EMBED_QUEUE_COLOR = 0x2f3136
 
-# rs
+# rs emojis
 RS0_EMOJI = "0️⃣"
 RS0_ROLE = "rs0"
 RS1_EMOJI = "1️⃣"
@@ -126,7 +132,13 @@ GO_BACK_EMOJI = "🔙"
 DOWN_EMOJI = "⬇" 
 
 PING_THRESHOLDS = [1, 2, 3] # ping at these queue sizes only
-SUPPORTED_RS_LEVELS = range(8, 12)      # rs4:11
+
+MAX_RS_NOTE_LENGTH = 50
+
+MAX_RS_NOTE_LENGTH = 50
+
+MAX_RS_NOTE_LENGTH = 50
+
 MAX_RS_NOTE_LENGTH = 50
 
 # TEXTS 

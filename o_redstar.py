@@ -239,9 +239,8 @@ class Rs:
                 )
                 # await Rs.leave_queue(user, caused_by_reaction=True)
                 Rs.add_job(Rs.leave_queue, [user, 0, True, False, False, None])
-            elif Rs.rs_roles.get(reaction.emoji, None) not in user.roles:
-                await msg.channel.send(f"{user.display_name} you don't have the proper role to join the {reaction.emoji} queue")
-                return
+            if Rs.rs_roles.get(reaction.emoji, None) not in user.roles:
+                await msg.channel.send(f"{user.display_name} you don't have the proper role to join the {reaction.emoji} queue", delete_after=params.MSG_DELETION_DELAY)
             elif reaction.emoji == params.RS4_EMOJI:
                 print(
                     f'Rs.handle_reaction(): {user} trying to join RS4 via reaction'
@@ -983,6 +982,19 @@ class Rs:
                 if rsr > level:
                     level = rsr
         return level
+
+    @staticmethod
+    def get_level_from_rs_roles(caller) -> list:
+        player_roles = caller.roles
+        levels = []
+        for r in player_roles:
+            # role must be 3 or 4 chars long, start with anycase "VRS" followed by one or two digits
+            if len(r.name) in range(3, 5) and re.match('[vR][rR][sS][14-9][0-1]?',
+                                                       r.name):
+                # extract rs level as integer and update highest if applicable
+                rsr = int(re.match('[14-9][0-1]?', r.name[2:]).string)
+                levels.append(rsr)
+        return levels
 
     @staticmethod
     async def display_queues_individually(name: str = '',

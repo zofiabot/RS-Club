@@ -14,7 +14,7 @@ bot.remove_command('help')
 bot_ready = True
 
 
-# Help command
+# Help command  
 
 @bot.command(name='help', help='general help page', aliases=params.help_aliases)
 async def cmd_help(ctx: discord.ext.commands.Context):
@@ -205,10 +205,9 @@ async def cmd_clear_rs_queue(ctx: discord.ext.commands.Context, level: str):
     # await Rs.clear_queue(caller=ctx.author, level=int(level))
     Rs.add_job(Rs.clear_queue, [ctx.author, int(level)])
 
-########################################################################################################################
-# System commands
-# module:
-########################################################################################################################
+#################################
+# System commands module:
+#################################
 @bot.command(name='ping', help='ping')
 async def cmd_ping(ctx):
     await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
@@ -225,9 +224,9 @@ async def shutdown(ctx):
 async def settings(ctx):
     pass
 
-########################################################################################################################
+#################################
 # Bot events
-########################################################################################################################
+#################################
 @bot.event
 async def on_message(message):
 
