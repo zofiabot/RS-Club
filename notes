@@ -1,0 +1,28 @@
+make bot run in debug [DONE] - (with o_redstar.py instedd of m_redstar.py)
+move the bot as it is (more or less) to dashboard and run single-star instances in appropriate channels
+add buddy functionality (join with a buddy or 2 or 3 - +1, +2, +3)
+checking queue against selected stars i.e. can't join not sellected star (with error message) - I think it is already coded in, but we need to check
+checking queue add against negative tags given by mods like @noRS[x] for those who repeatedly proven they can't handle RS[x]
+in the future (not needed for launch) positive rating system (to be figured out, like giving a star as a thank you after run)
+some frontend stuff I'll explain once we work together
+
+
+Priorities:
+1,2,3,4 have to happen before launch along with minor stuff from 7
+5 is first to workk on after launch 
+
+Stuff from 7:
+A. If possible !rules command should grab the message in rules and display it [DONE]
+B. help should have it's (timed delete) embed with reaction flags :flag_gb: :flag_es: :flag_ru: :flag_hk: (extendable - text values in Params or separate lang file - howeverr you preferr)
+C. delete previous embeds on init
+
+
+
+
+
+/me: I am disorthographic and spellcheck does not work here :blush:
+
+
+ok so I don't see it directly above, but I added the code to check that you have the correct role before you can join the queue
+
+We need to get version control working, that will probably be the next thing I do... cause this is madness.  you asking me to "zip" you it is pure insanity
