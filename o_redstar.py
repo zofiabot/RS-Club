@@ -32,6 +32,17 @@ def convert_secs_to_time(seconds: int) -> str:
         hours = int(round(seconds / 3600))
         return str(hours) + 'h'
 
+def convert_emoji_to_int(reaction):
+  return { 
+    f'{params.RS4_EMOJI}' : 4,
+    f'{params.RS5_EMOJI}' : 5,
+    f'{params.RS6_EMOJI}' : 6,
+    f'{params.RS7_EMOJI}' : 7,
+    f'{params.RS8_EMOJI}' : 8,
+    f'{params.RS9_EMOJI}' : 9,
+    f'{params.RS10_EMOJI}' : 10,
+    f'{params.RS11_EMOJI}' : 11
+  }.get(reaction,13)
 
 def convert_int_to_icon(number: int):
     if number == 1:
@@ -41,21 +52,21 @@ def convert_int_to_icon(number: int):
     elif number == 3:
         return ':three:'
     elif number == 4:
-        return '4'  #params.RS4_EMOJI
+        return params.RS4_EMOJI
     elif number == 5:
-        return '5'  #params.RS5_EMOJI
+        return params.RS5_EMOJI
     elif number == 6:
-        return '6'  #params.RS6_EMOJI
+        return params.RS6_EMOJI
     elif number == 7:
-        return '7'  #params.RS7_EMOJI
+        return params.RS7_EMOJI
     elif number == 8:
-        return '8'  #params.RS8_EMOJI
+        return params.RS8_EMOJI
     elif number == 9:
-        return '9'  #params.RS9_EMOJI
+        return params.RS9_EMOJI
     elif number == 10:
-        return '10'  #params.RS10_EMOJI
+        return params.RS10_EMOJI
     elif number == 11:
-        return '11'  #params.RS11_EMOJI
+        return params.RS11_EMOJI
     else:
         return ':question:'
 
@@ -239,8 +250,8 @@ class Rs:
                 )
                 # await Rs.leave_queue(user, caused_by_reaction=True)
                 Rs.add_job(Rs.leave_queue, [user, 0, True, False, False, None])
-            if Rs.rs_roles.get(reaction.emoji, None) not in user.roles:
-                await msg.channel.send(f"{user.display_name} you don't have the proper role to join the {reaction.emoji} queue", delete_after=params.MSG_DELETION_DELAY)
+            elif Rs.rs_roles.get(reaction.emoji, None) not in user.roles:
+                await msg.channel.send(f"{user.display_name} you don't have the proper role to join the {convert_emoji_to_int(str(reaction.emoji))} queue", delete_after=params.MSG_DELETION_DELAY)
             elif reaction.emoji == params.RS4_EMOJI:
                 print(
                     f'Rs.handle_reaction(): {user} trying to join RS4 via reaction'
@@ -283,8 +294,8 @@ class Rs:
                 )
                 # await Rs.enter_queue(user, level=10, caused_by_reaction=True)
                 Rs.add_job(Rs.enter_queue, [user, 10, '', True, False])
-            elif reaction.emoji == bot.get_emoji(params.RS11_EMOJI_ID):
-                print(
+            else :
+                print( 
                     f'Rs.handle_reaction(): {user} trying to join RS11 via reaction'
                 )
                 # await Rs.enter_queue(user, level=11, caused_by_reaction=True)
