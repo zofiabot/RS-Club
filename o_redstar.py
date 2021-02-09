@@ -250,8 +250,8 @@ class Rs:
                 )
                 # await Rs.leave_queue(user, caused_by_reaction=True)
                 Rs.add_job(Rs.leave_queue, [user, 0, True, False, False, None])
-            elif Rs.rs_roles.get(reaction.emoji, None) not in user.roles:
-                await msg.channel.send(f"{user.display_name} you don't have the proper role to join the {convert_emoji_to_int(str(reaction.emoji))} queue", delete_after=params.MSG_DELETION_DELAY)
+            elif params.RS_ROLES[convert_emoji_to_int(str(reaction.emoji))-4] not in [ro.name for ro in user.roles]:
+                await msg.channel.send(f"{user.display_name} you don't have the proper role to join the {reaction.emoji} queue", delete_after=params.MSG_DELETION_DELAY)
             elif reaction.emoji == params.RS4_EMOJI:
                 print(
                     f'Rs.handle_reaction(): {user} trying to join RS4 via reaction'
