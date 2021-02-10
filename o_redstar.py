@@ -254,13 +254,13 @@ class Rs:
 
             elif player_own_queue != None : # not working can't check if player already in queue, see commented above
                 Rs.add_job(Rs.leave_queue, [user, 0, False, False, False, None])
-                await msg.channel.send(f"{user.display_name} has left RS{convert_emoji_to_int(str(reaction.emoji))} queue", delete_after = params.MSG_DELETION_DELAY)
+                await msg.channel.send(f"` {user.display_name} has left RS{convert_emoji_to_int(str(reaction.emoji))} queue `", delete_after = params.MSG_DELETION_DELAY)
                 
             elif params.RS_ROLES[convert_emoji_to_int(str(reaction.emoji)) - 4 ] not in [ro.name for ro in user.roles]:
-                await msg.channel.send(f"{user.display_name}, you have not set ping level for RS{convert_emoji_to_int(str(reaction.emoji))}", delete_after = params.MSG_DELETION_DELAY)
+                await msg.channel.send(f"` {user.display_name}, you haven't set ping level for RS{convert_emoji_to_int(str(reaction.emoji))} `", delete_after = params.MSG_DELETION_DELAY)
                 
             elif params.RESTRICTING_ROLES[convert_emoji_to_int(str(reaction.emoji)) - 4 ] in [ro.name for ro in user.roles]:
-                await msg.channel.send(f"We are sorry {user.display_name}, but you can't join RS{convert_emoji_to_int(str(reaction.emoji))} queue", delete_after = params.MSG_DELETION_DELAY)
+                await msg.channel.send(f"` We are sorry {user.display_name}, but you can't join RS{convert_emoji_to_int(str(reaction.emoji))} queue `", delete_after = params.MSG_DELETION_DELAY)
             
             elif reaction.emoji == params.RS4_EMOJI:
                 print(
@@ -398,9 +398,8 @@ class Rs:
 
                         # send afk check msg
                         msg = await bot.get_channel(
-                            params.SERVER_RS_CHANNEL_ID
-                        ).send(
-                            f':warning: {p.discord_mention} still around? React ✅ below.'
+                            params.SERVER_RS_CHANNEL_ID).send(
+                            f'` :warning: {p.discord_mention} still around? Confirm below. `'
                         )
                         await msg.add_reaction(params.CONFIRM_EMOJI)
 
@@ -487,8 +486,7 @@ class Rs:
             qm = Rs.get_qm(level)
         except ValueError:
             m = await bot.get_channel(
-                params.SERVER_RS_CHANNEL_ID
-            ).send(f'{caller.mention} Invalid queue "RS{level}"')
+                params.SERVER_RS_CHANNEL_ID).send(f'` {caller.mention} Invalid queue "RS{level}" `')
             await m.delete(delay=params.MSG_DISPLAY_TIME)
             return
 
@@ -518,12 +516,12 @@ class Rs:
         elif len(q) == 0:
             m = await bot.get_channel(
                 params.SERVER_RS_CHANNEL_ID
-            ).send(f'{caller.mention} No RS{level} queue found!')
+            ).send(f'` {caller.mention} No RS{level} queue found! `')
             await m.delete(delay=params.MSG_DISPLAY_TIME)
         else:
             print(f'Rs.start_queue(): {caller} is not authorized')
             m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(
-                f'{caller.mention} Only queued players or @Moderators can force a start.'
+                f'` {caller.mention} Only queued players or @Moderators can force a start. `'
             )
             await m.delete(delay=params.MSG_DISPLAY_TIME)
 
@@ -538,7 +536,7 @@ class Rs:
         except ValueError:
             m = await bot.get_channel(
                 params.SERVER_RS_CHANNEL_ID
-            ).send(f'{caller.mention} Invalid queue "RS{level}"')
+            ).send(f'` {caller.mention} Invalid queue "RS{level}" `')
             await m.delete(delay=params.MSG_DISPLAY_TIME)
             return
 
@@ -558,7 +556,7 @@ class Rs:
                     if len(q) == 0:
                         m = await bot.get_channel(
                             params.SERVER_RS_CHANNEL_ID
-                        ).send(f'{caller.mention} No RS{level} queue found!')
+                        ).send(f'` {caller.mention} No RS{level} queue found! `')
                         await m.delete(delay=params.MSG_DISPLAY_TIME)
                         print(
                             f'Rs.clear_queue(): no rs{level} queue found. aborting'
@@ -578,17 +576,17 @@ class Rs:
                 qm.clear_queue()
                 m = await bot.get_channel(
                     params.SERVER_RS_CHANNEL_ID
-                ).send(f'{caller.mention} RS{level} queue cleared!')
+                ).send(f'` {caller.mention} RS{level} queue cleared! `')
                 await m.delete(delay=params.MSG_DISPLAY_TIME)
                 await Rs.display_queues(True)
             else:
                 m = await bot.get_channel(
                     params.SERVER_RS_CHANNEL_ID
-                ).send(f'{caller.mention} No RS{level} queue found!')
+                ).send(f'` {caller.mention} No RS{level} queue found! `')
                 await m.delete(delay=params.MSG_DISPLAY_TIME)
         else:
             m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(
-                f'{caller.mention} Only queued players or administrators can clear a queue.'
+                f'` {caller.mention} Only queued players or administrators can clear a queue. `'
             )
             await m.delete(delay=params.MSG_DISPLAY_TIME)
 
@@ -626,7 +624,7 @@ class Rs:
             # couldn't find any RS roles
             if level == 0:
                 m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(
-                    f'Sorry {caller.mention}, it appears you don\'t have an RS role yet.'
+                    f'` Sorry {caller.mention}, it appears you don\'t have an RS role yet. `'
                 )
                 await m.delete(delay=params.MSG_DISPLAY_TIME)
                 return
@@ -663,7 +661,7 @@ class Rs:
         # new in this queue -> standard join
         if res == QueueManager.PLAYER_JOINED:
             m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(
-                f':new: {player.discord_nick} joined {ping_string} ({queue_len}/4).'
+                f'` :new: {player.discord_nick} joined {ping_string} ({queue_len}/4). `'
             )
             await m.delete(delay=0)
             await Rs.display_queues(True)
@@ -731,7 +729,7 @@ class Rs:
                     m = await bot.get_channel(
                         params.SERVER_RS_CHANNEL_ID
                     ).send(
-                        f'{params.LEAVE_EMOJI} {player.discord_nick} timed out for {qm.name} ({len(q)}/4)'
+                        f'` {player.discord_nick} timed out for {qm.name} ({len(q)}/4) `'
                     )
                     await m.delete(delay=params.MSG_DISPLAY_TIME)
                     await Rs._delete_afk_check_msg(player.discord_id)
@@ -752,7 +750,7 @@ class Rs:
                     m = await bot.get_channel(
                         params.SERVER_RS_CHANNEL_ID
                     ).send(
-                        f'{params.LEAVE_EMOJI} {player.discord_nick} removed from {qm.name} ({len(q)}/4)'
+                        f'` {player.discord_nick} removed from {qm.name} ({len(q)}/4) `'
                     )
                     await m.delete(delay=params.MSG_DISPLAY_TIME)
                     #await Rs.display_queues()
@@ -772,7 +770,7 @@ class Rs:
                     m = await bot.get_channel(
                         params.SERVER_RS_CHANNEL_ID
                     ).send(
-                        f'{params.LEAVE_EMOJI} {player.discord_nick} left {qm.name} ({lq}/4).'
+                        f'` {player.discord_nick} left {qm.name} ({lq}/4). `'
                     )
                     await m.delete(delay=params.MSG_DISPLAY_TIME)
                     await Rs._delete_afk_check_msg(player.discord_id)
@@ -798,7 +796,7 @@ class Rs:
                     m = await bot.get_channel(
                         params.SERVER_RS_CHANNEL_ID
                     ).send(
-                        f':x: {player.discord_nick} left {qm.name} ({lq}/4).')
+                        f'` {player.discord_nick} left {qm.name} ({lq}/4). `')
                     await m.delete(delay=params.MSG_DISPLAY_TIME)
                     await Rs._delete_afk_check_msg(player.discord_id)
 
@@ -970,7 +968,7 @@ class Rs:
         except ValueError:
             m = await bot.get_channel(
                 params.SERVER_RS_CHANNEL_ID
-            ).send(f'Oops! Invalid queue "RS{level}". Call for help!')
+            ).send(f'` Oops! Invalid queue "RS{level}". Call for help! `')
             await m.delete(delay=params.MSG_DISPLAY_TIME)
             return
 
@@ -978,6 +976,7 @@ class Rs:
         pings = [p.discord_mention for p in qm.queue]
         msg = ', '.join(pings)
         msg = f'**RS**{convert_int_to_icon(qm.level)} ready! ' + msg + ' Meet where?\n'
+        # msg = '` ' + msg + ' `'
         m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(msg)
         #await m.delete(delay=params.INFO_DISPLAY_TIME)
 
