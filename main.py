@@ -88,7 +88,7 @@ async def cmd_rs_rules(ctx: discord.ext.commands.Context):
     channel = bot.get_channel(params.RULES_CHANNEL_ID)
     message = await channel.fetch_message(params.RULES_MESSAGE_ID) #.content
 
-    embed = discord.Embed(color=params.EMBED_COLOR)
+    embed = discord.Embed(color=params.EMBED_COLOR, delete_after = params.RULES_DELETION_DELAY)
     embed.set_author(name='RS Club Rules', icon_url=params.SERVER_DISCORD_ICON)
     # text = params.TEXT_RULES
     embed.description = message.content

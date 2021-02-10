@@ -399,7 +399,7 @@ class Rs:
                         # send afk check msg
                         msg = await bot.get_channel(
                             params.SERVER_RS_CHANNEL_ID).send(
-                            f'` :warning: {p.discord_mention} still around? Confirm below. `'
+                            f'` ⚠️ {p.discord_mention} still around? Confirm below. `'
                         )
                         await msg.add_reaction(params.CONFIRM_EMOJI)
 
@@ -661,7 +661,7 @@ class Rs:
         # new in this queue -> standard join
         if res == QueueManager.PLAYER_JOINED:
             m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(
-                f'` :new: {player.discord_nick} joined {ping_string} ({queue_len}/4). `'
+                f'` {player.discord_nick} joined {ping_string} ({queue_len}/4). `'
             )
             await m.delete(delay=0)
             await Rs.display_queues(True)
@@ -839,7 +839,7 @@ class Rs:
 
                 # AFK warning
                 if p.afk_flag is True:
-                    warn_text = ' :warning: '
+                    warn_text = ' ⚠️ '
                 else:
                     warn_text = ''
 
@@ -976,10 +976,8 @@ class Rs:
         pings = [p.discord_mention for p in qm.queue]
         msg = ', '.join(pings)
         msg = f'**RS**{convert_int_to_icon(qm.level)} ready! ' + msg + ' Meet where?\n'
-        # msg = '` ' + msg + ' `'
         m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(msg)
-        #await m.delete(delay=params.INFO_DISPLAY_TIME)
-
+        
         # remove players from other queues and/or remove any pending afk checks if applicable
         for p in qm.queue:
             await Rs._delete_afk_check_msg(p.discord_id)
@@ -1080,7 +1078,7 @@ class Rs:
 
                 # AFK warning
                 if p.afk_flag is True:
-                    warn_text = ' :warning: '
+                    warn_text = ' ⚠️ '
                 else:
                     warn_text = ''
 

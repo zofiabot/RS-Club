@@ -38,8 +38,9 @@ TIME_AFK_WARN = 60 * 10  # afk warning as ping; afk_flag set in checker task aft
 TIME_AFK_KICK = 60 * 15  # kick if warning ignored. must be bigger than TIME_AFK_WARN!
 TIME_Q_REPOST = 60
 TIME_Q_REPOST_COOLDOWN = 1
-MSG_DELETION_DELAY = 5
-MSG_DISPLAY_TIME = 5
+MSG_DELETION_DELAY = 7
+RULES_DELETION_DELAY = 60 * 3
+MSG_DISPLAY_TIME = 7
 INFO_DISPLAY_TIME = 60 * 5
 PING_COOLDOWN = 60 * 5  # time that has to pass before ping_all_role can be mentioned again
 
