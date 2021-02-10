@@ -32,7 +32,7 @@ def convert_secs_to_time(seconds: int) -> str:
         hours = int(round(seconds / 3600))
         return str(hours) + 'h'
 
-def convert_emoji_to_int(reaction):
+def convert_emoji_to_int(reaction: str):
   return { 
     f'{params.RS4_EMOJI}' : 4,
     f'{params.RS5_EMOJI}' : 5,
@@ -104,7 +104,7 @@ class Rs:
         Rs.guild = bot.get_guild(params.SERVER_DISCORD_ID)
 
         #get the discord.Role(s) for people who are allowed to join
-        for emoji, role_name in zip(params.RS_EMOJIS, params.RS_ROLES):
+        for emoji, role_name in zip(params.RS_EMOJIS[-8:], params.RS_ROLES[-8:]):
             role = discord.utils.get(Rs.guild.roles, name=role_name)
             if role:
                 Rs.rs_roles[emoji] = role
@@ -138,9 +138,7 @@ class Rs:
             'RS11', 11, 0xff3300,
             discord.utils.get(Rs.guild.roles, name=params.RS11_ROLE).mention)
 
-        Rs.qms = [
-            Rs.qm4, Rs.qm5, Rs.qm6, Rs.qm7, Rs.qm8, Rs.qm9, Rs.qm10, Rs.qm11
-        ]
+        Rs.qms = [ Rs.qm4, Rs.qm5, Rs.qm6, Rs.qm7, Rs.qm8, Rs.qm9, Rs.qm10, Rs.qm11 ]
 
         # queue status embed(s)
         Rs.queue_embeds = {
@@ -244,44 +242,61 @@ class Rs:
         # if it was a queue embed
         # if qemb is not None and msg_id == qemb.id:
         if Rs.queue_status_embed is not None and msg_id == Rs.queue_status_embed.id:
+          
+            player_own_queue = None
+            #player_own_queue = Rs.qms[convert_emoji_to_int(str(reaction.emoji))].find_player_in_queue_by_discord(user)
+
             if reaction.emoji == params.LEAVE_EMOJI:
                 print(
                     f'Rs.handle_reaction(): {user} trying to leave all queues via reaction'
                 )
-                # await Rs.leave_queue(user, caused_by_reaction=True)
                 Rs.add_job(Rs.leave_queue, [user, 0, True, False, False, None])
-            elif params.RS_ROLES[convert_emoji_to_int(str(reaction.emoji))-4] not in [ro.name for ro in user.roles]:
-                await msg.channel.send(f"{user.display_name} you don't have the proper role to join the {reaction.emoji} queue", delete_after=params.MSG_DELETION_DELAY)
+
+            elif player_own_queue != None : # not working can't check if player already in queue, see commented above
+                Rs.add_job(Rs.leave_queue, [user, 0, False, False, False, None])
+                await msg.channel.send(f"{user.display_name} has left RS{convert_emoji_to_int(str(reaction.emoji))} queue", delete_after = params.MSG_DELETION_DELAY)
+                
+            elif params.RS_ROLES[convert_emoji_to_int(str(reaction.emoji)) - 4 ] not in [ro.name for ro in user.roles]:
+                await msg.channel.send(f"{user.display_name}, you have not set ping level for RS{convert_emoji_to_int(str(reaction.emoji))}", delete_after = params.MSG_DELETION_DELAY)
+                
+            elif params.RESTRICTING_ROLES[convert_emoji_to_int(str(reaction.emoji)) - 4 ] in [ro.name for ro in user.roles]:
+                await msg.channel.send(f"We are sorry {user.display_name}, but you can't join RS{convert_emoji_to_int(str(reaction.emoji))} queue", delete_after = params.MSG_DELETION_DELAY)
+            
             elif reaction.emoji == params.RS4_EMOJI:
                 print(
                     f'Rs.handle_reaction(): {user} trying to join RS4 via reaction'
                 )
                 # await Rs.enter_queue(user, level=4, caused_by_reaction=True)
                 Rs.add_job(Rs.enter_queue, [user, 4, '', True, False])
+
             elif reaction.emoji == params.RS5_EMOJI:
                 print(
                     f'Rs.handle_reaction(): {user} trying to join RS5 via reaction'
                 )
                 # await Rs.enter_queue(user, level=5, caused_by_reaction=True)
                 Rs.add_job(Rs.enter_queue, [user, 5, '', True, False])
+
             elif reaction.emoji == params.RS6_EMOJI:
                 print(
                     f'Rs.handle_reaction(): {user} trying to join RS6 via reaction'
                 )
                 # await Rs.enter_queue(user, level=6, caused_by_reaction=True)
                 Rs.add_job(Rs.enter_queue, [user, 6, '', True, False])
+
             elif reaction.emoji == params.RS7_EMOJI:
                 print(
                     f'Rs.handle_reaction(): {user} trying to join RS7 via reaction'
                 )
                 # await Rs.enter_queue(user, level=7, caused_by_reaction=True)
                 Rs.add_job(Rs.enter_queue, [user, 7, '', True, False])
+
             elif reaction.emoji == params.RS8_EMOJI:
                 print(
                     f'Rs.handle_reaction(): {user} trying to join RS8 via reaction'
                 )
                 # await Rs.enter_queue(user, level=8, caused_by_reaction=True)
                 Rs.add_job(Rs.enter_queue, [user, 8, '', True, False])
+
             elif reaction.emoji == params.RS9_EMOJI:
                 print(
                     f'Rs.handle_reaction(): {user} trying to join RS9 via reaction'
@@ -294,18 +309,20 @@ class Rs:
                 )
                 # await Rs.enter_queue(user, level=10, caused_by_reaction=True)
                 Rs.add_job(Rs.enter_queue, [user, 10, '', True, False])
-            else :
+
+            elif convert_emoji_to_int(str(reaction.emoji)) == 11 :
                 print( 
                     f'Rs.handle_reaction(): {user} trying to join RS11 via reaction'
                 )
                 # await Rs.enter_queue(user, level=11, caused_by_reaction=True)
                 Rs.add_job(Rs.enter_queue, [user, 11, '', True, False])
+
             await Rs.queue_status_embed.remove_reaction(reaction.emoji, user)
 
     @staticmethod
     def get_qm(level: int):
         if level in params.SUPPORTED_RS_LEVELS:
-            return Rs.qms[level - 4]
+            return Rs.qms[ level - 4 ]
         else:
             raise ValueError
 
@@ -788,7 +805,7 @@ class Rs:
         await Rs.display_queues(True)
 
     @staticmethod
-    async def display_queues(force_update: bool = False):
+    async def display_queues(force_update: bool = False, footer_text: str = params.TEXT_FOOTER_TEXT):
         """
 
         :param force_update: force reposting the embed
@@ -804,7 +821,7 @@ class Rs:
 
         embed = discord.Embed(color=params.EMBED_QUEUE_COLOR)
         embed.set_author(name='', icon_url='')
-        embed.set_footer(text=params.TEXT_FOOTER_TEXT)
+        embed.set_footer(text=footer_text)
         inl = True
         any_queue_active = False
 
@@ -877,8 +894,8 @@ class Rs:
         Rs.queue_status_embed = await bot.get_channel(
             params.SERVER_RS_CHANNEL_ID).send(embed=embed)
         try:
-            #await Rs.queue_status_embed.add_reaction(params.RS4_EMOJI)
-            #await Rs.queue_status_embed.add_reaction(params.RS5_EMOJI)
+            await Rs.queue_status_embed.add_reaction(params.RS4_EMOJI)
+            await Rs.queue_status_embed.add_reaction(params.RS5_EMOJI)
             await Rs.queue_status_embed.add_reaction(params.RS6_EMOJI)
             await Rs.queue_status_embed.add_reaction(params.RS7_EMOJI)
             await Rs.queue_status_embed.add_reaction(params.RS8_EMOJI)
