@@ -1,1 +1,1 @@
-{"py/tuple": [1613014530.3658118, 1613014300.3797429, []]}
+{"py/tuple": [1613021190.7903726, 1613020998.9688878, [{"py/object": "player.Player", "discord_name": "Zofia#1204", "discord_nick": "Zofia", "discord_mention": "<@670953136675880993>", "discord_id": 670953136675880993, "note": "", "mates": 0, "afk_flag": false, "timer": 1613021190.7903557, "afk_timer": 179}]]}

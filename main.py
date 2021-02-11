@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 from datetime import datetime, timedelta
 import params_rs as params
-from o_redstar import Rs
+from redstar import Rs
 from keep_awake import keep_awake # used to keep the server awake otherwise it goes to sleep after 1h of inactivity
 
 #intents = discord.Intents.default()

@@ -341,7 +341,7 @@ class Rs:
                         # send afk check msg
                         msg = await bot.get_channel(
                             params.SERVER_RS_CHANNEL_ID).send(
-                            f'` ⚠️ {p.discord_mention} still around? Confirm below. `'
+                            f' {p.discord_mention} ⚠️ ` still around? Confirm below. `'
                         )
                         await msg.add_reaction(params.CONFIRM_EMOJI)
 
@@ -428,8 +428,7 @@ class Rs:
             qm = Rs.get_qm(level)
         except ValueError:
             m = await bot.get_channel(
-                params.SERVER_RS_CHANNEL_ID).send(f'` {caller.mention} Invalid queue "RS{level}" `')
-            await m.delete(delay=params.MSG_DISPLAY_TIME)
+                params.SERVER_RS_CHANNEL_ID).send(f'{caller.mention} ` Invalid queue "RS{level}" `', delete_after = params.MSG_DISPLAY_TIME)
             return
 
         p = qm.find_player_in_queue_by_discord(caller)
@@ -458,14 +457,12 @@ class Rs:
         elif len(q) == 0:
             m = await bot.get_channel(
                 params.SERVER_RS_CHANNEL_ID
-            ).send(f'` {caller.mention} No RS{level} queue found! `')
-            await m.delete(delay=params.MSG_DISPLAY_TIME)
+            ).send(f'{caller.mention} ` No RS{level} queue found! `', delete_after = params.MSG_DISPLAY_TIME)
         else:
             print(f'Rs.start_queue(): {caller} is not authorized')
             m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(
-                f'` {caller.mention} Only queued players or @Moderators can force a start. `'
-            )
-            await m.delete(delay=params.MSG_DISPLAY_TIME)
+                f'{caller.mention} ` Only queued players or @Moderators can force a start. `'
+            , delete_after = params.MSG_DISPLAY_TIME)
 
     @staticmethod
     async def clear_queue(caller: discord.Member, level: int = 1):
@@ -478,8 +475,7 @@ class Rs:
         except ValueError:
             m = await bot.get_channel(
                 params.SERVER_RS_CHANNEL_ID
-            ).send(f'` {caller.mention} Invalid queue "RS{level}" `')
-            await m.delete(delay=params.MSG_DISPLAY_TIME)
+            ).send(f'{caller.mention} ` Invalid queue "RS{level}" `', delete_after = params.MSG_DISPLAY_TIME)
             return
 
         p = qm.find_player_in_queue_by_discord(caller)
@@ -498,8 +494,7 @@ class Rs:
                     if len(q) == 0:
                         m = await bot.get_channel(
                             params.SERVER_RS_CHANNEL_ID
-                        ).send(f'` {caller.mention} No RS{level} queue found! `')
-                        await m.delete(delay=params.MSG_DISPLAY_TIME)
+                        ).send(f'{caller.mention} ` No RS{level} queue found! `', delete_after = params.MSG_DISPLAY_TIME)
                         print(
                             f'Rs.clear_queue(): no rs{level} queue found. aborting'
                         )
@@ -518,19 +513,16 @@ class Rs:
                 qm.clear_queue()
                 m = await bot.get_channel(
                     params.SERVER_RS_CHANNEL_ID
-                ).send(f'` {caller.mention} RS{level} queue cleared! `')
-                await m.delete(delay=params.MSG_DISPLAY_TIME)
+                ).send(f'{caller.mention} ` RS{level} queue cleared! `', delete_after = params.MSG_DISPLAY_TIME)
                 await Rs.display_queues(True)
             else:
                 m = await bot.get_channel(
                     params.SERVER_RS_CHANNEL_ID
-                ).send(f'` {caller.mention} No RS{level} queue found! `')
-                await m.delete(delay=params.MSG_DISPLAY_TIME)
+                ).send(f'{caller.mention} ` No RS{level} queue found! `', delete_after = params.MSG_DISPLAY_TIME)
         else:
             m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(
-                f'` {caller.mention} Only queued players or administrators can clear a queue. `'
-            )
-            await m.delete(delay=params.MSG_DISPLAY_TIME)
+                f'{caller.mention} ` Only queued players or administrators can clear a queue. `'
+            , delete_after = params.MSG_DISPLAY_TIME)
 
     @staticmethod
     async def enter_queue(caller: discord.Member,
@@ -553,8 +545,7 @@ class Rs:
         if level not in params.SUPPORTED_RS_LEVELS and level != 0:
             m = await bot.get_channel(
                 params.SERVER_RS_CHANNEL_ID
-            ).send(f'RS{level}? Not in this galaxy. Try again!')
-            await m.delete(delay=params.MSG_DISPLAY_TIME)
+            ).send(f'RS{level}? Not in this galaxy. Try again!', delete_after = params.MSG_DISPLAY_TIME)
             return
 
         auto_detect_rs = False
@@ -566,9 +557,8 @@ class Rs:
             # couldn't find any RS roles
             if level == 0:
                 m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(
-                    f'` Sorry {caller.mention}, it appears you don\'t have an RS role yet. `'
-                )
-                await m.delete(delay=params.MSG_DISPLAY_TIME)
+                    f'Excuse me {caller.mention}` it appears you don\'t have an RS role set. `'
+                , delete_after = params.MSG_DISPLAY_TIME)
                 return
 
         # try to fetch QM for this level
@@ -577,8 +567,7 @@ class Rs:
         except ValueError:
             m = await bot.get_channel(
                 params.SERVER_RS_CHANNEL_ID
-            ).send(f'{caller.mention} Invalid queue "RS{level}"')
-            await m.delete(delay=params.MSG_DISPLAY_TIME)
+            ).send(f'{caller.mention} Invalid queue "RS{level}"', delete_after = params.MSG_DISPLAY_TIME)
             return
 
         queue = None
@@ -603,9 +592,8 @@ class Rs:
         # new in this queue -> standard join
         if res == QueueManager.PLAYER_JOINED:
             m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(
-                f'` {player.discord_nick} joined {ping_string} ({queue_len}/4). `'
-            )
-            await m.delete(delay=0)
+                f'` {player.discord_nick} joined` {ping_string} ` ({queue_len}/4) `'
+            , delete_after = params.MSG_DISPLAY_TIME)
             await Rs.display_queues(True)
 
         # open afk warning -> always reset when enter_queue is called
@@ -672,8 +660,7 @@ class Rs:
                         params.SERVER_RS_CHANNEL_ID
                     ).send(
                         f'` {player.discord_nick} timed out for {qm.name} ({len(q)}/4) `'
-                    )
-                    await m.delete(delay=params.MSG_DISPLAY_TIME)
+                    , delete_after = params.MSG_DISPLAY_TIME)
                     await Rs._delete_afk_check_msg(player.discord_id)
 
         # automatic removal due to another queue finishing [in this case, <rs> will be skipped!]
@@ -693,8 +680,7 @@ class Rs:
                         params.SERVER_RS_CHANNEL_ID
                     ).send(
                         f'` {player.discord_nick} removed from {qm.name} ({len(q)}/4) `'
-                    )
-                    await m.delete(delay=params.MSG_DISPLAY_TIME)
+                    , delete_after = params.MSG_DISPLAY_TIME)
                     #await Rs.display_queues()
 
         # reaction used
@@ -713,8 +699,7 @@ class Rs:
                         params.SERVER_RS_CHANNEL_ID
                     ).send(
                         f'` {player.discord_nick} left {qm.name} ({lq}/4) `'
-                    )
-                    await m.delete(delay=params.MSG_DISPLAY_TIME)
+                    , delete_after = params.MSG_DISPLAY_TIME)
                     await Rs._delete_afk_check_msg(player.discord_id)
                 # await Rs.display_queues()
 
@@ -738,8 +723,7 @@ class Rs:
                     m = await bot.get_channel(
                         params.SERVER_RS_CHANNEL_ID
                     ).send(
-                        f'` {player.discord_nick} left {qm.name} ({lq}/4) `')
-                    await m.delete(delay=params.MSG_DISPLAY_TIME)
+                        f'` {player.discord_nick} left {qm.name} ({lq}/4) `', delete_after = params.MSG_DISPLAY_TIME)
                     await Rs._delete_afk_check_msg(player.discord_id)
 
         await Rs.display_queues(True)
@@ -786,7 +770,7 @@ class Rs:
                     warn_text = ''
 
                 if p.note != '':
-                    note_text = f' ~ "_{p.note}_"'
+                    note_text = f'~ "_{p.note}_"'
                 else:
                     note_text = ''
 
@@ -873,8 +857,7 @@ class Rs:
         # await Rs.display_queues(True)
         Rs.add_job(Rs.display_queues, [True])
         # m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(
-        #     f':white_check_mark: {discord_user.display_name} you are in for {", ".join(players_queues)}!')
-        # await m.delete(delay=params.MSG_DISPLAY_TIME)
+        #     f':white_check_mark: {discord_user.display_name} you are in for {", ".join(players_queues)}!', delete_after = params.MSG_DISPLAY_TIME)
 
         print(
             f'Rs._reset_afk(): pending afk warning for {discord_user} was reset'
@@ -907,14 +890,13 @@ class Rs:
         except ValueError:
             m = await bot.get_channel(
                 params.SERVER_RS_CHANNEL_ID
-            ).send(f'` Oops! Invalid queue "RS{level}". Call for help! `')
-            await m.delete(delay=params.MSG_DISPLAY_TIME)
+            ).send(f'` Oops! Invalid queue "RS{level}". Call for help! `', delete_after = params.MSG_DISPLAY_TIME)
             return
 
         # ping all players
         pings = [p.discord_mention for p in qm.queue]
         msg = ', '.join(pings)
-        msg = f'**RS**{convert_int_to_icon(qm.level)} ready! ' + msg + ' Meet where?\n'
+        msg = f'🇷🇸{convert_int_to_icon(qm.level)} ready! ' + msg + ' Meet where?\n'
         m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(msg)
         
         # remove players from other queues and/or remove any pending afk checks if applicable
@@ -1009,7 +991,7 @@ class Rs:
             # fetch the queue and build embed
             q = qm.queue
             embed = discord.Embed(color=params.EMBED_QUEUE_COLOR)
-            embed.title = qm.name + f' Queue ({len(q)}/4)'
+            embed.title = qm.name + f'Queue ({len(q)}/4)'
             team = ''
 
             # for each player: make entry in embed
@@ -1022,12 +1004,12 @@ class Rs:
                     warn_text = ''
 
                 if p.note != '':
-                    note_text = f' - "_{p.note}_"'
+                    note_text = f'- "_{p.note}_"'
                 else:
                     note_text = ''
 
                 # print player
-                team = team + f'        {p.discord_nick + warn_text + note_text}  ' \
+                team = team + f'{p.discord_nick + warn_text + note_text}  ' \
                               f':watch: {convert_secs_to_time(seconds=time.time()-p.timer)}\n'
 
             queue_age = qm.get_queue_age(q)
@@ -1094,9 +1076,6 @@ class Rs:
                          icon_url=params.BOT_DISCORD_ICON)
         embed.set_footer(
             text=f'Called by {ctx.author.display_name}\nDeleting in 2 min.')
-        embed.add_field(name="`!rs`",
-                        value="Hide (mute) or unhide this channel.",
-                        inline=False)
         embed.add_field(name="`!in`",
                         value="Sign up for your highest RS level.",
                         inline=False)
