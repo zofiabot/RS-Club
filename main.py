@@ -2,6 +2,7 @@ import os
 import re
 import discord
 from discord.ext import commands
+from datetime import datetime, timedelta
 import params_rs as params
 from o_redstar import Rs
 from keep_awake import keep_awake # used to keep the server awake otherwise it goes to sleep after 1h of inactivity
@@ -12,7 +13,7 @@ from keep_awake import keep_awake # used to keep the server awake otherwise it g
 bot = discord.ext.commands.Bot(command_prefix=['!']) #, intents=intents)
 bot.remove_command('help')
 bot_ready = True
-
+dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
 
 # Help command  
 
@@ -89,7 +90,7 @@ async def cmd_rs_rules(ctx: discord.ext.commands.Context):
     message = await channel.fetch_message(params.RULES_MESSAGE_ID) #.content
 
     embed = discord.Embed(color=params.EMBED_COLOR, delete_after = params.RULES_DELETION_DELAY)
-    embed.set_author(name='RS Club Rules', icon_url=params.SERVER_DISCORD_ICON)
+    embed.set_author(name= params.TEXT_RULES_TITLE, icon_url=params.SERVER_DISCORD_ICON)
     # text = params.TEXT_RULES
     embed.description = message.content
     await ctx.send(embed=embed)
@@ -181,7 +182,6 @@ async def cmd_start_rs_queue(ctx: discord.ext.commands.Context, level: str):
     print(f'cmd_start_rs_queue(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}')
 
     # relay command to module
-    # await Rs.start_queue(caller=ctx.author, level=int(level))
     Rs.add_job(Rs.start_queue, [ctx.author, int(level)])
 
 
@@ -202,7 +202,6 @@ async def cmd_clear_rs_queue(ctx: discord.ext.commands.Context, level: str):
     print(f'cmd_clear_rs_queue(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}')
 
     # relay command to module
-    # await Rs.clear_queue(caller=ctx.author, level=int(level))
     Rs.add_job(Rs.clear_queue, [ctx.author, int(level)])
 
 #################################
@@ -230,20 +229,9 @@ async def settings(ctx):
 @bot.event
 async def on_message(message):
 
-    #global bot_ready
-    #if not bot_ready:
-    #return
-
-    # print(f'on_message(): {message.author} in #{message.channel}: "{message.content}"')
-
     # skip event if: msg from bot itself or debug_mode / debug_channel
     if message.author == bot.user or message.guild.id != params.SERVER_DISCORD_ID:
-        #        or (message.channel.id == params.SERVER_DEBUG_CHANNEL_ID and #params.DEBUG_MODE is False)\
-        #        or (message.channel.id != params.SERVER_DEBUG_CHANNEL_ID and #params.DEBUG_MODE is True):
         return
-
-    # echo as debug
-    # await message.channel.send(message.content)
 
     # allow '+' and '-' as soft prefixes inside rs channel
     if message.channel.id == params.SERVER_RS_CHANNEL_ID and message.content[0] in '+-':
@@ -262,11 +250,35 @@ async def on_message(message):
 
 @bot.event
 async def on_ready():
-
+    
     # initialize all command modules
     Rs.init(bot)        # red star
+
     print(f'on_ready(): modules initialized')
 
+
+    # Clean dead embedds
+    mgs = [] #Empty list to put all the messages in the log
+    channel = bot.get_channel(params.SERVER_RS_CHANNEL_ID) 
+
+    async for message in channel.history(limit=100):
+      if message.author == bot.user :
+        mgs.append(message)
+    await channel.delete_messages(mgs)
+
+    
+    # Clean logs older than 24h
+    mgs = [] #Empty list to put all the messages in the log
+    channel = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID) 
+    time_differennce = timedelta(hours=24)
+    init_time = datetime.now()
+    
+    async for message in channel.history(limit=100):
+      if init_time - message.created_at > time_differennce and message.author == bot.user :
+        mgs.append(message)
+    await channel.delete_messages(mgs) 
+    mgs = [] #Empty list to avoid trouble with other code  
+      
     # launch loop tasks
     if not Rs.task_process_queue.is_running() and params.DEBUG_MODE is False:
         Rs.task_process_queue.start()
@@ -285,82 +297,33 @@ async def on_ready():
     global bot_ready
     bot_ready = True
     print(f'on_ready(): {bot.user.name} is ready')
-
     dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
     await dbg_ch.send(
-        f'**INFO**\non_ready(): Initialization complete')
+        f'**INFO**: on_ready(): Initialization complete')
 
 
 @bot.event
 async def on_connect():
     print(f'on_connect(): {bot.user.name} has connected')
+    
     if params.DEBUG_MODE is False:
-        dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
         if dbg_ch:
             await dbg_ch.send(
-            f'**INFO**\non_connect(): Connection (re-)established')
+            f'**INFO**: on_connect(): Connection (re-)established')
 
 @bot.event
 async def on_disconnect():
     print(f'on_disconnect(): {bot.user.name} has disconnected')
-    # if params.DEBUG_MODE is False:
-    #     dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
-    #     await dbg_ch.send(
-    #         f':warning: **ERROR**\non_disconnect(): Connection lost')
+    await dbg_ch.send(f':warning: **ERROR**: on_disconnect(): Connection lost')
 
 
 @bot.event
 async def on_resumed():
     print(f'on_resumed(): {bot.user.name} has resumed')
     # if params.DEBUG_MODE is False:
-    #     dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
+    #     
     #     await dbg_ch.send(
-    #         f'**INFO**\non_resumed(): Connection recovered')
-
-#@bot.event
-#async def on_member_join(guest: discord.Member):
-#
-#    global bot_ready
-#    if not bot_ready or params.DEBUG_MODE:
-#        return
-#
-#    print(
-#        f'on_member_join(): {guest.display_name} ({guest}) has joined the server'
-#    )
-#
-#    new_user_nick = '[] ' + guest.display_name
-#
-#    if len(new_user_nick) > 32:
-#        print(
-#            f'on_member_join(): nickname cannot support ally tags (length would exceed 32)'
-#        )
-#    else:
-#        await guest.edit(nick=new_user_nick,
-#                         reason=f"automatic ally tag on join")
-#        print(f'on_member_join(): ally tags added: {new_user_nick}')
-#
-#    guest_role = None
-#    # uih_rs_role = guest.guild.get_role(params.SERVER_RS_ROLE_ID)
-#    #await guest.add_roles(guest_role, reason='automatic Guest role on join')
-#    # await guest.add_roles(uih_rs_role, reason='automatic Guest + UIH-RS role on join')
-#    print(f'on_member_join(): assigned @Guest to {guest.display_name}')
-
-
-#@bot.event
-#async def on_member_remove(member: discord.Member):
-#
-#    global bot_ready
-#    if not bot_ready or params.DEBUG_MODE:
-#        return
-#
-#    print(f'on_member_remove(): {member.display_name} has left the server')
-
-# @bot.event
-# async def on_error(event, *args, **kwargs):
-#     print(f'Unhandled message: event={event} message.content={args[0].content}\n')
-#     print(event)
-#     #print(f'Unhandled message: {args[0]}\n')
-#     return
+    #         f'**INFO**: on_resumed(): Connection recovered')
 
 
 @bot.event
@@ -394,7 +357,7 @@ async def on_command_error(ctx, error):
     print(f'on_command_error(): {error}')
     print(f'on_command_error(): message was: "{ctx.message.content}" sent by {ctx.author.name} in #{ctx.channel.name}')
 
-    dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
+    
     await dbg_ch.send(f'**ERROR**\n{error}\n**REASON**\n"{ctx.message.content}" sent by {ctx.author.name} in #{ctx.channel.name}')
 
     try:

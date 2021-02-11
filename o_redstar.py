@@ -18,8 +18,7 @@ from queue_manager import QueueManager
 
 # module reference to Bot instance
 bot: discord.Client
-
-
+star_range = params.SUPPORTED_RS_LEVELS
 # DIRTY HACK
 def convert_secs_to_time(seconds: int) -> str:
     if seconds < 60:
@@ -33,43 +32,18 @@ def convert_secs_to_time(seconds: int) -> str:
         return str(hours) + 'h'
 
 def convert_emoji_to_int(reaction: str):
-  return { 
-    f'{params.RS4_EMOJI}' : 4,
-    f'{params.RS5_EMOJI}' : 5,
-    f'{params.RS6_EMOJI}' : 6,
-    f'{params.RS7_EMOJI}' : 7,
-    f'{params.RS8_EMOJI}' : 8,
-    f'{params.RS9_EMOJI}' : 9,
-    f'{params.RS10_EMOJI}' : 10,
-    f'{params.RS11_EMOJI}' : 11
-  }.get(reaction,13)
+  e2i={}
+  for i in Rs.star_range :
+    e = (f'RS{i}_EMOJI')
+    e2i[getattr(params,e)] = i
+  return e2i[reaction]
 
 def convert_int_to_icon(number: int):
-    if number == 1:
-        return ':one:'
-    elif number == 2:
-        return ':two:'
-    elif number == 3:
-        return ':three:'
-    elif number == 4:
-        return params.RS4_EMOJI
-    elif number == 5:
-        return params.RS5_EMOJI
-    elif number == 6:
-        return params.RS6_EMOJI
-    elif number == 7:
-        return params.RS7_EMOJI
-    elif number == 8:
-        return params.RS8_EMOJI
-    elif number == 9:
-        return params.RS9_EMOJI
-    elif number == 10:
-        return params.RS10_EMOJI
-    elif number == 11:
-        return params.RS11_EMOJI
-    else:
-        return ':question:'
-
+  i2e={}
+  for i in Rs.star_range :
+    n = (f'RS{i}_EMOJI')
+    i2e[i] = [getattr(params,n)]
+  return i2e[number]
 
 class Rs:
 
@@ -83,6 +57,7 @@ class Rs:
     stats = {}
     rs_roles = {}
     guild: discord.Guild = None
+    star_range = params.SUPPORTED_RS_LEVELS
 
     # dict to handle open user dialogues (expecting a reaction to be closed)
     # key: discord.Message.id
@@ -102,7 +77,6 @@ class Rs:
         global bot
         bot = bot_ref
         Rs.guild = bot.get_guild(params.SERVER_DISCORD_ID)
-
         #get the discord.Role(s) for people who are allowed to join
         for emoji, role_name in zip(params.RS_EMOJIS[-8:], params.RS_ROLES[-8:]):
             role = discord.utils.get(Rs.guild.roles, name=role_name)
@@ -111,47 +85,20 @@ class Rs:
             else:
                 logger.error(f"unable to retrieve role {role_name}, bot will NOT operate as intended")
                 raise Exception(f"unable to retrieve role {role_name}, bot will NOT operate as intended")
-
-        # rs queue management (data storage)
-        Rs.qm4 = QueueManager(
-            'RS4', 4, 0xff3300,
-            discord.utils.get(Rs.guild.roles, name=params.RS4_ROLE).mention)
-        Rs.qm5 = QueueManager(
-            'RS5', 5, 0xff3300,
-            discord.utils.get(Rs.guild.roles, name=params.RS5_ROLE).mention)
-        Rs.qm6 = QueueManager(
-            'RS6', 6, 0xff3300,
-            discord.utils.get(Rs.guild.roles, name=params.RS6_ROLE).mention)
-        Rs.qm7 = QueueManager(
-            'RS7', 7, 0xff3300,
-            discord.utils.get(Rs.guild.roles, name=params.RS7_ROLE).mention)
-        Rs.qm8 = QueueManager(
-            'RS8', 8, 0xff3300,
-            discord.utils.get(Rs.guild.roles, name=params.RS8_ROLE).mention)
-        Rs.qm9 = QueueManager(
-            'RS9', 9, 0xff3300,
-            discord.utils.get(Rs.guild.roles, name=params.RS9_ROLE).mention)
-        Rs.qm10 = QueueManager(
-            'RS10', 10, 0xff3300,
-            discord.utils.get(Rs.guild.roles, name=params.RS10_ROLE).mention)
-        Rs.qm11 = QueueManager(
-            'RS11', 11, 0xff3300,
-            discord.utils.get(Rs.guild.roles, name=params.RS11_ROLE).mention)
-
-        Rs.qms = [ Rs.qm4, Rs.qm5, Rs.qm6, Rs.qm7, Rs.qm8, Rs.qm9, Rs.qm10, Rs.qm11 ]
+        
+        # rs queue management (data storage)        
+        for i in range(4, 12) :
+            role = discord.utils.get(
+              Rs.guild.roles, name = getattr ( params, f'RS{i}_ROLE' )
+              ).mention
+            globals()[f'qm{i}'] = QueueManager( f'RS{i}', i, 0xff3300, role)
+        RSqms = [ 0, 1, 2, 3, qm4, qm5, qm6, qm7, qm8, qm9, qm10, qm11 ]
+        Rs.qms = RSqms [min(star_range) : max(star_range)+1]
 
         # queue status embed(s)
-        Rs.queue_embeds = {
-            'RS4': None,
-            'RS5': None,
-            'RS6': None,
-            'RS7': None,
-            'RS8': None,
-            'RS9': None,
-            'RS10': None,
-            'RS11': None,
-            'empty': None
-        }
+        for i in Rs.star_range :
+            Rs.queue_embeds [i - min(Rs.star_range)] = (f'RS{i} : None')
+        
         Rs.queue_status_embed = None
 
         # message refs
@@ -164,16 +111,9 @@ class Rs:
         Rs.afk_check_messages = {}  # dict: key=discord_id, value=msg_id
 
         # rs run stats
-        Rs.stats = {
-            'RS4': 0,
-            'RS5': 0,
-            'RS6': 0,
-            'RS7': 0,
-            'RS8': 0,
-            'RS9': 0,
-            'RS10': 0,
-            'RS11': 0
-        }
+        for i in Rs.star_range :
+            Rs.stats[i-min(Rs.star_range)] = (f'RS{i} : 0')
+
         Rs._read_rs_records()
 
     @staticmethod
@@ -322,7 +262,7 @@ class Rs:
     @staticmethod
     def get_qm(level: int):
         if level in params.SUPPORTED_RS_LEVELS:
-            return Rs.qms[ level - 4 ]
+            return Rs.qms[ level - min(star_range) ]
         else:
             raise ValueError
 
@@ -342,8 +282,9 @@ class Rs:
     @tasks.loop(seconds=0.2)
     async def task_process_queue():
         #while True:
+        dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
         try:
-            #await asyncio.sleep(0.1)
+            await asyncio.sleep(0.1)
 
             # call to retrieve next job
             job = Rs.jobs.get_nowait()
@@ -353,15 +294,15 @@ class Rs:
             await callback(*args)
 
             print(f'Rs.task_process_queue(): {Rs.jobs.qsize()} job(s) left')
-
+        
         except Empty:
             pass
         except discord.errors.HTTPException:
             print(f'Rs.task_process_queue(): discord.errors.HTTPException')
-        except discord.DiscordException:
-            print(f'Rs.task_process_queue(): generic discord exception')
+        except discord.DiscordException as e:
+            await dbg_ch.send(f':warning: **ERROR**: Rs.task_process_queue(): generic discord exception {str(e)}')
         except Exception as e:
-            print(f'Rs.task_process_queue(): generic exception: {str(e)}')
+            await dbg_ch.send(f':warning: **ERROR**: Rs.task_process_queue(): generic exception: {str(e)}')
 
     @staticmethod
     @tasks.loop(seconds=params.TIME_BOT_AFK_TASK_RATE)
@@ -370,6 +311,7 @@ class Rs:
         Cyclic afk check for all queued players
         :return: never returns
         """
+        dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
         try:
             # for each RS queue
             for qm in Rs.qms:
@@ -441,14 +383,14 @@ class Rs:
                         if p in Rs.afk_warned_players:
                             Rs.afk_warned_players.remove(p)
                         await Rs._delete_afk_check_msg(p.discord_id)
-
+        
         except discord.errors.HTTPException:
             print(f'task_check_afk(): discord.errors.HTTPException')
-        except discord.DiscordException:
-            print(f'task_check_afk(): generic discord exception')
+        except discord.DiscordException as e:
+            await dbg_ch.send(f':warning: **ERROR**: Rs.task_process_queue(): generic discord exception {str(e)}')
         except Exception as e:
-            print(f'Rs.task_check_afk(): generic exception: {str(e)}')
-
+            await dbg_ch.send(f':warning: **ERROR**: Rs.task_process_queue(): generic exception: {str(e)}')
+            
     @staticmethod
     @tasks.loop(seconds=params.TIME_BOT_Q_TASK_RATE)
     async def task_repost_q():
@@ -456,18 +398,18 @@ class Rs:
         Cyclic reposting of running queues
         :return: never returns
         """
+        dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
         try:
             print(f'Rs.task_repost_q(): executing...')
             Rs.add_job(Rs.display_queues, [])
-
         except discord.errors.HTTPException:
             print(f'Rs.task_repost_q(): discord.errors.HTTPException')
             pass
-        except discord.DiscordException:
-            print(f'Rs.task_repost_q(): generic discord exception')
+        except discord.DiscordException as e:
+            await dbg_ch.send(f':warning: **ERROR**: Rs.task_process_queue(): generic discord exception {str(e)}')
             pass
         except Exception as e:
-            print(f'Rs.task_repost_q(): generic exception: {str(e)}')
+            await dbg_ch.send(f':warning: **ERROR**: Rs.task_process_queue(): generic exception: {str(e)}')
 
     @staticmethod
     async def start_queue(
@@ -770,7 +712,7 @@ class Rs:
                     m = await bot.get_channel(
                         params.SERVER_RS_CHANNEL_ID
                     ).send(
-                        f'` {player.discord_nick} left {qm.name} ({lq}/4). `'
+                        f'` {player.discord_nick} left {qm.name} ({lq}/4) `'
                     )
                     await m.delete(delay=params.MSG_DISPLAY_TIME)
                     await Rs._delete_afk_check_msg(player.discord_id)
@@ -796,7 +738,7 @@ class Rs:
                     m = await bot.get_channel(
                         params.SERVER_RS_CHANNEL_ID
                     ).send(
-                        f'` {player.discord_nick} left {qm.name} ({lq}/4). `')
+                        f'` {player.discord_nick} left {qm.name} ({lq}/4) `')
                     await m.delete(delay=params.MSG_DISPLAY_TIME)
                     await Rs._delete_afk_check_msg(player.discord_id)
 
@@ -891,22 +833,19 @@ class Rs:
     async def _post_status_embed(embed: discord.Embed):
         Rs.queue_status_embed = await bot.get_channel(
             params.SERVER_RS_CHANNEL_ID).send(embed=embed)
+        dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
         try:
-            await Rs.queue_status_embed.add_reaction(params.RS4_EMOJI)
-            await Rs.queue_status_embed.add_reaction(params.RS5_EMOJI)
-            await Rs.queue_status_embed.add_reaction(params.RS6_EMOJI)
-            await Rs.queue_status_embed.add_reaction(params.RS7_EMOJI)
-            await Rs.queue_status_embed.add_reaction(params.RS8_EMOJI)
-            await Rs.queue_status_embed.add_reaction(params.RS9_EMOJI)
-            await Rs.queue_status_embed.add_reaction(params.RS10_EMOJI)
-            await Rs.queue_status_embed.add_reaction(params.RS11_EMOJI)
+            e2i={}
+            for i in Rs.star_range :
+              e = (f'RS{i}_EMOJI')
+              await Rs.queue_status_embed.add_reaction(getattr(params,e))
             await Rs.queue_status_embed.add_reaction(params.LEAVE_EMOJI)
-
+                
         except discord.errors.NotFound:
             print('Rs._post_status_embed(): lost message handle (NotFound)')
             Rs.queue_status_embed = None
         except discord.DiscordException as e:
-            print(f'Rs._post_status_embed(): generic DiscordException{str(e)}')
+            await dbg_ch.send(f':warning: **ERROR**: Rs.task_process_queue(): generic discord exception {str(e)}')
             pass
 
     @staticmethod

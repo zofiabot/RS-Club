@@ -14,7 +14,10 @@ RS_ICON = '<:redstar:807239811068329985>'
 # CHANNEL IDs
 SERVER_RS_CHANNEL_ID = 806307789147602994 if DEBUG_MODE is False else SERVER_DEBUG_CHANNEL_ID
 
-SUPPORTED_RS_LEVELS = range(4, 12)      # rs4:11
+SUPPORTED_RS_LEVELS_MIN = 6
+SUPPORTED_RS_LEVELS_MAX = 10
+
+SUPPORTED_RS_LEVELS = range(SUPPORTED_RS_LEVELS_MIN, SUPPORTED_RS_LEVELS_MAX + 1)
 
 RS_CHANNELS = {
 'rs4': 807270877011116113,
@@ -152,6 +155,8 @@ RULES_MESSAGE_ID_FR = 805569774822096916
 TEXT_EMPTY_QUEUE = 'Start a new queue by typing `!in` or reacting below!\n' \
                                 'Questions? `!help`, Hide/Restore channel: `!rs`\n' \
                                 f'Bugs or Ideas? Please report them in '
+
+TEXT_RULES_TITLE = 'Club Rules'
 
 TEXT_RULES_EN = f'Don’t be a…\n' \
            f'**`D`**oes not communicate.\n' \
