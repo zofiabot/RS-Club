@@ -744,8 +744,8 @@ class Rs:
             )
             return
 
-        embed = discord.Embed(color=params.EMBED_QUEUE_COLOR)
-        embed.set_author(name=params.SERVER_DISCORD_NAME, icon_url=params.SERVER_DISCORD_ICON)
+        embed = discord.Embed(color=params.QUEUE_EMBED_COLOR)
+        embed.set_author(name=params.QUEUE_EMBED_TITLE, icon_url=params.QUEUE_EMBED_ICON)
         embed.set_footer(text=footer_text)
         inl = True
         any_queue_active = False
@@ -897,7 +897,7 @@ class Rs:
         pings = [p.discord_mention for p in qm.queue]
         msg = ', '.join(pings)
         msg = f':regional_indicator_r::regional_indicator_s:{int_to_emoji(qm.level)} ready! ' + msg + ' Meet where?\n'
-        m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(msg, delete_after = params.INFO_DISPLAY_TIME)
+        m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send()
         
         # remove players from other queues and/or remove any pending afk checks if applicable
         for p in qm.queue:

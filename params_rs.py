@@ -6,11 +6,13 @@ SERVER_DEBUG_CHANNEL_ID = 806307634000166922 #log
 SERVER_BUG_CHANNEL_ID = 808499006510596166 #bug reporting
 SERVER_DISCORD_ID = 760481068959662081
 SERVER_DISCORD_NAME = ''
-SERVER_DISCORD_ICON = ''
-
-#\u200A
+SERVER_DISCORD_ICON = 'https://cdn.discordapp.com/icons/760481068959662081/12ed9c2aa500b992332a630dac7d101d.png?size=512'
 
 BOT_DISCORD_ICON = SERVER_DISCORD_ICON
+
+QUEUE_EMBED_ICON = ''
+QUEUE_EMBED_TITLE = ''
+
 RS_ICON = '<:redstar:807239811068329985>'
 
 # CHANNEL IDs
@@ -114,7 +116,7 @@ clear_queue_aliases = ['c', 'C', 'Clear']
 # APPEARANCE                                      #
 ###################################################
 EMBED_COLOR = 0xff6600
-EMBED_QUEUE_COLOR = 0x2f3136
+QUEUE_EMBED_COLOR = 0x2f3136
 
 # rs emojis
 RS0_EMOJI = "0️⃣"

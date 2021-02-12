@@ -17,6 +17,10 @@ B. help should have it's (timed delete) embed with reaction flags :flag_gb: :fla
 C. delete previous embeds on init [done]
 D. review 'code' messages (pings, icon) [done]
 E. Help and Rules embeds don't auto-delete
+F. rework stats to include weekly stats
+G. add a switch for title and icon in queue embed [done]
+H. don't delete 4/4 [DONE]
+J. 
 
 
 
