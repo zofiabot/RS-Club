@@ -62,17 +62,17 @@ async def cmd_rs_stats(ctx: discord.ext.commands.Context):
     await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
     print(f'cmd_rs_stats(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}')
 
-    embed = discord.Embed(color=params.EMBED_QUEUE_COLOR)
-    embed.set_author(name='RS Counter', icon_url= params.SERVER_DISCORD_ICON)
+    embed = discord.Embed(color=params.EMBED_COLOR)
+    embed.set_author(name='RS Counter \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800   \u2800', icon_url= params.SERVER_DISCORD_ICON)
     embed.set_footer(text=f'Called by {ctx.author.display_name}\nDeleting in {params.HELP_DELETION_DELAY} sec')
 
     rs_chan = bot.get_channel(params.SERVER_RS_CHANNEL_ID)
-    text = f'Total Runs in {rs_chan.mention}\n\n'
+    text = f'Total Runs \n' # in {rs_chan.mention}
     total = sum(Rs.stats.values())
+
     for rs, cnt in Rs.stats.items():
         lvl = int(rs.replace('RS', ''))
-        if lvl == 11:
-            break
+        if lvl == params.SUPPORTED_RS_LEVELS_MAX +1 : break
         text += f'**{rs}**: {cnt} _({round(cnt/total*100)}%)_\n'
 
     embed.description = text
@@ -96,8 +96,8 @@ async def cmd_rs_rules(ctx: discord.ext.commands.Context):
 
     
     embed.description = text
-    await ctx.send(embed=embed)
-
+    m = await ctx.send(embed=embed)
+    await m.delete(delay=params.RULES_DELETION_DELAY)
 
 @bot.command(name='enter', help='Join the RS queue', aliases=params.enter_queue_aliases)
 async def cmd_enter_rs_queue(ctx: discord.ext.commands.Context, level_arg: str = '0', *, comment: str = ''):

@@ -42,7 +42,7 @@ TIME_Q_REPOST = 15
 TIME_Q_REPOST_COOLDOWN = 1
 MSG_DELETION_DELAY = 7
 MSG_DISPLAY_TIME = 7
-RULES_DELETION_DELAY = 10
+RULES_DELETION_DELAY = 60
 HELP_DELETION_DELAY = 10
 INFO_DISPLAY_TIME = 60 * 3
 PING_COOLDOWN = 1 # time that has to pass before ping_all_role can be mentioned again
@@ -96,6 +96,8 @@ SERVER_PING_ROLES_IDS = ['806315919311765524','806315873677606932','760783110006
 SERVER_SOFT_PING_ROLES_IDS = ['807273643947196426','807273555506233374','760876265321922581','760876269473890314','760876272716087306','760876284238102548','760876287584632893','760876291024486410'] # 3/4 4/4
 SERVER_NO_PING_ROLES_IDS = ['807273699975757844','807273767050936320','760876294593970178','760876307939721247','760876311500554271','760876315359445042','760876318979522590','760876322393686046'] # 4/4)
 
+OLD_STARS = {'RS6' : 0, 'RS7' : 0, 'RS8' : 1, 'RS9' : 118, 'RS10' : 0, 'RS11' : 0}
+
 ###################################################
 # COMMAND ALIASES                                 #
 ###################################################
@@ -104,7 +106,7 @@ help_aliases = ['h', 'H', 'Help']
 # RS
 rs_help_aliases = ['rsh']
 rs_aliases = ['rsc', 'Rs', 'rS', 'RS', 'RSC', 'Rsc']
-rs_stats_aliases = []
+rs_stats_aliases = ['st', 't']
 rs_rules_aliases = ['r', 'rsr', 'rsrule', 'rule', 'rules']
 display_queue_aliases = ['q', 'Q', 'queue', 'Queue']
 enter_queue_aliases = ['i', 'I', 'in', 'In', 'IN', 'iN', 'join', 'Join']

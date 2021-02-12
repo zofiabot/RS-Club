@@ -111,10 +111,13 @@ class Rs:
         Rs.afk_check_messages = {}  # dict: key=discord_id, value=msg_id
 
         # rs run stats
-        for i in Rs.star_range :
-            Rs.stats[f'RS{i}'] = 0
-            
-        print(f'\n\n{Rs.stats}\n\n')
+        if params.OLD_STARS : # if present add earlier stats
+            for o in params.OLD_STARS :
+              Rs.stats[o] = params.OLD_STARS.get(o)
+        else : 
+            for i in Rs.star_range :
+              Rs.stats[f'RS{i}'] = 0
+    
         Rs._read_rs_records()
 
     @staticmethod
