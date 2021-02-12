@@ -31,17 +31,17 @@ RS_CHANNELS = {
 # TIME CONSTANTS (in sec)                         #
 ###################################################
 TIME_BOT_AFK_TASK_RATE = 50
-TIME_BOT_Q_TASK_RATE = 10
+TIME_BOT_Q_TASK_RATE = 3
 
 TIME_SPAM_BRAKE = 1
 TIME_AFK_WARN = 60 * 10  # afk warning as ping; afk_flag set in checker task after warning!
 TIME_AFK_KICK = 60 * 15  # kick if warning ignored. must be bigger than TIME_AFK_WARN!
-TIME_Q_REPOST = 60
+TIME_Q_REPOST = 15
 TIME_Q_REPOST_COOLDOWN = 1
 MSG_DELETION_DELAY = 7
 MSG_DISPLAY_TIME = 7
-RULES_DELETION_DELAY = 60 * 3
-HELP_DELETION_DELAY = 30
+RULES_DELETION_DELAY = 10
+HELP_DELETION_DELAY = 10
 INFO_DISPLAY_TIME = 60 * 3
 PING_COOLDOWN = 1 # time that has to pass before ping_all_role can be mentioned again
 

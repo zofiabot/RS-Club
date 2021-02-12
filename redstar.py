@@ -113,6 +113,8 @@ class Rs:
         # rs run stats
         for i in Rs.star_range :
             Rs.stats[f'RS{i}'] = 0
+            
+        print(f'\n\n{Rs.stats}\n\n')
         Rs._read_rs_records()
 
     @staticmethod
@@ -296,8 +298,8 @@ class Rs:
         
         except Empty:
             pass
-        except discord.errors.HTTPException:
-            print(f'Rs.task_process_queue(): discord.errors.HTTPException')
+        except discord.errors.HTTPException as e :
+            print(f'Rs.task_process_queue(): discord.errors.HTTPException {str(e)}')
         except discord.DiscordException as e:
             await dbg_ch.send(f':warning: **ERROR**: Rs.task_process_queue(): generic discord exception {str(e)}')
         except Exception as e:
@@ -580,23 +582,19 @@ class Rs:
 
         if queue is not None:
             queue_len = len(queue)
-        if len(queue) <3 :
-            ping_string = getattr(params,f'SERVER_PING_ROLES[{level-4}]')
-            print(f'\n\n\n{ping_string}\n\n\n')
-        else :
-            ping_string = getattr(params,f'SERVER_SOFT_PING_ROLES[{level-4}]')
-            print(f'\n\n\n{ping_string}\n\n\n')
 
-        if queue_len in params.PING_THRESHOLDS and ( time.time() - qm.last_role_ping >= params.PING_COOLDOWN) :
+        if queue_len in params.PING_THRESHOLDS and (
+                time.time() - qm.last_role_ping >= params.PING_COOLDOWN):
+            ping_string = qm.role_mention
             qm.last_role_ping = time.time()
-            #ping_string = qm.role_mention
-            print(f'\n\n\n{level}\n\n\n')
-            print(f'\n\n\n{len(queue)}\n\n\n')
-            #print(f'\n\n\n{queue_len}\n\n\n')
+        else:
+            ping_string = f'@rs{level}'
+
         # new in this queue -> standard join
         if res == QueueManager.PLAYER_JOINED:
             m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(
-                f':eyes:` {player.discord_nick} joined ` {ping_string} ` ({queue_len}/4) `', delete_after = params.MSG_DISPLAY_TIME*5)
+                f'` {player.discord_nick} joined` {ping_string} ` ({queue_len}/4) `'
+            , delete_after = params.MSG_DISPLAY_TIME)
             await Rs.display_queues(True)
 
         # open afk warning -> always reset when enter_queue is called
@@ -778,7 +776,7 @@ class Rs:
                     note_text = ''
 
                 # print player
-                team = team + f'\u2800 \u2800{p.discord_nick + warn_text + note_text} ' \
+                team = team + f' \u2800 \u2800{p.discord_nick + warn_text + note_text} ' \
                               f':watch: {convert_secs_to_time(seconds=time.time() - p.timer)}\n'
 
             # add the entry to embed
@@ -807,9 +805,8 @@ class Rs:
             if rs_chan.last_message is not None and \
                     rs_chan.last_message.author.id != bot.user.id:
                 print('Rs.display_queues(): reposting')
-                await Rs.queue_status_embed.delete(
-                    delay=params.MSG_DELETION_DELAY)
                 await Rs._post_status_embed(embed)
+                await Rs.queue_status_embed.delete
             else:
                 await Rs.queue_status_embed.edit(embed=embed)
                 print('Rs.display_queues(): updated')
