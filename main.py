@@ -64,7 +64,7 @@ async def cmd_rs_stats(ctx: discord.ext.commands.Context):
 
     embed = discord.Embed(color=params.EMBED_QUEUE_COLOR)
     embed.set_author(name='RS Counter', icon_url= params.SERVER_DISCORD_ICON)
-    embed.set_footer(text=f'Called by {ctx.author.display_name}\nDeleting in 1min')
+    embed.set_footer(text=f'Called by {ctx.author.display_name}\nDeleting in {params.HELP_DELETION_DELAY} sec')
 
     rs_chan = bot.get_channel(params.SERVER_RS_CHANNEL_ID)
     text = f'Total Runs in {rs_chan.mention}\n\n'
@@ -77,22 +77,25 @@ async def cmd_rs_stats(ctx: discord.ext.commands.Context):
 
     embed.description = text
     m = await ctx.send(embed=embed)
-    await m.delete(delay=60 * 1)
-
+    await m.delete(delay=params.HELP_DELETION_DELAY)
 
 @bot.command(name='rsrules', help='rsrules', aliases=params.rs_rules_aliases)
 async def cmd_rs_rules(ctx: discord.ext.commands.Context):
     await ctx.message.delete()
 
     print(f'cmd_rs_rules(): requested by {ctx.author} in #{ctx.channel.name}')
-
-    channel = bot.get_channel(params.RULES_CHANNEL_ID)
-    message = await channel.fetch_message(params.RULES_MESSAGE_ID) #.content
+    text = params.TEXT_RULES
+    if params.TEXT_RULES_FORMAT == 'Message' :
+      channel = bot.get_channel(params.RULES_CHANNEL_ID)
+      message = await channel.fetch_message(params.RULES_MESSAGE_ID) #.content
+      text = message.content
 
     embed = discord.Embed(color=params.EMBED_COLOR, delete_after = params.RULES_DELETION_DELAY)
     embed.set_author(name= params.TEXT_RULES_TITLE, icon_url=params.SERVER_DISCORD_ICON)
-    # text = params.TEXT_RULES
-    embed.description = message.content
+    embed.set_footer(text=f'Called by {ctx.author.display_name}\nDeleting in {int("{:.0f}".format(params.RULES_DELETION_DELAY/60))} min')
+
+    
+    embed.description = text
     await ctx.send(embed=embed)
 
 

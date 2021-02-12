@@ -5,8 +5,10 @@ DEBUG_MODE = False
 SERVER_DEBUG_CHANNEL_ID = 806307634000166922 #log
 SERVER_BUG_CHANNEL_ID = 808499006510596166 #bug reporting
 SERVER_DISCORD_ID = 760481068959662081
-SERVER_DISCORD_NAME = "RS Club"
-SERVER_DISCORD_ICON = "https://cdn.discordapp.com/icons/760481068959662081/12ed9c2aa500b992332a630dac7d101d.png?size=128"
+SERVER_DISCORD_NAME = ''
+SERVER_DISCORD_ICON = ''
+
+#\u200A
 
 BOT_DISCORD_ICON = SERVER_DISCORD_ICON
 RS_ICON = '<:redstar:807239811068329985>'
@@ -29,24 +31,25 @@ RS_CHANNELS = {
 # TIME CONSTANTS (in sec)                         #
 ###################################################
 TIME_BOT_AFK_TASK_RATE = 50
-TIME_BOT_Q_TASK_RATE = 30
+TIME_BOT_Q_TASK_RATE = 10
 
-TIME_SPAM_BRAKE = 10
+TIME_SPAM_BRAKE = 1
 TIME_AFK_WARN = 60 * 10  # afk warning as ping; afk_flag set in checker task after warning!
 TIME_AFK_KICK = 60 * 15  # kick if warning ignored. must be bigger than TIME_AFK_WARN!
 TIME_Q_REPOST = 60
 TIME_Q_REPOST_COOLDOWN = 1
 MSG_DELETION_DELAY = 7
-RULES_DELETION_DELAY = 60 * 3
 MSG_DISPLAY_TIME = 7
-INFO_DISPLAY_TIME = 60 * 5
-PING_COOLDOWN = 60 * 5  # time that has to pass before ping_all_role can be mentioned again
+RULES_DELETION_DELAY = 60 * 3
+HELP_DELETION_DELAY = 30
+INFO_DISPLAY_TIME = 60 * 3
+PING_COOLDOWN = 1 # time that has to pass before ping_all_role can be mentioned again
 
 ###################################################
 # ROLES                                           #
 ###################################################
 
-SUPPORTED_RS_LEVELS_MIN = 4
+SUPPORTED_RS_LEVELS_MIN = 6
 SUPPORTED_RS_LEVELS_MAX = 11
 
 SUPPORTED_RS_LEVELS = range(SUPPORTED_RS_LEVELS_MIN, SUPPORTED_RS_LEVELS_MAX + 1)
@@ -82,9 +85,10 @@ RESTRICTING_ROLES =  ['no4','no5','no6','no7','no8','no9','no10','no11'] # for p
 
 SERVER_RS_ACCESS_ROLES_IDS = ['807272608130138122','807272531006193684','807265218404941854','807265401481592913','807265512727904306','807265593912852510','807265647674523690','807265734278512671'] #aka VRS roles
 
-SERVER_PING_ROLES = ['rs4','rs5','rs6','rs7','rs8','rs9','rs10','rs11'] # 3/4 4/4
-SERVER_SOFT_PING_ROLES = ['rs4s','rs5s','rs6s','rs7s','rs8s','rs9s','rs10s','rs11s'] # 3/4 4/4
-SERVER_SOFT_NO_ROLES = ['rs4n','rs5n','rs6n','rs7n','rs8n','rs9n','rs10n','rs11n'] # 3/4 4/4
+# 4/4 pings just users in queue (by nick)
+SERVER_PING_ROLES = ['rs4','rs5','rs6','rs7','rs8','rs9','rs10','rs11'] # 1/4 2/4 3/4
+SERVER_SOFT_PING_ROLES = ['rs4s','rs5s','rs6s','rs7s','rs8s','rs9s','rs10s','rs11s'] # 3/4
+SERVER_SOFT_NO_ROLES = ['rs4n','rs5n','rs6n','rs7n','rs8n','rs9n','rs10n','rs11n'] # none
 
 SERVER_PING_ROLES_IDS = ['806315919311765524','806315873677606932','760783110006112286','760869215094833163','760869271273209866','760869324541263934','760869611867471943','760869649297440829'] # 1/4 2/4 3/4 4/4
 SERVER_SOFT_PING_ROLES_IDS = ['807273643947196426','807273555506233374','760876265321922581','760876269473890314','760876272716087306','760876284238102548','760876287584632893','760876291024486410'] # 3/4 4/4
@@ -154,21 +158,18 @@ RULES_CHANNEL_ID = 805568314998784002
 RULES_MESSAGE_ID = 805569774822096916
 RULES_MESSAGE_ID_FR = 805569774822096916
 
-TEXT_EMPTY_QUEUE = 'Start a new queue by typing `!in` or reacting below!\n' \
-                                'Questions? `!help`, Hide/Restore channel: `!rs`\n' \
+TEXT_EMPTY_QUEUE = 'Start a new queue by typing `!in` or reacting below!\n'\
+                                'Questions? `!help`, Hide/Restore channel: `!rs`\n'\
                                 f'Bugs or Ideas? Please report them in '
 
+TEXT_RULES_FORMAT = 'Message'
 TEXT_RULES_TITLE = 'Club Rules'
 
-TEXT_RULES_EN = f'Don’t be a…\n' \
-           f'**`D`**oes not communicate.\n' \
-           f'**`I`**s unaware of teammates\' builds and strategies.\n' \
-           f'**`C`**lears without focusing planet sectors.\n' \
-           f'**`K`**ills teammates with thoughtless play.'
+TEXT_RULES_EN = ''
 TEXT_RULES = TEXT_RULES_EN
 
 # @zofia: careful with mobile version of discord!
 # @BenSmith30: I think this is exactly what fits on mobile... No?
-#TEXT_FOOTER_TEXT = '___________________________________________________\n' \
+#TEXT_FOOTER_TEXT = '___________________________________________________\n'\
 #+ DOWN_EMOJI +'Join.Unirse.Вступать.加入 Quit.Dejar.Уехать.退出'+ LEAVE_EMOJI
-TEXT_FOOTER_TEXT = '\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f' #this is a stupid Zofia's hack to keep the minimal width od embedd sensible
+TEXT_FOOTER_TEXT = '\u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800   \u2800' #Zofia's magic works on mobile and pc

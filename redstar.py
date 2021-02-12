@@ -42,7 +42,7 @@ def convert_int_to_icon(number: int):
   i2e={}
   for i in Rs.star_range :
     n = (f'RS{i}_EMOJI')
-    i2e[i] = [getattr(params,n)]
+    i2e[i] = getattr(params,n)
   return i2e[number]
 
 class Rs:
@@ -112,8 +112,7 @@ class Rs:
 
         # rs run stats
         for i in Rs.star_range :
-            Rs.stats[i-min(Rs.star_range)] = (f'RS{i} : 0')
-
+            Rs.stats[f'RS{i}'] = 0
         Rs._read_rs_records()
 
     @staticmethod
@@ -581,19 +580,23 @@ class Rs:
 
         if queue is not None:
             queue_len = len(queue)
+        if len(queue) <3 :
+            ping_string = getattr(params,f'SERVER_PING_ROLES[{level-4}]')
+            print(f'\n\n\n{ping_string}\n\n\n')
+        else :
+            ping_string = getattr(params,f'SERVER_SOFT_PING_ROLES[{level-4}]')
+            print(f'\n\n\n{ping_string}\n\n\n')
 
-        if queue_len in params.PING_THRESHOLDS and (
-                time.time() - qm.last_role_ping >= params.PING_COOLDOWN):
-            ping_string = qm.role_mention
+        if queue_len in params.PING_THRESHOLDS and ( time.time() - qm.last_role_ping >= params.PING_COOLDOWN) :
             qm.last_role_ping = time.time()
-        else:
-            ping_string = f'@rs{level}'
-
+            #ping_string = qm.role_mention
+            print(f'\n\n\n{level}\n\n\n')
+            print(f'\n\n\n{len(queue)}\n\n\n')
+            #print(f'\n\n\n{queue_len}\n\n\n')
         # new in this queue -> standard join
         if res == QueueManager.PLAYER_JOINED:
             m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(
-                f'` {player.discord_nick} joined` {ping_string} ` ({queue_len}/4) `'
-            , delete_after = params.MSG_DISPLAY_TIME)
+                f':eyes:` {player.discord_nick} joined ` {ping_string} ` ({queue_len}/4) `', delete_after = params.MSG_DISPLAY_TIME*5)
             await Rs.display_queues(True)
 
         # open afk warning -> always reset when enter_queue is called
@@ -744,7 +747,7 @@ class Rs:
             return
 
         embed = discord.Embed(color=params.EMBED_QUEUE_COLOR)
-        embed.set_author(name='', icon_url='')
+        embed.set_author(name=params.SERVER_DISCORD_NAME, icon_url=params.SERVER_DISCORD_ICON)
         embed.set_footer(text=footer_text)
         inl = True
         any_queue_active = False
@@ -775,7 +778,7 @@ class Rs:
                     note_text = ''
 
                 # print player
-                team = team + f'\x7f\x7f\x7f {p.discord_nick + warn_text + note_text} ' \
+                team = team + f'\u2800 \u2800{p.discord_nick + warn_text + note_text} ' \
                               f':watch: {convert_secs_to_time(seconds=time.time() - p.timer)}\n'
 
             # add the entry to embed
@@ -871,7 +874,7 @@ class Rs:
                 msg = await bot.get_channel(
                     params.SERVER_RS_CHANNEL_ID
                 ).fetch_message(Rs.afk_check_messages[player_id])
-                await msg.delete(delay=params.MSG_DELETION_DELAY)
+                await msg.delete(delay=1)
                 Rs.afk_check_messages.pop(player_id)
             except discord.errors.NotFound:
                 pass
@@ -896,8 +899,8 @@ class Rs:
         # ping all players
         pings = [p.discord_mention for p in qm.queue]
         msg = ', '.join(pings)
-        msg = f'🇷🇸{convert_int_to_icon(qm.level)} ready! ' + msg + ' Meet where?\n'
-        m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(msg)
+        msg = f':regional_indicator_r::regional_indicator_s:{convert_int_to_icon(qm.level)} ready! ' + msg + ' Meet where?\n'
+        m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(msg, delete_after = params.INFO_DISPLAY_TIME)
         
         # remove players from other queues and/or remove any pending afk checks if applicable
         for p in qm.queue:
@@ -1074,8 +1077,7 @@ class Rs:
         embed = discord.Embed(color=params.EMBED_COLOR)
         embed.set_author(name='RS Queue Help',
                          icon_url=params.BOT_DISCORD_ICON)
-        embed.set_footer(
-            text=f'Called by {ctx.author.display_name}\nDeleting in 2 min.')
+        embed.set_footer(text=f'Called by {ctx.author.display_name}\nDeleting in {params.HELP_DELETION_DELAY} sec')
         embed.add_field(name="`!in`",
                         value="Sign up for your highest RS level.",
                         inline=False)
@@ -1097,7 +1099,7 @@ class Rs:
                         inline=False)
         Rs.last_help_message = await ctx.channel.send(content=None,
                                                       embed=embed)
-        await Rs.last_help_message.delete(delay=2 * 60)
+        await Rs.last_help_message.delete(params.HELP_DELETION_DELAY)
 
     @staticmethod
     def _record_rs_run(rs_level: int, queue: List[player.Player]):
@@ -1108,7 +1110,7 @@ class Rs:
         plist = ''
         for p in queue:
             plist = plist + f'{p.discord_name} ({p.discord_id}); '
-        line = f'{time.asctime()}\tRS{rs_level}:\t{len(queue)}/4:\t{plist}'
+        line = f'{time.asctime()}\tRS{rs_level}\t{len(queue)}/4\t{plist}'
 
         completed_queues_file = open("rs/completed_queues.txt",
                                      "a",
@@ -1122,15 +1124,15 @@ class Rs:
     @staticmethod
     def _read_rs_records():
 
-        completed_queues_file = open("rs/completed_queues.txt",
-                                     "r",
-                                     encoding="utf-8")
+        completed_queues_file = open("rs/completed_queues.txt", "r", encoding="utf-8")
         queues = completed_queues_file.readlines()
+        
 
         for q in queues:
             tokens = q.split('\t')
-            qm_name = tokens[1].replace(':', '')
-            q_len = int(tokens[2].split('/')[1].replace(':', ''))
+            qm_name = tokens[1]
+            q_len = int(tokens[2].split('/')[1])
+
             if q_len > 0:
                 Rs.stats[qm_name] += 1
 

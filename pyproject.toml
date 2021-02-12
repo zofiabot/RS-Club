@@ -2,7 +2,7 @@
 name = "rsclub"
 version = "0.1.0"
 description = ""
-authors = ["Groeli"]
+authors = ["Groeli&Zofia"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
