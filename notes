@@ -2,9 +2,9 @@ make bot run in debug [DONE] - (with o_redstar.py instedd of m_redstar.py)
 move the bot as it is (more or less) to dashboard and run single-star instances in appropriate channels
 add buddy functionality (join with a buddy or 2 - +1, +2)
 checking queue against selected stars i.e. can't join not sellected star (with error message) - I think it is already coded in, but we need to check [Done]
-checking queue add against negative tags given by mods like @noRS[x] for those who repeatedly proven they can't handle RS[x]
+checking queue add against negative tags given by mods like @noRS[x] for those who repeatedly proven they can't handle RS[x] [almost done]
 in the future (not needed for launch) positive rating system (to be figured out, like giving a star as a thank you after run)
-some frontend stuff I'll explain once we work together
+some frontend stuff I'll explain once we work together [mostly done]
 
 
 Priorities:
@@ -14,8 +14,9 @@ Priorities:
 Stuff from 7:
 A. If possible !rules command should grab the message in rules and display it [DONE]
 B. help should have it's (timed delete) embed with reaction flags :flag_gb: :flag_es: :flag_ru: :flag_hk: (extendable - text values in Params or separate lang file - however you prefer)
-C. delete previous embeds on init
-D. review 'code' messages (pings, icon)
+C. delete previous embeds on init [done]
+D. review 'code' messages (pings, icon) [done]
+E. Help and Rules embeds don't auto-delete
 
 
 

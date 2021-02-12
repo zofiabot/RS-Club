@@ -31,14 +31,14 @@ def convert_secs_to_time(seconds: int) -> str:
         hours = int(round(seconds / 3600))
         return str(hours) + 'h'
 
-def convert_emoji_to_int(reaction: str):
+def emoji_to_int(reaction: str):
   e2i={}
   for i in Rs.star_range :
     e = (f'RS{i}_EMOJI')
     e2i[getattr(params,e)] = i
   return e2i[reaction]
 
-def convert_int_to_icon(number: int):
+def int_to_emoji(number: int):
   i2e={}
   for i in Rs.star_range :
     n = (f'RS{i}_EMOJI')
@@ -185,7 +185,7 @@ class Rs:
         if Rs.queue_status_embed is not None and msg_id == Rs.queue_status_embed.id:
           
             player_own_queue = None
-            #player_own_queue = Rs.qms[convert_emoji_to_int(str(reaction.emoji))].find_player_in_queue_by_discord(user)
+            #player_own_queue = Rs.qms[emoji_to_int(str(reaction.emoji))].find_player_in_queue_by_discord(user)
 
             if reaction.emoji == params.LEAVE_EMOJI:
                 print(
@@ -193,15 +193,15 @@ class Rs:
                 )
                 Rs.add_job(Rs.leave_queue, [user, 0, True, False, False, None])
 
-            elif player_own_queue != None : # not working can't check if player already in queue, see commented above
+            elif player_own_queue != None : # not working can't check if player already in queue, see commented above ... check qm.find_player_in_queue_by_discord
                 Rs.add_job(Rs.leave_queue, [user, 0, False, False, False, None])
-                await msg.channel.send(f"` {user.display_name} has left RS{convert_emoji_to_int(str(reaction.emoji))} queue `", delete_after = params.MSG_DELETION_DELAY)
+                await msg.channel.send(f"` {user.display_name} has left RS{emoji_to_int(str(reaction.emoji))} queue `", delete_after = params.MSG_DELETION_DELAY)
                 
-            elif params.RS_ROLES[convert_emoji_to_int(str(reaction.emoji)) - 4 ] not in [ro.name for ro in user.roles]:
-                await msg.channel.send(f"` {user.display_name}, you haven't set ping level for RS{convert_emoji_to_int(str(reaction.emoji))} `", delete_after = params.MSG_DELETION_DELAY)
+            elif params.RS_ROLES[emoji_to_int(str(reaction.emoji)) - 4 ] not in [ro.name for ro in user.roles]:
+                await msg.channel.send(f"` {user.display_name}, you haven't set ping level for RS{emoji_to_int(str(reaction.emoji))} `", delete_after = params.MSG_DELETION_DELAY)
                 
-            elif params.RESTRICTING_ROLES[convert_emoji_to_int(str(reaction.emoji)) - 4 ] in [ro.name for ro in user.roles]:
-                await msg.channel.send(f"` We are sorry {user.display_name}, but you can't join RS{convert_emoji_to_int(str(reaction.emoji))} queue `", delete_after = params.MSG_DELETION_DELAY)
+            elif params.RESTRICTING_ROLES[emoji_to_int(str(reaction.emoji)) - 4 ] in [ro.name for ro in user.roles]:
+                await msg.channel.send(f"` We are sorry {user.display_name}, but you can't join RS{emoji_to_int(str(reaction.emoji))} queue `", delete_after = params.MSG_DELETION_DELAY)
             
             elif reaction.emoji == params.RS4_EMOJI:
                 print(
@@ -251,7 +251,7 @@ class Rs:
                 # await Rs.enter_queue(user, level=10, caused_by_reaction=True)
                 Rs.add_job(Rs.enter_queue, [user, 10, '', True, False])
 
-            elif convert_emoji_to_int(str(reaction.emoji)) == 11 :
+            elif emoji_to_int(str(reaction.emoji)) == 11 :
                 print( 
                     f'Rs.handle_reaction(): {user} trying to join RS11 via reaction'
                 )
@@ -896,7 +896,7 @@ class Rs:
         # ping all players
         pings = [p.discord_mention for p in qm.queue]
         msg = ', '.join(pings)
-        msg = f':regional_indicator_r::regional_indicator_s:{convert_int_to_icon(qm.level)} ready! ' + msg + ' Meet where?\n'
+        msg = f':regional_indicator_r::regional_indicator_s:{int_to_emoji(qm.level)} ready! ' + msg + ' Meet where?\n'
         m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(msg, delete_after = params.INFO_DISPLAY_TIME)
         
         # remove players from other queues and/or remove any pending afk checks if applicable
@@ -920,7 +920,7 @@ class Rs:
         player_roles = caller.roles
         level = 0
         for r in player_roles:
-            # role must be 3 or 4 chars long, start with anycase "VRS" followed by one or two digits
+            # role must be 3 or 5 chars long, start with anycase "VRS" followed by one or two digits
             if len(r.name) in range(3, 5) and re.match('[vR][rR][sS][14-9][0-1]?',
                                                        r.name):
                 # extract rs level as integer and update highest if applicable
@@ -934,7 +934,7 @@ class Rs:
         player_roles = caller.roles
         levels = []
         for r in player_roles:
-            # role must be 3 or 4 chars long, start with anycase "VRS" followed by one or two digits
+            # role must be 3 or 5 chars long, start with anycase "VRS" followed by one or two digits
             if len(r.name) in range(3, 5) and re.match('[vR][rR][sS][14-9][0-1]?',
                                                        r.name):
                 # extract rs level as integer and update highest if applicable
@@ -1045,10 +1045,10 @@ class Rs:
         # all queues empty -> send special embed
         if not any_queue_active:
             embed = discord.Embed(color=params.EMBED_QUEUE_COLOR)
-            embed.title = 'No running queues!'
-            embed.description = 'Start a new one by typing `!in` or reacting below!\n' \
-                                'Questions? `!help` or ask a `@Server Admin`!\n' \
-                                'Bugs or Ideas? Please report them to `@Bot Dev`!'
+            embed.title = 'No running queues?'
+            embed.description = 'Start a new one by reacting below!\n' \
+                                'Questions? `!help` or ask a `@moderator`!\n' \
+                                'Bugs or Ideas? Please report them to `#bugs`!'
             # update embed
             if Rs.queue_embeds['empty'] is not None:
                 await Rs.queue_embeds['empty'].delete(
@@ -1094,8 +1094,8 @@ class Rs:
         embed.add_field(name="`!clear X`",
                         value="Clear queue for RS level X.",
                         inline=False)
-        Rs.last_help_message = await ctx.channel.send(content=None,
-                                                      embed=embed)
+        #Rs.last_help_message = await ctx.channel.send(content=None, embed=embed)
+        Rs.last_help_message = await ctx.channel.send(embed=embed)
         await Rs.last_help_message.delete(params.HELP_DELETION_DELAY)
 
     @staticmethod
