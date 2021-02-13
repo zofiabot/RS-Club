@@ -63,27 +63,6 @@ async def cmd_help(ctx: discord.ext.commands.Context):
 
     globals()['Last_help_message'] = last_help_message
 
-    # relay    
-    # Rs.add_job(Rs.show_help, [ctx])
-
-
-# RS queue commands
-# module: m_redstar.py
-
-# @bot.command(name='rshelp', help='rs help page', aliases=params.rs_help_aliases)
-# async def cmd_rs_help(ctx: discord.ext.commands.Context):
-#     """
-#     General help command
-#     :param ctx:
-#     :return:
-#     """
-#     # standard handling of commands
-#     await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
-#     print(f'cmd_rs_help(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}')
-
-#     #await Rs.show_help(ctx)
-#     Rs.add_job(Rs.show_help, [ctx])
-
 
 @bot.command(name='rsstats', help='RS statistics', aliases=params.rs_stats_aliases)
 async def cmd_rs_stats(ctx: discord.ext.commands.Context):
