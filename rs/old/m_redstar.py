@@ -822,7 +822,7 @@ class Rs:
         # ping all players
         pings = [p.discord_mention for p in qm.queue]
         msg = ', '.join(pings)
-        msg = f'**RS**{convert_int_to_icon(qm.level)} ready! ' + msg + ' Meet where?\n'
+        msg = f'🇷🇸{convert_int_to_icon(qm.level)} ready! ' + msg + ' Meet where?\n'
         m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(msg)
         #await m.delete(delay=params.INFO_DISPLAY_TIME)
 
