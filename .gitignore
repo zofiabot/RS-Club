@@ -130,4 +130,4 @@ dmypy.json
 .pyre/
 
 #bravosierra99 uses pycharm, so this is for him
-.dea
+.idea/
