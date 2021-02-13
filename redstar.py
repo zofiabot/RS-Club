@@ -905,8 +905,8 @@ class Rs:
         # ping all players
         pings = [p.discord_mention for p in qm.queue]
         msg = ', '.join(pings)
-        msg = f':regional_indicator_r::regional_indicator_s:{int_to_emoji(qm.level)} ready! ' + msg + ' Meet where?\n'
-        m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send()
+        msg = f':regional_indicator_r::regional_indicator_s:{int_to_emoji(qm.level)} ready! ' + msg + f' {params.TEXT_MEET_WERE}'
+        m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(msg)
         
         # remove players from other queues and/or remove any pending afk checks if applicable
         for p in qm.queue:

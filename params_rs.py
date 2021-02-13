@@ -171,7 +171,7 @@ TEXT_RULES_TITLE = 'Club Rules'
 
 TEXT_RULES_EN = 'Lorem ipsum sit amet...'
 TEXT_RULES = TEXT_RULES_EN
-
+TEXT_MEET_WERE = '...meet where?'
 TEXT_NOROLESET = "you didn't sellect ping level for"
 
 # @zofia: careful with mobile version of discord!
