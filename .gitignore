@@ -128,3 +128,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#bravosierra99 uses pycharm, so this is for him
+.idea/

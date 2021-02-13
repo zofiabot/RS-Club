@@ -21,11 +21,11 @@ class QueueManager:
     NOTHING = 10
 
     def __init__(self, queue_name: str, queue_level: int, queue_color: int,
-                 role_mention: str):
+                 queue_mention: str):
         self.name = queue_name  # the rs_level (int) must be part of this string
         self.level = queue_level  # rs as integer
         self.color = queue_color
-        self.role_mention = role_mention
+        self.role_mention = queue_mention
 
         # backed up in file as tuple:
         self.last_role_ping = 0
