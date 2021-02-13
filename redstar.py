@@ -200,7 +200,7 @@ class Rs:
             #     await msg.channel.send(f"` {user.display_name} has left RS{emoji_to_int(str(reaction.emoji))} queue `", delete_after = params.MSG_DELETION_DELAY)
                 
             elif params.RS_ROLES[emoji_to_int(str(reaction.emoji)) - 4 ] not in [ro.name for ro in user.roles]:
-                await msg.channel.send(f"` {user.display_name}, you haven't set ping level for RS{emoji_to_int(str(reaction.emoji))} `", delete_after = params.MSG_DELETION_DELAY)
+                await msg.channel.send(f"` {user.display_name}, {params.TEXT_NOROLESET} RS{emoji_to_int(str(reaction.emoji))} role `", delete_after = params.MSG_DELETION_DELAY)
                 
             elif params.RESTRICTING_ROLES[emoji_to_int(str(reaction.emoji)) - 4 ] in [ro.name for ro in user.roles]:
                 await msg.channel.send(f"` We are sorry {user.display_name}, but you can't join RS{emoji_to_int(str(reaction.emoji))} queue `", delete_after = params.MSG_DELETION_DELAY)

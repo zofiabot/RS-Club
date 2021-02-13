@@ -172,6 +172,8 @@ TEXT_RULES_TITLE = 'Club Rules'
 TEXT_RULES_EN = 'Lorem ipsum sit amet...'
 TEXT_RULES = TEXT_RULES_EN
 
+TEXT_NOROLESET = "you didn't sellect ping level for"
+
 # @zofia: careful with mobile version of discord!
 # @BenSmith30: I think this is exactly what fits on mobile... No?
 #TEXT_FOOTER_TEXT = '___________________________________________________\n'\
