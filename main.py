@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import params_rs as params
 from redstar import Rs
 from keep_awake import keep_awake # used to keep the server awake otherwise it goes to sleep after 1h of inactivity
+import dotenv
 
 #intents = discord.Intents.default()
 #intents.members = True
@@ -425,4 +426,5 @@ def handle_exit():
 # start
 keep_awake()
 print('main: connecting...')
+dotenv.load_dotenv(verbose=True)
 bot.run(os.getenv("DISCORD_TOKEN"))
