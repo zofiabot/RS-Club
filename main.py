@@ -14,7 +14,7 @@ bot = discord.ext.commands.Bot(command_prefix=['!']) #, intents=intents)
 bot.remove_command('help')
 bot_ready = True
 dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
-Last_help_message = None
+# Last_help_message = None
 
 
 # Help command  
@@ -30,7 +30,8 @@ async def cmd_help(ctx: discord.ext.commands.Context):
     await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
     print(f'cmd_help(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}')
 
-    last_help_message = Last_help_message
+    # last_help_message = Last_help_message
+    last_help_message = None
 
     if last_help_message is not None:
         await last_help_message.delete()
