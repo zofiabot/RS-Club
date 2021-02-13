@@ -304,9 +304,10 @@ class Rs:
         except discord.errors.HTTPException as e :
             print(f'Rs.task_process_queue(): discord.errors.HTTPException {str(e)}')
         except discord.DiscordException as e:
-            await dbg_ch.send(f':warning: **ERROR**: Rs.task_process_queue(): generic discord exception {str(e)}')
+            await dbg_ch.send(f':warning: **ERROR**:[task_process_queue] Rs.task_process_queue(): generic discord exception {str(e)}')
         except Exception as e:
-            await dbg_ch.send(f':warning: **ERROR**: Rs.task_process_queue(): generic exception: {str(e)}')
+            await dbg_ch.send(f':warning: **ERROR**:[task_process_queue] Rs.task_process_queue(): generic exception: {str(e)}')
+            print(f'Rs.task_process_queue(): generic exception {str(e)}')
 
     @staticmethod
     @tasks.loop(seconds=params.TIME_BOT_AFK_TASK_RATE)
@@ -391,9 +392,9 @@ class Rs:
         except discord.errors.HTTPException:
             print(f'task_check_afk(): discord.errors.HTTPException')
         except discord.DiscordException as e:
-            await dbg_ch.send(f':warning: **ERROR**: Rs.task_process_queue(): generic discord exception {str(e)}')
+            await dbg_ch.send(f':warning: **ERROR**:[task_check_afk] Rs.task_process_queue(): generic discord exception {str(e)}')
         except Exception as e:
-            await dbg_ch.send(f':warning: **ERROR**: Rs.task_process_queue(): generic exception: {str(e)}')
+            await dbg_ch.send(f':warning: **ERROR**:[task_check_afk] Rs.task_process_queue(): generic exception: {str(e)}')
             
     @staticmethod
     @tasks.loop(seconds=params.TIME_BOT_Q_TASK_RATE)
@@ -410,10 +411,10 @@ class Rs:
             print(f'Rs.task_repost_q(): discord.errors.HTTPException')
             pass
         except discord.DiscordException as e:
-            await dbg_ch.send(f':warning: **ERROR**: Rs.task_process_queue(): generic discord exception {str(e)}')
+            await dbg_ch.send(f':warning: **ERROR**:[task_repost_q] Rs.task_process_queue(): generic discord exception {str(e)}')
             pass
         except Exception as e:
-            await dbg_ch.send(f':warning: **ERROR**: Rs.task_process_queue(): generic exception: {str(e)}')
+            await dbg_ch.send(f':warning: **ERROR**:[task_repost_q] Rs.task_process_queue(): generic exception: {str(e)}')
 
     @staticmethod
     async def start_queue(
@@ -832,7 +833,7 @@ class Rs:
             print('Rs._post_status_embed(): lost message handle (NotFound)')
             Rs.queue_status_embed = None
         except discord.DiscordException as e:
-            await dbg_ch.send(f':warning: **ERROR**: Rs.task_process_queue(): generic discord exception {str(e)}')
+            await dbg_ch.send(f':warning: **ERROR**:[_post_status_embed] Rs.task_process_queue(): generic discord exception {str(e)}')
             pass
 
     @staticmethod
@@ -1066,40 +1067,40 @@ class Rs:
         # in any case: something was posted, so remember the time
         Rs.time_last_queue_msg = time.time()
 
-    @staticmethod
-    async def show_help(ctx):
+    # @staticmethod
+    # async def show_help(ctx):
 
-        await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
+    #     await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
 
-        if Rs.last_help_message is not None:
-            await Rs.last_help_message.delete(delay=params.MSG_DELETION_DELAY)
+    #     if Rs.last_help_message is not None:
+    #         await Rs.last_help_message.delete()
 
-        embed = discord.Embed(color=params.EMBED_COLOR)
-        embed.set_author(name='RS Queue Help',
-                         icon_url=params.BOT_DISCORD_ICON)
-        embed.set_footer(text=f'Called by {ctx.author.display_name}\nDeleting in {params.HELP_DELETION_DELAY} sec')
-        embed.add_field(name="`!in`",
-                        value="Sign up for your highest RS level.",
-                        inline=False)
-        embed.add_field(name="`!in X [note]`",
-                        value="Sign up for RS level X (optional: with note).",
-                        inline=False)
-        embed.add_field(name="`!out`", value="Leave all queues.", inline=False)
-        embed.add_field(name="`!out X`",
-                        value="Leave queue of RS level X.",
-                        inline=False)
-        embed.add_field(name="`!q`",
-                        value="Display running queues.",
-                        inline=False)
-        embed.add_field(name="`!start X`",
-                        value="Early start RS level X queue.",
-                        inline=False)
-        embed.add_field(name="`!clear X`",
-                        value="Clear queue for RS level X.",
-                        inline=False)
-        #Rs.last_help_message = await ctx.channel.send(content=None, embed=embed)
-        Rs.last_help_message = await ctx.channel.send(embed=embed)
-        await Rs.last_help_message.delete(params.HELP_DELETION_DELAY)
+    #     embed = discord.Embed(color=params.EMBED_COLOR)
+    #     embed.set_author(name='RS Queue Help',
+    #                      icon_url=params.BOT_DISCORD_ICON)
+    #     embed.set_footer(text=f'Called by {ctx.author.display_name}\nDeleting in {params.HELP_DELETION_DELAY} sec')
+    #     embed.add_field(name="`!in`",
+    #                     value="Sign up for your highest RS level.",
+    #                     inline=False)
+    #     embed.add_field(name="`!in X [note]`",
+    #                     value="Sign up for RS level X (optional: with note).",
+    #                     inline=False)
+    #     embed.add_field(name="`!out`", value="Leave all queues.", inline=False)
+    #     embed.add_field(name="`!out X`",
+    #                     value="Leave queue of RS level X.",
+    #                     inline=False)
+    #     embed.add_field(name="`!q`",
+    #                     value="Display running queues.",
+    #                     inline=False)
+    #     embed.add_field(name="`!start X`",
+    #                     value="Early start RS level X queue.",
+    #                     inline=False)
+    #     embed.add_field(name="`!clear X`",
+    #                     value="Clear queue for RS level X.",
+    #                     inline=False)
+    #     Rs.last_help_message = await ctx.channel.send(content=None, embed=embed)
+    #     # Rs.last_help_message = await ctx.channel.send(embed=embed)
+    #     # await Rs.last_help_message.delete(params.HELP_DELETION_DELAY)
 
     @staticmethod
     def _record_rs_run(rs_level: int, queue: List[player.Player]):

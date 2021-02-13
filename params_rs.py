@@ -51,7 +51,7 @@ PING_COOLDOWN = 1 # time that has to pass before ping_all_role can be mentioned 
 # ROLES                                           #
 ###################################################
 
-SUPPORTED_RS_LEVELS_MIN = 6
+SUPPORTED_RS_LEVELS_MIN = 8
 SUPPORTED_RS_LEVELS_MAX = 11
 
 SUPPORTED_RS_LEVELS = range(SUPPORTED_RS_LEVELS_MIN, SUPPORTED_RS_LEVELS_MAX + 1)
@@ -101,10 +101,10 @@ OLD_STARS = {'RS6' : 0, 'RS7' : 0, 'RS8' : 1, 'RS9' : 118, 'RS10' : 0, 'RS11' : 
 ###################################################
 # COMMAND ALIASES                                 #
 ###################################################
-help_aliases = ['h', 'H', 'Help']
+help_aliases = ['h', 'H', 'Help','rsh']
 
 # RS
-rs_help_aliases = ['rsh']
+#rs_help_aliases = ['rsh']
 rs_aliases = ['rsc', 'Rs', 'rS', 'RS', 'RSC', 'Rsc']
 rs_stats_aliases = ['st', 't']
 rs_rules_aliases = ['r', 'rsr', 'rsrule', 'rule', 'rules']
@@ -166,10 +166,10 @@ TEXT_EMPTY_QUEUE = 'Start a new queue by typing `!in` or reacting below!\n'\
                                 'Questions? `!help`, Hide/Restore channel: `!rs`\n'\
                                 f'Bugs or Ideas? Please report them in '
 
-TEXT_RULES_FORMAT = 'Message'
+TEXT_RULES_FORMAT = 'TEXT'
 TEXT_RULES_TITLE = 'Club Rules'
 
-TEXT_RULES_EN = ''
+TEXT_RULES_EN = 'Lorem ipsum sit amet...'
 TEXT_RULES = TEXT_RULES_EN
 
 # @zofia: careful with mobile version of discord!

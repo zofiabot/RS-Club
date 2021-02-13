@@ -16,15 +16,12 @@ A. If possible !rules command should grab the message in rules and display it [D
 B. help should have it's (timed delete) embed with reaction flags :flag_gb: :flag_es: :flag_ru: :flag_hk: (extendable - text values in Params or separate lang file - however you prefer)
 C. delete previous embeds on init [DONE]
 D. review 'code' messages (pings, icon) [DONE]
-E. Help and Rules embeds don't auto-delete
-F. rework stats to include weekly stats
+E. Help and Rules embeds don't auto-delete 
+F. rework stats to include weekly stats 
 G. rework stats to include old records [DONE]
 H. add a switch for title and icon in queue embed [DONE]
 I. don't delete 4/4 [DONE]
 J. 
-
-
-
 
 
 /me: I am disorthographic and spellcheck does not work here :blush:
