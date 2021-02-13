@@ -33,13 +33,13 @@ RS_CHANNELS = {
 # TIME CONSTANTS (in sec)                         #
 ###################################################
 TIME_BOT_AFK_TASK_RATE = 50
-TIME_BOT_Q_TASK_RATE = 3
+TIME_BOT_Q_TASK_RATE = 5
 
-TIME_SPAM_BRAKE = 1
+TIME_SPAM_BRAKE = 2
 TIME_AFK_WARN = 60 * 10  # afk warning as ping; afk_flag set in checker task after warning!
 TIME_AFK_KICK = 60 * 15  # kick if warning ignored. must be bigger than TIME_AFK_WARN!
 TIME_Q_REPOST = 15
-TIME_Q_REPOST_COOLDOWN = 1
+TIME_Q_REPOST_COOLDOWN = 10
 MSG_DELETION_DELAY = 7
 MSG_DISPLAY_TIME = 7
 RULES_DELETION_DELAY = 60

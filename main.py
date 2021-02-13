@@ -14,6 +14,8 @@ bot = discord.ext.commands.Bot(command_prefix=['!']) #, intents=intents)
 bot.remove_command('help')
 bot_ready = True
 dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
+Last_help_message = None
+
 
 # Help command  
 
@@ -28,13 +30,10 @@ async def cmd_help(ctx: discord.ext.commands.Context):
     await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
     print(f'cmd_help(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}')
 
-#@staticmethod
-#async def show_help(ctx):
+    last_help_message = Last_help_message
 
-    #await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
-
-    if Rs.last_help_message is not None:
-        await Rs.last_help_message.delete()
+    if last_help_message is not None:
+        await last_help_message.delete()
 
     embed = discord.Embed(color=params.EMBED_COLOR)
     embed.set_author(name='RS Queue Help',
@@ -59,10 +58,12 @@ async def cmd_help(ctx: discord.ext.commands.Context):
     embed.add_field(name="`!clear X`",
                     value="Clear queue for RS level X.",
                     inline=False)
-    Rs.last_help_message = await ctx.channel.send(embed=embed)
-    await Rs.last_help_message.delete(delay=params.HELP_DELETION_DELAY)
+    last_help_message = await ctx.channel.send(embed=embed)
+    await last_help_message.delete(delay=params.HELP_DELETION_DELAY)
 
-    # relay
+    globals()['Last_help_message'] = last_help_message
+
+    # relay    
     # Rs.add_job(Rs.show_help, [ctx])
 
 

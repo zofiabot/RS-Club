@@ -53,7 +53,6 @@ class Rs:
     afk_check_messages = {}
     time_last_queue_post = time.time()
     queue_status_embed = None
-    last_help_message = None
     stats = {}
     rs_roles = {}
     guild: discord.Guild = None
@@ -196,9 +195,9 @@ class Rs:
                 )
                 Rs.add_job(Rs.leave_queue, [user, 0, True, False, False, None])
 
-            elif player_own_queue != None : # not working can't check if player already in queue, see commented above ... check qm.find_player_in_queue_by_discord
-                Rs.add_job(Rs.leave_queue, [user, 0, False, False, False, None])
-                await msg.channel.send(f"` {user.display_name} has left RS{emoji_to_int(str(reaction.emoji))} queue `", delete_after = params.MSG_DELETION_DELAY)
+            # elif player_own_queue != None : # not working can't check if player already in queue, see commented above ... check qm.find_player_in_queue_by_discord
+            #     Rs.add_job(Rs.leave_queue, [user, 0, False, False, False, None])
+            #     await msg.channel.send(f"` {user.display_name} has left RS{emoji_to_int(str(reaction.emoji))} queue `", delete_after = params.MSG_DELETION_DELAY)
                 
             elif params.RS_ROLES[emoji_to_int(str(reaction.emoji)) - 4 ] not in [ro.name for ro in user.roles]:
                 await msg.channel.send(f"` {user.display_name}, you haven't set ping level for RS{emoji_to_int(str(reaction.emoji))} `", delete_after = params.MSG_DELETION_DELAY)
@@ -435,6 +434,12 @@ class Rs:
             m = await bot.get_channel(
                 params.SERVER_RS_CHANNEL_ID).send(f'{caller.mention} ` Invalid queue "RS{level}" `', delete_after = params.MSG_DISPLAY_TIME)
             return
+        except discord.errors.HTTPException as e :
+            print(f'Rs.start_queue(): discord.errors.HTTPException {str(e)}')
+        except discord.DiscordException as e:
+            print(f':warning: **ERROR**:[task_process_queue] Rs.start_queue(): generic discord exception {str(e)}')
+        except Exception as e:
+            print(f'Rs.start_queue(): generic exception {str(e)}')
 
         p = qm.find_player_in_queue_by_discord(caller)
         q = qm.queue
@@ -1066,41 +1071,6 @@ class Rs:
 
         # in any case: something was posted, so remember the time
         Rs.time_last_queue_msg = time.time()
-
-    # @staticmethod
-    # async def show_help(ctx):
-
-    #     await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
-
-    #     if Rs.last_help_message is not None:
-    #         await Rs.last_help_message.delete()
-
-    #     embed = discord.Embed(color=params.EMBED_COLOR)
-    #     embed.set_author(name='RS Queue Help',
-    #                      icon_url=params.BOT_DISCORD_ICON)
-    #     embed.set_footer(text=f'Called by {ctx.author.display_name}\nDeleting in {params.HELP_DELETION_DELAY} sec')
-    #     embed.add_field(name="`!in`",
-    #                     value="Sign up for your highest RS level.",
-    #                     inline=False)
-    #     embed.add_field(name="`!in X [note]`",
-    #                     value="Sign up for RS level X (optional: with note).",
-    #                     inline=False)
-    #     embed.add_field(name="`!out`", value="Leave all queues.", inline=False)
-    #     embed.add_field(name="`!out X`",
-    #                     value="Leave queue of RS level X.",
-    #                     inline=False)
-    #     embed.add_field(name="`!q`",
-    #                     value="Display running queues.",
-    #                     inline=False)
-    #     embed.add_field(name="`!start X`",
-    #                     value="Early start RS level X queue.",
-    #                     inline=False)
-    #     embed.add_field(name="`!clear X`",
-    #                     value="Clear queue for RS level X.",
-    #                     inline=False)
-    #     Rs.last_help_message = await ctx.channel.send(content=None, embed=embed)
-    #     # Rs.last_help_message = await ctx.channel.send(embed=embed)
-    #     # await Rs.last_help_message.delete(params.HELP_DELETION_DELAY)
 
     @staticmethod
     def _record_rs_run(rs_level: int, queue: List[player.Player]):
