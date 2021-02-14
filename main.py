@@ -2,6 +2,7 @@ import os
 import re
 import discord
 from discord.ext import commands
+from discord.utils import get
 from datetime import datetime, timedelta
 import params_rs as params
 from redstar import Rs
@@ -95,6 +96,8 @@ async def cmd_rs_stats(ctx: discord.ext.commands.Context):
     await m.delete(delay=params.HELP_DELETION_DELAY)
 
 @bot.command(name='rsrules', help='rsrules', aliases=params.rs_rules_aliases)
+  
+
 async def cmd_rs_rules(ctx: discord.ext.commands.Context):
     await ctx.message.delete()
 
@@ -104,9 +107,9 @@ async def cmd_rs_rules(ctx: discord.ext.commands.Context):
       channel = bot.get_channel(params.RULES_CHANNEL_ID)
       message = await channel.fetch_message(params.RULES_MESSAGE_ID) #.content
       text = message.content
-
+    emoji = get(ctx.discord.emojis, name="eight_pointed_black_star")
     embed = discord.Embed(color=params.EMBED_COLOR, delete_after = params.RULES_DELETION_DELAY)
-    embed.set_author(name= params.TEXT_RULES_TITLE, icon_url=params.SERVER_DISCORD_ICON)
+    embed.set_author(name= f'{emoji}{params.TEXT_RULES_TITLE}{emoji}', icon_url=params.SERVER_DISCORD_ICON)
     embed.set_footer(text=f'Called by {ctx.author.display_name}\nDeleting in {int("{:.0f}".format(params.RULES_DELETION_DELAY/60))} min')
 
     
