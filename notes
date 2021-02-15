@@ -16,7 +16,7 @@ A. If possible !rules command should grab the message in rules and display it [D
 B. help should have it's (timed delete) embed with reaction flags :flag_gb: :flag_es: :flag_ru: :flag_hk: (extendable - text values in Params or separate lang file - however you prefer)
 C. delete previous embeds on init [DONE]
 D. review 'code' messages (pings, icon) [DONE]
-E. Help and Rules embeds don't auto-delete 
+E. Help and Rules embeds don't auto-delete [DONE]
 F. rework stats to include weekly stats 
 G. rework stats to include old records [DONE]
 H. add a switch for title and icon in queue embed [DONE]
@@ -27,6 +27,14 @@ J.
 /me: I am disorthographic and spellcheck does not work here :blush:
 
 
+BUGS
+not sure why...
+https://discord.com/developers/docs/topics/rate-limits
+is unhappy with the bot... since about 8GMT
+There could probably be some code that could protect us from exceeding the limits but it it is way beyond my expertise... I am not even a coder though for this project I started to work as one...
+
+
+
 ok so I don't see it directly above, but I added the code to check that you have the correct role before you can join the queue
 
-We need to get version control working, that will probably be the next thing I do... cause this is madness.  you asking me to "zip" you it is pure insanity
+We need to get version control working, that will probably be the next thing I do... cause this is madness.  you asking me to "zip" you it is pure insanity [DONE?]

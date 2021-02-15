@@ -15,6 +15,8 @@ bot = discord.ext.commands.Bot(command_prefix=['!']) #, intents=intents)
 bot.remove_command('help')
 bot_ready = True
 dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
+# Last_help_message = None
+
 
 # Help command  
 
@@ -29,13 +31,11 @@ async def cmd_help(ctx: discord.ext.commands.Context):
     await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
     print(f'cmd_help(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}')
 
-#@staticmethod
-#async def show_help(ctx):
+    # last_help_message = Last_help_message
+    last_help_message = None
 
-    #await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
-
-    if Rs.last_help_message is not None:
-        await Rs.last_help_message.delete()
+    if last_help_message is not None:
+        await last_help_message.delete()
 
     embed = discord.Embed(color=params.EMBED_COLOR)
     embed.set_author(name='RS Queue Help',
@@ -60,29 +60,10 @@ async def cmd_help(ctx: discord.ext.commands.Context):
     embed.add_field(name="`!clear X`",
                     value="Clear queue for RS level X.",
                     inline=False)
-    Rs.last_help_message = await ctx.channel.send(embed=embed)
-    await Rs.last_help_message.delete(delay=params.HELP_DELETION_DELAY)
+    last_help_message = await ctx.channel.send(embed=embed)
+    await last_help_message.delete(delay=params.HELP_DELETION_DELAY)
 
-    # relay
-    # Rs.add_job(Rs.show_help, [ctx])
-
-
-# RS queue commands
-# module: m_redstar.py
-
-# @bot.command(name='rshelp', help='rs help page', aliases=params.rs_help_aliases)
-# async def cmd_rs_help(ctx: discord.ext.commands.Context):
-#     """
-#     General help command
-#     :param ctx:
-#     :return:
-#     """
-#     # standard handling of commands
-#     await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
-#     print(f'cmd_rs_help(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}')
-
-#     #await Rs.show_help(ctx)
-#     Rs.add_job(Rs.show_help, [ctx])
+    globals()['Last_help_message'] = last_help_message
 
 
 @bot.command(name='rsstats', help='RS statistics', aliases=params.rs_stats_aliases)
@@ -115,6 +96,8 @@ async def cmd_rs_stats(ctx: discord.ext.commands.Context):
     await m.delete(delay=params.HELP_DELETION_DELAY)
 
 @bot.command(name='rsrules', help='rsrules', aliases=params.rs_rules_aliases)
+  
+
 async def cmd_rs_rules(ctx: discord.ext.commands.Context):
     await ctx.message.delete()
 
@@ -124,9 +107,8 @@ async def cmd_rs_rules(ctx: discord.ext.commands.Context):
       channel = bot.get_channel(params.RULES_CHANNEL_ID)
       message = await channel.fetch_message(params.RULES_MESSAGE_ID) #.content
       text = message.content
-
     embed = discord.Embed(color=params.EMBED_COLOR, delete_after = params.RULES_DELETION_DELAY)
-    embed.set_author(name= params.TEXT_RULES_TITLE, icon_url=params.SERVER_DISCORD_ICON)
+    embed.set_author(name= f'{params.TEXT_RULES_TITLE}', icon_url=params.SERVER_DISCORD_ICON)
     embed.set_footer(text=f'Called by {ctx.author.display_name}\nDeleting in {int("{:.0f}".format(params.RULES_DELETION_DELAY/60))} min')
 
     

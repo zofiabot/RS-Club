@@ -33,13 +33,13 @@ RS_CHANNELS = {
 # TIME CONSTANTS (in sec)                         #
 ###################################################
 TIME_BOT_AFK_TASK_RATE = 50
-TIME_BOT_Q_TASK_RATE = 3
+TIME_BOT_Q_TASK_RATE = 5
 
-TIME_SPAM_BRAKE = 1
+TIME_SPAM_BRAKE = 2
 TIME_AFK_WARN = 60 * 10  # afk warning as ping; afk_flag set in checker task after warning!
 TIME_AFK_KICK = 60 * 15  # kick if warning ignored. must be bigger than TIME_AFK_WARN!
 TIME_Q_REPOST = 15
-TIME_Q_REPOST_COOLDOWN = 1
+TIME_Q_REPOST_COOLDOWN = 10
 MSG_DELETION_DELAY = 7
 MSG_DISPLAY_TIME = 7
 RULES_DELETION_DELAY = 60
@@ -166,11 +166,13 @@ TEXT_EMPTY_QUEUE = 'Start a new queue by typing `!in` or reacting below!\n'\
                                 'Questions? `!help`, Hide/Restore channel: `!rs`\n'\
                                 f'Bugs or Ideas? Please report them in '
 
-TEXT_RULES_FORMAT = 'TEXT'
+TEXT_RULES_FORMAT = 'Message'
 TEXT_RULES_TITLE = 'Club Rules'
 
 TEXT_RULES_EN = 'Lorem ipsum sit amet...'
 TEXT_RULES = TEXT_RULES_EN
+TEXT_MEET_WERE = '...meet where?'
+TEXT_NOROLESET = "you didn't sellect ping level for"
 
 # @zofia: careful with mobile version of discord!
 # @BenSmith30: I think this is exactly what fits on mobile... No?
