@@ -4,6 +4,7 @@ import time
 from queue import Queue
 from queue import Empty
 from typing import Union, List, Dict, Tuple, Callable, Coroutine, Awaitable, Any, TypeVar
+from pathlib import Path
 import logging
 logger = logging.getLogger()
 
@@ -1083,7 +1084,7 @@ class Rs:
             plist = plist + f'{p.discord_name} ({p.discord_id}); '
         line = f'{time.asctime()}\tRS{rs_level}\t{len(queue)}/4\t{plist}'
 
-        completed_queues_file = open("rs/completed_queues.txt",
+        completed_queues_file = open("completed_queues.txt",
                                      "a",
                                      encoding="utf-8")
         completed_queues_file.write(line + '\n')
@@ -1095,7 +1096,10 @@ class Rs:
     @staticmethod
     def _read_rs_records():
 
-        completed_queues_file = open("rs/completed_queues.txt", "r", encoding="utf-8")
+        completed_queues_path = Path("completed_queues.txt")
+        if not completed_queues_path.exists():
+            completed_queues_path.touch()
+        completed_queues_file = open(completed_queues_path, "r", encoding="utf-8")
         queues = completed_queues_file.readlines()
         
 

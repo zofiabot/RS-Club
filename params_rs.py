@@ -166,7 +166,7 @@ TEXT_EMPTY_QUEUE = 'Start a new queue by typing `!in` or reacting below!\n'\
                                 'Questions? `!help`, Hide/Restore channel: `!rs`\n'\
                                 f'Bugs or Ideas? Please report them in '
 
-TEXT_RULES_FORMAT = 'TEXT'
+TEXT_RULES_FORMAT = 'Message'
 TEXT_RULES_TITLE = 'Club Rules'
 
 TEXT_RULES_EN = 'Lorem ipsum sit amet...'

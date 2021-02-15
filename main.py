@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import params_rs as params
 from redstar import Rs
 from keep_awake import keep_awake # used to keep the server awake otherwise it goes to sleep after 1h of inactivity
+import dotenv
 
 #intents = discord.Intents.default()
 #intents.members = True
@@ -95,6 +96,8 @@ async def cmd_rs_stats(ctx: discord.ext.commands.Context):
     await m.delete(delay=params.HELP_DELETION_DELAY)
 
 @bot.command(name='rsrules', help='rsrules', aliases=params.rs_rules_aliases)
+  
+
 async def cmd_rs_rules(ctx: discord.ext.commands.Context):
     await ctx.message.delete()
 
@@ -104,9 +107,8 @@ async def cmd_rs_rules(ctx: discord.ext.commands.Context):
       channel = bot.get_channel(params.RULES_CHANNEL_ID)
       message = await channel.fetch_message(params.RULES_MESSAGE_ID) #.content
       text = message.content
-
     embed = discord.Embed(color=params.EMBED_COLOR, delete_after = params.RULES_DELETION_DELAY)
-    embed.set_author(name= params.TEXT_RULES_TITLE, icon_url=params.SERVER_DISCORD_ICON)
+    embed.set_author(name= f'{params.TEXT_RULES_TITLE}', icon_url=params.SERVER_DISCORD_ICON)
     embed.set_footer(text=f'Called by {ctx.author.display_name}\nDeleting in {int("{:.0f}".format(params.RULES_DELETION_DELAY/60))} min')
 
     
@@ -406,4 +408,5 @@ def handle_exit():
 # start
 keep_awake()
 print('main: connecting...')
+dotenv.load_dotenv(verbose=True)
 bot.run(os.getenv("DISCORD_TOKEN"))
