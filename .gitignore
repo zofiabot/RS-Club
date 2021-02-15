@@ -131,3 +131,6 @@ dmypy.json
 
 #bravosierra99 uses pycharm, so this is for him
 .idea/
+
+#anything in the rs folder
+rs/
