@@ -4,6 +4,7 @@ import time
 from queue import Queue
 from queue import Empty
 from typing import Union, List, Dict, Tuple, Callable, Coroutine, Awaitable, Any, TypeVar
+from pathlib import Path
 import logging
 logger = logging.getLogger()
 
@@ -1125,6 +1126,9 @@ class Rs:
     @staticmethod
     def _read_rs_records():
 
+        completed_queues_path = Path("rs/completed_queues.txt")
+        if not completed_queues_path.exists():
+            completed_queues_path.touch()
         completed_queues_file = open("rs/completed_queues.txt", "r", encoding="utf-8")
         queues = completed_queues_file.readlines()
         
