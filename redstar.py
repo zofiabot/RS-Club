@@ -91,7 +91,6 @@ class Rs:
             role = discord.utils.get(
               Rs.guild.roles, name = getattr ( params, f'RS{i}_ROLE' )
               ).mention
-            #RSqms = f'qm{i}' : QueueManager( f'RS{i}', i, 0xff3300, role)
             Rs.qms.append(QueueManager( f'RS{i}', i, 0xff3300, role))
 
         # queue status embed(s)
