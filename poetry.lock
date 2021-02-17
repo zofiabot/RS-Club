@@ -183,6 +183,17 @@ six = "*"
 
 [[package]]
 category = "main"
+description = "Add .env support to your django/flask apps in development and deployments"
+name = "python-dotenv"
+optional = false
+python-versions = "*"
+version = "0.15.0"
+
+[package.extras]
+cli = ["click (>=5.0)"]
+
+[[package]]
+category = "main"
 description = "Python 2 and 3 compatibility utilities"
 name = "six"
 optional = false
@@ -222,7 +233,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "c70e31add2ddcbda085434c7dce3dd5ac307e860a9705e8ccfc3d95811b50579"
+content-hash = "6938931500f5702742ce2a1f761e09e7e1461d3b299d38bf606afefd2e18f2b4"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -408,6 +419,10 @@ multidict = [
 ]
 params = [
     {file = "params-0.9.0-py3-none-any.whl", hash = "sha256:84ff5a071753333bc71a769686560af53faa46780200422757080e9cf42a0664"},
+]
+python-dotenv = [
+    {file = "python-dotenv-0.15.0.tar.gz", hash = "sha256:587825ed60b1711daea4832cf37524dfd404325b7db5e25ebe88c495c9f807a0"},
+    {file = "python_dotenv-0.15.0-py2.py3-none-any.whl", hash = "sha256:0c8d1b80d1a1e91717ea7d526178e3882732420b03f08afea0406db6402e220e"},
 ]
 six = [
     {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},
