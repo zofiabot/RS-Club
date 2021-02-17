@@ -20,6 +20,7 @@ from queue_manager import QueueManager
 # module reference to Bot instance
 bot: discord.Client
 star_range = params.SUPPORTED_RS_LEVELS
+
 # DIRTY HACK
 def convert_secs_to_time(seconds: int) -> str:
     if seconds < 60:
@@ -144,6 +145,7 @@ class Rs:
 
         msg = reaction.message
         msg_id = reaction.message.id
+        channel = reaction.message.channel.id
 
         # message is a dialogue message
         if msg_id in Rs.dialogues.keys():
@@ -184,9 +186,10 @@ class Rs:
         # if it was a queue embed
         # if qemb is not None and msg_id == qemb.id:
         if Rs.queue_status_embed is not None and msg_id == Rs.queue_status_embed.id:
-          
+
             player_own_queue = None
             #player_own_queue = Rs.qms[emoji_to_int(str(reaction.emoji))].find_player_in_queue_by_discord(user)
+
 
             if reaction.emoji == params.LEAVE_EMOJI:
                 print(
@@ -194,70 +197,24 @@ class Rs:
                 )
                 Rs.add_job(Rs.leave_queue, [user, 0, True, False, False, None])
 
-            # elif player_own_queue != None : # not working can't check if player already in queue, see commented above ... check qm.find_player_in_queue_by_discord
-            #     Rs.add_job(Rs.leave_queue, [user, 0, False, False, False, None])
-            #     await msg.channel.send(f"` {user.display_name} has left RS{emoji_to_int(str(reaction.emoji))} queue `", delete_after = params.MSG_DELETION_DELAY)
+            else:
+                level = emoji_to_int(str(reaction.emoji))
+
+                # elif player_own_queue != None : # not working can't check if player already in queue, see commented above ... check qm.find_player_in_queue_by_discord
+                #     Rs.add_job(Rs.leave_queue, [user, 0, False, False, False, None])
+                #     await msg.channel.send(f"` {user.display_name} has left RS{emoji_to_int(str(reaction.emoji))} queue `", delete_after = params.MSG_DELETION_DELAY)
+                    
+                if params.RS_ROLES[level - 4] not in [ro.name for ro in user.roles]:
+                    await msg.channel.send(f"` {user.display_name}, {params.TEXT_NOROLESET} RS{level} role `", delete_after = params.MSG_DELETION_DELAY)
+                    
+                elif params.RESTRICTING_ROLES[level - 4] in [ro.name for ro in user.roles]:
+                    await msg.channel.send(f"` We are sorry {user.display_name}, but you can't join RS{level} queue `", delete_after = params.MSG_DELETION_DELAY)
                 
-            elif params.RS_ROLES[emoji_to_int(str(reaction.emoji)) - 4 ] not in [ro.name for ro in user.roles]:
-                await msg.channel.send(f"` {user.display_name}, {params.TEXT_NOROLESET} RS{emoji_to_int(str(reaction.emoji))} role `", delete_after = params.MSG_DELETION_DELAY)
-                
-            elif params.RESTRICTING_ROLES[emoji_to_int(str(reaction.emoji)) - 4 ] in [ro.name for ro in user.roles]:
-                await msg.channel.send(f"` We are sorry {user.display_name}, but you can't join RS{emoji_to_int(str(reaction.emoji))} queue `", delete_after = params.MSG_DELETION_DELAY)
-            
-            elif reaction.emoji == params.RS4_EMOJI:
-                print(
-                    f'Rs.handle_reaction(): {user} trying to join RS4 via reaction'
-                )
-                # await Rs.enter_queue(user, level=4, caused_by_reaction=True)
-                Rs.add_job(Rs.enter_queue, [user, 4, '', True, False])
-
-            elif reaction.emoji == params.RS5_EMOJI:
-                print(
-                    f'Rs.handle_reaction(): {user} trying to join RS5 via reaction'
-                )
-                # await Rs.enter_queue(user, level=5, caused_by_reaction=True)
-                Rs.add_job(Rs.enter_queue, [user, 5, '', True, False])
-
-            elif reaction.emoji == params.RS6_EMOJI:
-                print(
-                    f'Rs.handle_reaction(): {user} trying to join RS6 via reaction'
-                )
-                # await Rs.enter_queue(user, level=6, caused_by_reaction=True)
-                Rs.add_job(Rs.enter_queue, [user, 6, '', True, False])
-
-            elif reaction.emoji == params.RS7_EMOJI:
-                print(
-                    f'Rs.handle_reaction(): {user} trying to join RS7 via reaction'
-                )
-                # await Rs.enter_queue(user, level=7, caused_by_reaction=True)
-                Rs.add_job(Rs.enter_queue, [user, 7, '', True, False])
-
-            elif reaction.emoji == params.RS8_EMOJI:
-                print(
-                    f'Rs.handle_reaction(): {user} trying to join RS8 via reaction'
-                )
-                # await Rs.enter_queue(user, level=8, caused_by_reaction=True)
-                Rs.add_job(Rs.enter_queue, [user, 8, '', True, False])
-
-            elif reaction.emoji == params.RS9_EMOJI:
-                print(
-                    f'Rs.handle_reaction(): {user} trying to join RS9 via reaction'
-                )
-                # await Rs.enter_queue(user, level=9, caused_by_reaction=True)
-                Rs.add_job(Rs.enter_queue, [user, 9, '', True, False])
-            elif reaction.emoji == params.RS10_EMOJI:
-                print(
-                    f'Rs.handle_reaction(): {user} trying to join RS10 via reaction'
-                )
-                # await Rs.enter_queue(user, level=10, caused_by_reaction=True)
-                Rs.add_job(Rs.enter_queue, [user, 10, '', True, False])
-
-            elif emoji_to_int(str(reaction.emoji)) == 11 :
-                print( 
-                    f'Rs.handle_reaction(): {user} trying to join RS11 via reaction'
-                )
-                # await Rs.enter_queue(user, level=11, caused_by_reaction=True)
-                Rs.add_job(Rs.enter_queue, [user, 11, '', True, False])
+                elif level in star_range:
+                    print(
+                        f'Rs.handle_reaction(): {user} trying to join RS{level} via reaction'
+                    )
+                    Rs.add_job(Rs.enter_queue, [user, level, '', True, False])
 
             await Rs.queue_status_embed.remove_reaction(reaction.emoji, user)
 
