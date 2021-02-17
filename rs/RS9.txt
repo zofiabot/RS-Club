@@ -1,1 +1,0 @@
-{"py/tuple": [1613408521.7356765, 1613408521.736679, [{"py/object": "player.Player", "discord_name": "bravosierra99#8484", "discord_nick": "bravosierra99", "discord_mention": "<@126793648221192192>", "discord_id": 126793648221192192, "note": "", "mates": 0, "afk_flag": true, "timer": 1613408521.7356765, "afk_timer": 673}]]}
