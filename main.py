@@ -7,16 +7,18 @@ import params_rs as params
 from redstar import Rs
 from keep_awake import keep_awake # used to keep the server awake otherwise it goes to sleep after 1h of inactivity
 import dotenv
+from pprint import pprint
 
-#intents = discord.Intents.default()
-#intents.members = True
+intents = discord.Intents.default()
+intents.typing = False
+intents.presences = False
 
-bot = discord.ext.commands.Bot(command_prefix=['!']) #, intents=intents)
+bot = discord.ext.commands.Bot(command_prefix=['!'] , intents=intents)
 bot.remove_command('help')
 bot_ready = True
 dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
 
-# Help command  
+# Help command
 
 @bot.command(name='help', help='general help page', aliases=params.help_aliases)
 async def cmd_help(ctx: discord.ext.commands.Context):
@@ -85,7 +87,7 @@ async def cmd_rs_stats(ctx: discord.ext.commands.Context):
     total = sum(Rs.stats.values())
 
     for rs, cnt in Rs.stats.items():
-        lvl = int(rs.replace('RS', ''))
+        lvl = int(rs.replace('rs', ''))
         if lvl == params.SUPPORTED_RS_LEVELS_MAX +1 : break
         text += f'**{rs}**: {cnt} _({round(cnt/total*100)}%)_\n'
 
@@ -184,16 +186,19 @@ async def cmd_display_rs_queues(ctx: discord.ext.commands.Context):
 
 @bot.command(name='start', help='Start a queue early', aliases=params.start_queue_aliases)
 
-async def cmd_start_rs_queue(ctx: discord.ext.commands.Context, level: str):
+async def cmd_start_rs_queue(ctx: discord.ext.commands.Context, level: str = 0):
     """
     Start a certain queue
     :param ctx: discord context
     :param level: rs level to start
     :return:
     """
-    # only handle rs commands in the rs channel
-    if ctx.message.channel.id != params.SERVER_RS_CHANNEL_ID:
+    # handle rs commands in the rs channel
+    if ctx.message.channel.id != params.SERVER_RS_CHANNEL_ID and ctx.message.channel.name not in params.RS_CHANNELS:
         return
+    # handle rs commands in single rs channels
+    if level == 0:
+        level = ctx.message.channel.name[2:]
 
     # standard handling of commands
     await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
@@ -279,15 +284,23 @@ async def on_ready():
     channel = bot.get_channel(params.SERVER_RS_CHANNEL_ID) 
 
     async for message in channel.history(limit=100):
-      if message.author == bot.user :
+      if message.author == bot.user and message.embeds:
         mgs.append(message)
     await channel.delete_messages(mgs)
+
+    if params.SPLIT_CHANNELS:
+        for channel_id in params.RS_CHANNELS.values():
+            channel = bot.get_channel(channel_id)
+            async for message in channel.history(limit=100):
+              if message.author == bot.user and message.embeds:
+                mgs.append(message)
+            await channel.delete_messages(mgs)
 
     
     # Clean logs older than 24h
     mgs = [] #Empty list to put all the messages in the log
     channel = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID) 
-    time_differennce = timedelta(hours=24)
+    time_differennce = timedelta(hours=0.001)
     init_time = datetime.now()
     
     async for message in channel.history(limit=100):
@@ -297,15 +310,15 @@ async def on_ready():
     mgs = [] #Empty list to avoid trouble with other code  
       
     # launch loop tasks
-    if not Rs.task_process_queue.is_running() and params.DEBUG_MODE is False:
+    if not Rs.task_process_queue.is_running():
         Rs.task_process_queue.start()
         print(f'on_ready(): launching Rs.task_process_queue...')
-    if not Rs.task_check_afk.is_running() and params.DEBUG_MODE is False:
+    if not Rs.task_check_afk.is_running():
         Rs.task_check_afk.start()
         print(f'on_ready(): launching Rs.task_check_afk...')
-    if not Rs.task_repost_q.is_running() and params.DEBUG_MODE is False:
-        Rs.task_repost_q.start()
-        print(f'on_ready(): launching Rs.task_repost_q...')
+    if not Rs.task_repost_queues.is_running():
+        Rs.task_repost_queues.start()
+        print(f'on_ready(): launching Rs.task_repost_queues...')
 
     # other stuff
     if not params.DEBUG_MODE:
@@ -323,10 +336,10 @@ async def on_ready():
 async def on_connect():
     print(f'on_connect(): {bot.user.name} has connected')
     
-    if params.DEBUG_MODE is False:
-        if dbg_ch:
-            await dbg_ch.send(
-            f'**INFO**: on_connect(): Connection (re-)established')
+
+    if dbg_ch:
+        await dbg_ch.send(
+        f'**INFO**: on_connect(): Connection (re-)established')
 
 @bot.event
 async def on_disconnect():
@@ -337,10 +350,9 @@ async def on_disconnect():
 @bot.event
 async def on_resumed():
     print(f'on_resumed(): {bot.user.name} has resumed')
-    # if params.DEBUG_MODE is False:
     #     
-    #     await dbg_ch.send(
-    #         f'**INFO**: on_resumed(): Connection recovered')
+    #await dbg_ch.send(
+    #        f'**INFO**: on_resumed(): Connection recovered')
 
 
 @bot.event

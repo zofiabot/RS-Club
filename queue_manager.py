@@ -97,6 +97,9 @@ class QueueManager:
     def get_queue_age(self, q):
         return self.age
 
+    def set_queue_age(self, q, time):
+        self.age = time
+
     def find_player_in_queue_by_discord(self, author, id: int = 0):
         for p in self.queue:
             if p.discord_id == id or (author is not None
@@ -122,3 +125,4 @@ class QueueManager:
             print(f'Rs.qm{self.level}.restore_queue(): done')
         except FileNotFoundError:
             print(f'Rs.qm{self.level}.restore_queue(): file not found')
+    

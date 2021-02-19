@@ -2,6 +2,7 @@
 # DISCORD                                         #
 ###################################################
 DEBUG_MODE = False
+SPLIT_CHANNELS = True
 SERVER_DEBUG_CHANNEL_ID = 806307634000166922 #log
 SERVER_BUG_CHANNEL_ID = 808499006510596166 #bug reporting
 SERVER_DISCORD_ID = 760481068959662081
@@ -33,9 +34,9 @@ RS_CHANNELS = {
 # TIME CONSTANTS (in sec)                         #
 ###################################################
 TIME_BOT_AFK_TASK_RATE = 50
-TIME_BOT_Q_TASK_RATE = 5
+TIME_BOT_Q_TASK_RATE = 10
 
-TIME_SPAM_BRAKE = 2
+TIME_SPAM_BRAKE = 20
 TIME_AFK_WARN = 60 * 10  # afk warning as ping; afk_flag set in checker task after warning!
 TIME_AFK_KICK = 60 * 15  # kick if warning ignored. must be bigger than TIME_AFK_WARN!
 TIME_Q_REPOST = 15
@@ -51,8 +52,8 @@ PING_COOLDOWN = 1 # time that has to pass before ping_all_role can be mentioned 
 # ROLES                                           #
 ###################################################
 
-SUPPORTED_RS_LEVELS_MIN = 8
-SUPPORTED_RS_LEVELS_MAX = 11
+SUPPORTED_RS_LEVELS_MIN = 4
+SUPPORTED_RS_LEVELS_MAX = 5
 
 SUPPORTED_RS_LEVELS = range(SUPPORTED_RS_LEVELS_MIN, SUPPORTED_RS_LEVELS_MAX + 1)
 
@@ -96,7 +97,7 @@ SERVER_PING_ROLES_IDS = ['806315919311765524','806315873677606932','760783110006
 SERVER_SOFT_PING_ROLES_IDS = ['807273643947196426','807273555506233374','760876265321922581','760876269473890314','760876272716087306','760876284238102548','760876287584632893','760876291024486410'] # 3/4 4/4
 SERVER_NO_PING_ROLES_IDS = ['807273699975757844','807273767050936320','760876294593970178','760876307939721247','760876311500554271','760876315359445042','760876318979522590','760876322393686046'] # 4/4)
 
-OLD_STARS = {'RS6' : 0, 'RS7' : 0, 'RS8' : 1, 'RS9' : 118, 'RS10' : 0, 'RS11' : 0}
+OLD_STARS = {'rs6' : 0, 'rs7' : 0, 'rs8' : 1, 'rs9' : 118, 'rs10' : 0, 'rs11' : 0}
 
 ###################################################
 # COMMAND ALIASES                                 #
@@ -138,9 +139,10 @@ RS11_EMOJI_ID = 760869824036601939
 RS_EMOJIS =  [RS4_EMOJI, RS5_EMOJI, RS6_EMOJI, RS7_EMOJI, RS8_EMOJI, RS9_EMOJI, RS10_EMOJI, RS11_EMOJI]
 
 # dialogues
-JOIN_EMOJI = "🆕"
+JOIN_EMOJI = "➕"
+UNJOIN_EMOJI = "➖"
 LEAVE_EMOJI = "❎"
-START_EMOJI = "▶"
+START_EMOJI = "✔️"
 CONFIRM_EMOJI = "✅"
 CANCEL_EMOJI = "❎"
 GO_BACK_EMOJI = "🔙"
@@ -163,7 +165,11 @@ RULES_MESSAGE_ID = 805569774822096916
 RULES_MESSAGE_ID_FR = 805569774822096916
 
 TEXT_EMPTY_QUEUE = 'Start a new queue by typing `!in` or reacting below!\n'\
-                                'Questions? `!help`, Hide/Restore channel: `!rs`\n'\
+                                'Leave by reacting with ❎\n'\
+                                'Questions? `!help`\n'\
+                                f'Bugs or Ideas? Please report them in '
+TEXT_EMPTY_QUEUE_DASH = 'Start a new queue by reacting below!\n'\
+                                'Leave **all queues** by reacting with ❎\n'\
                                 f'Bugs or Ideas? Please report them in '
 
 TEXT_RULES_FORMAT = 'Message'
