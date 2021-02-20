@@ -32,6 +32,9 @@ class QueueManager:
         self.age = time.time()
         self.queue: List[Player] = []
 
+        # was queue updated (join, leave by backup_queue + restore_queue, set flag)
+        self.updated: bool = False
+
         # load from file
         self.restore_queue()
 
@@ -77,6 +80,7 @@ class QueueManager:
 
     def get_queue_ready(self):
         if len(self.queue) == 4:
+            self.updated = True
             return self.queue
         return False
 
@@ -87,18 +91,26 @@ class QueueManager:
     def get_and_update_afk_players(self):
         now = time.time()
         afk = []
+        updated = False
         for p in self.queue:
             p.afk_timer = int(round(now - p.timer))
             if p.afk_timer > params.TIME_AFK_WARN:
                 afk.append(p)
-        self.backup_queue()
+                updated = True
+        if updated: self.backup_queue()
         return afk
 
-    def get_queue_age(self, q):
+    def get_queue_age(self):
         return self.age
 
-    def set_queue_age(self, q, time):
-        self.age = time
+    def set_queue_age(self, time_set):
+        self.age = time_set
+
+    def get_queue_updated(self):
+        return self.updated
+
+    def set_queue_displayed(self):
+        self.updated = False
 
     def find_player_in_queue_by_discord(self, author, id: int = 0):
         for p in self.queue:
@@ -108,6 +120,7 @@ class QueueManager:
         return None
 
     def backup_queue(self):
+        self.updated = True
         data = jsonpickle.encode((self.age, self.last_role_ping, self.queue))
         file = open(f'rs/{self.name}.txt', 'w')
         file.write(data)
@@ -123,6 +136,7 @@ class QueueManager:
             self.queue = data[2]
             file.close()
             print(f'Rs.qm{self.level}.restore_queue(): done')
+            self.updated = True
         except FileNotFoundError:
             print(f'Rs.qm{self.level}.restore_queue(): file not found')
     

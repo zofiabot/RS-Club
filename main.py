@@ -125,19 +125,21 @@ async def cmd_enter_rs_queue(ctx: discord.ext.commands.Context, level_arg: str =
     :param level_arg: rs level(s) to join, separated by comma
     :return:
     """
-    # only handle rs commands in the rs channel
-    if ctx.message.channel.id != params.SERVER_RS_CHANNEL_ID:
-        return
+    # standard handling of commands
+    await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
+    print(f'cmd_enter_rs_queue(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}')
 
-    async with ctx.channel.typing():
-
-        # standard handling of commands
-        await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
-        print(f'cmd_enter_rs_queue(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}')
-
-        # relay command to module
+    # handle rs commands in a single rs channel without specified level
+    if ctx.message.channel.id in params.RS_CHANNELS.values() and level_arg == '0':
+        levels = [int(ctx.message.channel.name[2:])]
+    # handle rs commands in all rs channels with specified level
+    elif ctx.message.channel.id == params.SERVER_RS_CHANNEL_ID or ctx.message.channel.id in params.RS_CHANNELS.values():    
         levels = level_arg.replace(',', ' ').split(' ')
-        for level in levels:
+    else:
+        return
+        
+    # relay command to module
+    for level in levels:
             Rs.add_job(Rs.enter_queue, [ctx.author, int(level), comment, False, False])
 
 @bot.command(name='leave', help='Leave the RS queue', aliases=params.leave_queue_aliases)
@@ -146,23 +148,25 @@ async def cmd_leave_rs_queue(ctx: discord.ext.commands.Context, *, level_arg: st
     """
     Leave RS queue(s)
     :param ctx: discord context
-    :param level_arg: rs level(s) to join, separated by comma
+    :param level_arg: rs level(s) to leave, separated by comma
     :return:
     """
-    # only handle rs commands in the rs channel
-    if ctx.message.channel.id != params.SERVER_RS_CHANNEL_ID:
-        return
+    # standard handling of commands
+    await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
+    print(f'cmd_leave_rs_queue(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}')
 
-    async with ctx.channel.typing():
-
-        # standard handling of commands
-        await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
-        print(f'cmd_leave_rs_queue(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}')
-
-        # relay command to module
+    # handle rs commands in a single rs channel without specified level
+    if ctx.message.channel.id in params.RS_CHANNELS.values() and level_arg == '0':
+        levels = [int(ctx.message.channel.name[2:])]
+    # handle rs commands in all rs channels with specified level
+    elif ctx.message.channel.id == params.SERVER_RS_CHANNEL_ID or ctx.message.channel.id in params.RS_CHANNELS.values():    
         levels = level_arg.replace(',', ' ').split(' ')
-        for level in levels:
-            Rs.add_job(Rs.leave_queue, [ctx.author, int(level), False, False, False, None])
+    else:
+        return
+        
+    # relay command to module
+    for level in levels:
+        Rs.add_job(Rs.leave_queue, [ctx.author, int(level), False, False, False, None])
 
 @bot.command(name='display', help='Display the current RS queues', aliases=params.display_queue_aliases)
 
@@ -177,6 +181,8 @@ async def cmd_display_rs_queues(ctx: discord.ext.commands.Context):
     if ctx.message.channel.id != params.SERVER_RS_CHANNEL_ID:
         return
 
+        #TODO individual queues
+
     # standard handling of commands
     await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
     print(f'cmd_display_rs_queues(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}')
@@ -186,7 +192,7 @@ async def cmd_display_rs_queues(ctx: discord.ext.commands.Context):
 
 @bot.command(name='start', help='Start a queue early', aliases=params.start_queue_aliases)
 
-async def cmd_start_rs_queue(ctx: discord.ext.commands.Context, level: str = 0):
+async def cmd_start_rs_queue(ctx: discord.ext.commands.Context, level: int = 0):
     """
     Start a certain queue
     :param ctx: discord context
@@ -194,11 +200,11 @@ async def cmd_start_rs_queue(ctx: discord.ext.commands.Context, level: str = 0):
     :return:
     """
     # handle rs commands in the rs channel
-    if ctx.message.channel.id != params.SERVER_RS_CHANNEL_ID and ctx.message.channel.name not in params.RS_CHANNELS:
-        return
+    if ctx.message.channel.id != params.SERVER_RS_CHANNEL_ID and ctx.message.channel.name not in params.RS_CHANNELS.keys():
+        bot.get_channel(ctx.message.channel.id).send("I am sorry, this won't work")
     # handle rs commands in single rs channels
-    if level == 0:
-        level = ctx.message.channel.name[2:]
+    elif level == 0:
+        level = int(ctx.message.channel.name[2:])
 
     # standard handling of commands
     await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
@@ -280,28 +286,35 @@ async def on_ready():
 
 
     # Clean dead embedds
-    mgs = [] #Empty list to put all the messages in the log
-    channel = bot.get_channel(params.SERVER_RS_CHANNEL_ID) 
+    try:
+        mgs = [] #Empty list to put all the messages in the log
+        channel = bot.get_channel(params.SERVER_RS_CHANNEL_ID) 
 
-    async for message in channel.history(limit=100):
-      if message.author == bot.user and message.embeds:
-        mgs.append(message)
-    await channel.delete_messages(mgs)
+        async for message in channel.history(limit=100):
+          if message.author == bot.user and (message.embeds or params.WARNING_EMOJI in message.content):
+            mgs.append(message)
+        await channel.delete_messages(mgs)
 
-    if params.SPLIT_CHANNELS:
-        for channel_id in params.RS_CHANNELS.values():
-            channel = bot.get_channel(channel_id)
-            async for message in channel.history(limit=100):
-              if message.author == bot.user and message.embeds:
-                mgs.append(message)
-            await channel.delete_messages(mgs)
-
+        mgs = [] #Empty list to put all the messages in the log
+        if params.SPLIT_CHANNELS:
+            for channel in Rs.channels.values():
+                async for message in channel.history(limit=100):
+                  if message.author == bot.user and (message.embeds or params.WARNING_EMOJI in message.content):
+                    mgs.append(message)
+                await channel.delete_messages(mgs)
+    except discord.errors.NotFound:
+        print('Messages already deleted')
     
-    # Clean logs older than 24h
-    mgs = [] #Empty list to put all the messages in the log
-    channel = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID) 
-    time_differennce = timedelta(hours=0.001)
-    init_time = datetime.now()
+    # Clean logs older than hours=
+    try:
+        mgs = [] #Empty list to put all the messages in the log
+        channel = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID) 
+        time_differennce = timedelta(hours=0.1)
+        init_time = datetime.now()
+
+    except discord.errors.NotFound:
+        print('Messages already deleted')
+
     
     async for message in channel.history(limit=100):
       if init_time - message.created_at > time_differennce and message.author == bot.user :
@@ -310,50 +323,45 @@ async def on_ready():
     mgs = [] #Empty list to avoid trouble with other code  
       
     # launch loop tasks
-    if not Rs.task_process_queue.is_running():
-        Rs.task_process_queue.start()
-        print(f'on_ready(): launching Rs.task_process_queue...')
+    if not Rs.task_process_job_queue.is_running():
+        Rs.task_process_job_queue.start()
+        print(f'on_ready(): launching Rs.task_process_job_queue')
     if not Rs.task_check_afk.is_running():
         Rs.task_check_afk.start()
-        print(f'on_ready(): launching Rs.task_check_afk...')
+        print(f'on_ready(): launching Rs.task_check_afk')
     if not Rs.task_repost_queues.is_running():
         Rs.task_repost_queues.start()
-        print(f'on_ready(): launching Rs.task_repost_queues...')
+        print(f'on_ready(): launching Rs.task_repost_queues')
 
     # other stuff
     if not params.DEBUG_MODE:
-        Rs.add_job(Rs.display_queues, [True])
+        Rs.add_job(Rs.display_queues, [False])
+    
+    if not params.DEBUG_MODE and params.SPLIT_CHANNELS:
+        for star in Rs.star_range:
+            Rs.add_job(Rs.display_individual_queue, [star, True, False]) # q, rections, force
+
 
     global bot_ready
     bot_ready = True
     print(f'on_ready(): {bot.user.name} is ready')
-    dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
-    await dbg_ch.send(
-        f'**INFO**: on_ready(): Initialization complete')
+    if dbg_ch:
+        await dbg_ch.send(f'ℹ️ on_ready(): Initialization complete')
 
 
 @bot.event
 async def on_connect():
     print(f'on_connect(): {bot.user.name} has connected')
-    
-
     if dbg_ch:
-        await dbg_ch.send(
-        f'**INFO**: on_connect(): Connection (re-)established')
+        await dbg_ch.send(f'ℹ️ on_connect(): Connection (re-)established')
 
 @bot.event
 async def on_disconnect():
     print(f'on_disconnect(): {bot.user.name} has disconnected')
-    await dbg_ch.send(f':warning: **ERROR**: on_disconnect(): Connection lost')
-
 
 @bot.event
 async def on_resumed():
-    print(f'on_resumed(): {bot.user.name} has resumed')
-    #     
-    #await dbg_ch.send(
-    #        f'**INFO**: on_resumed(): Connection recovered')
-
+    print(f'\n\n\n\n\non_resumed(): {bot.user.name} has resumed\n\n\n\n\n')
 
 @bot.event
 async def on_reaction_add(reaction, user):

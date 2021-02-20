@@ -1,7 +1,7 @@
 ###################################################
 # DISCORD                                         #
 ###################################################
-DEBUG_MODE = False
+DEBUG_MODE = True
 SPLIT_CHANNELS = True
 SERVER_DEBUG_CHANNEL_ID = 806307634000166922 #log
 SERVER_BUG_CHANNEL_ID = 808499006510596166 #bug reporting
@@ -30,33 +30,34 @@ RS_CHANNELS = {
 'rs11': 760481388440453190
 }
 
+SUPPORTED_RS_LEVELS_MIN = 8
+SUPPORTED_RS_LEVELS_MAX = 11
+
+SUPPORTED_RS_LEVELS = range(SUPPORTED_RS_LEVELS_MIN, SUPPORTED_RS_LEVELS_MAX + 1)
+
 ###################################################
 # TIME CONSTANTS (in sec)                         #
 ###################################################
-TIME_BOT_AFK_TASK_RATE = 50
-TIME_BOT_Q_TASK_RATE = 10
+TIME_BOT_AFK_TASK_RATE = 30 #check for afk
+TIME_BOT_QUEUE_TASK_RATE = 20
+TIME_BOT_JOB_TASK_RATE =  3 # (TIME_BOT_QUEUE_TASK_RATE/len(SUPPORTED_RS_LEVELS))*0.9
 
-TIME_SPAM_BRAKE = 20
+
+TIME_SPAM_BRAKE = 15
 TIME_AFK_WARN = 60 * 10  # afk warning as ping; afk_flag set in checker task after warning!
 TIME_AFK_KICK = 60 * 15  # kick if warning ignored. must be bigger than TIME_AFK_WARN!
-TIME_Q_REPOST = 15
-TIME_Q_REPOST_COOLDOWN = 10
+TIME_Q_REPOST = 10
+TIME_Q_REPOST_COOLDOWN = 0.1
 MSG_DELETION_DELAY = 7
 MSG_DISPLAY_TIME = 7
 RULES_DELETION_DELAY = 60
-HELP_DELETION_DELAY = 10
-INFO_DISPLAY_TIME = 60 * 3
-PING_COOLDOWN = 1 # time that has to pass before ping_all_role can be mentioned again
+HELP_DELETION_DELAY = 15
+INFO_DISPLAY_TIME = 60 * 1
+PING_COOLDOWN = 60 # time that has to pass before ping_all_role can be mentioned again
 
 ###################################################
 # ROLES                                           #
 ###################################################
-
-SUPPORTED_RS_LEVELS_MIN = 4
-SUPPORTED_RS_LEVELS_MAX = 5
-
-SUPPORTED_RS_LEVELS = range(SUPPORTED_RS_LEVELS_MIN, SUPPORTED_RS_LEVELS_MAX + 1)
-
 
 SERVER_MEMBER_ROLE = 'rs'
 SERVER_MEMBER_ROLE_ID = 760976687068217375
@@ -89,13 +90,11 @@ RESTRICTING_ROLES =  ['no4','no5','no6','no7','no8','no9','no10','no11'] # for p
 SERVER_RS_ACCESS_ROLES_IDS = ['807272608130138122','807272531006193684','807265218404941854','807265401481592913','807265512727904306','807265593912852510','807265647674523690','807265734278512671'] #aka VRS roles
 
 # 4/4 pings just users in queue (by nick)
-SERVER_PING_ROLES = ['rs4','rs5','rs6','rs7','rs8','rs9','rs10','rs11'] # 1/4 2/4 3/4
+SERVER_PING_ROLES = ['rs4','rs5','rs6','rs7','rs8','rs9','rs10','rs11'] # 1/4 2/4
 SERVER_SOFT_PING_ROLES = ['rs4s','rs5s','rs6s','rs7s','rs8s','rs9s','rs10s','rs11s'] # 3/4
 SERVER_SOFT_NO_ROLES = ['rs4n','rs5n','rs6n','rs7n','rs8n','rs9n','rs10n','rs11n'] # none
 
-SERVER_PING_ROLES_IDS = ['806315919311765524','806315873677606932','760783110006112286','760869215094833163','760869271273209866','760869324541263934','760869611867471943','760869649297440829'] # 1/4 2/4 3/4 4/4
-SERVER_SOFT_PING_ROLES_IDS = ['807273643947196426','807273555506233374','760876265321922581','760876269473890314','760876272716087306','760876284238102548','760876287584632893','760876291024486410'] # 3/4 4/4
-SERVER_NO_PING_ROLES_IDS = ['807273699975757844','807273767050936320','760876294593970178','760876307939721247','760876311500554271','760876315359445042','760876318979522590','760876322393686046'] # 4/4)
+PING_THRESHOLDS = [1, 2, 3] # ping at these queue sizes only
 
 OLD_STARS = {'rs6' : 0, 'rs7' : 0, 'rs8' : 1, 'rs9' : 118, 'rs10' : 0, 'rs11' : 0}
 
@@ -147,16 +146,11 @@ CONFIRM_EMOJI = "✅"
 CANCEL_EMOJI = "❎"
 GO_BACK_EMOJI = "🔙"
 DOWN_EMOJI = "⬇" 
+WARNING_EMOJI = "⚠️"
 
-PING_THRESHOLDS = [1, 2, 3] # ping at these queue sizes only
 
-MAX_RS_NOTE_LENGTH = 50
+MAX_RS_NOTE_LENGTH = 20
 
-MAX_RS_NOTE_LENGTH = 50
-
-MAX_RS_NOTE_LENGTH = 50
-
-MAX_RS_NOTE_LENGTH = 50
 
 # TEXTS 
 
@@ -174,14 +168,11 @@ TEXT_EMPTY_QUEUE_DASH = 'Start a new queue by reacting below!\n'\
 
 TEXT_RULES_FORMAT = 'Message'
 TEXT_RULES_TITLE = 'Club Rules'
-
 TEXT_RULES_EN = 'Lorem ipsum sit amet...'
 TEXT_RULES = TEXT_RULES_EN
+
 TEXT_MEET_WERE = '...meet where?'
 TEXT_NOROLESET = "you didn't sellect ping level for"
+TEXT_STILL_AROUND = 'still around? Confirm below.'
 
-# @zofia: careful with mobile version of discord!
-# @BenSmith30: I think this is exactly what fits on mobile... No?
-#TEXT_FOOTER_TEXT = '___________________________________________________\n'\
-#+ DOWN_EMOJI +'Join.Unirse.Вступать.加入 Quit.Dejar.Уехать.退出'+ LEAVE_EMOJI
 TEXT_FOOTER_TEXT = '\u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800   \u2800' #Zofia's magic works on mobile and pc
