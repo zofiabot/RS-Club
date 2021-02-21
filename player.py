@@ -14,7 +14,7 @@ class Player:
 
         self.discord_mention = user.mention
         self.discord_id = user.id
-        self.note = note[0:params.MAX_RS_NOTE_LENGTH] + '...' \
+        self.note = note[0:(params.MAX_RS_NOTE_LENGTH - 1)] + '…' \
             if len(note) > params.MAX_RS_NOTE_LENGTH else note
         self.mates = mates
 

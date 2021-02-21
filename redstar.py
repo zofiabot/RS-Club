@@ -1,27 +1,31 @@
-import asyncio
+#import asyncio
 import re
 import time
 from queue import Queue
 from queue import Empty
-from typing import Union, List, Dict, Tuple, Callable, Coroutine, Awaitable, Any, TypeVar
+#from typing import Union, List, Dict, Tuple, Callable, Coroutine, Awaitable, Any, TypeVar
+from typing import Union, List, Dict, Tuple, Callable, Awaitable
 from pathlib import Path
-import logging
-logger = logging.getLogger()
+
+# from pprint import pprint
+# lumberjack: sys, traceback, colorama
+import sys, traceback
+import colorama as cr
+cr.init(autoreset=True)
 
 import discord
 from discord.ext import tasks
 
-import params_rs as params
-import player
+from params_rs import params
+# import player
 from player import Player
 from queue_manager import QueueManager
-# from util import Util
 
 # module reference to Bot instance
 bot: discord.Client
-star_range = params.SUPPORTED_RS_LEVELS
-# DIRTY HACK
-def convert_secs_to_time(seconds: int) -> str:
+
+#  HELPER FUNCTIONS
+def secs2time(seconds: int) -> str:
     if seconds < 60:
         seconds = int(round(seconds))
         return str(seconds) + 's'
@@ -32,32 +36,66 @@ def convert_secs_to_time(seconds: int) -> str:
         hours = int(round(seconds / 3600))
         return str(hours) + 'h'
 
-def emoji_to_int(reaction: str):
-  e2i={}
-  for i in Rs.star_range :
-    e = (f'RS{i}_EMOJI')
-    e2i[getattr(params,e)] = i
-  return e2i[reaction]
+def emoji2int(reaction: str):
+    e2i = {}
+    for i in Rs.star_range:
+        e = (f'RS{i}_EMOJI')
+        e2i[getattr(params, e)] = i
+    return e2i[reaction]
 
-def int_to_emoji(number: int):
-  i2e={}
-  for i in Rs.star_range :
-    n = (f'RS{i}_EMOJI')
-    i2e[i] = getattr(params,n)
-  return i2e[number]
+def int2emoji(number: int):
+    i2e = {}
+    for i in Rs.star_range:
+        n = (f'RS{i}_EMOJI')
+        i2e[i] = getattr(params, n)
+    return i2e[number]
 
+def strip_flags(message: str = ''):
+    #TODO Strip flag emoji from first line
+    return message
+
+# lumberjack(sys.exc_info())
+def lumberjack(info):
+    exc_type, exc_value, exc_traceback = info
+    print( f"{cr.Fore.YELLOW} print_tb:")
+    traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
+    print( f"{cr.Fore.YELLOW} print_exception:")
+    traceback.print_exception(exc_type, exc_value, exc_traceback,
+                              limit=2, file=sys.stdout)
+    print( f"{cr.Fore.YELLOW} print_exc:")
+    traceback.print_exc()
+    print( f"{cr.Fore.YELLOW} format_exc, first and last line:")
+    formatted_lines = traceback.format_exc().splitlines()
+    print( f"{formatted_lines[0]}")
+    print( f"{formatted_lines[-1]}")
+    print( f"{cr.Fore.YELLOW} format_exception:")
+    print( f"{repr(traceback.format_exception(exc_type, exc_value, exc_traceback))}")
+    print( f"{cr.Fore.YELLOW} extract_tb:")
+    print( f"{repr(traceback.extract_tb(exc_traceback))}")
+    print( f"{cr.Fore.YELLOW} format_tb:")
+    print( f"{repr(traceback.format_tb(exc_traceback))}")
+    print( f"{cr.Fore.YELLOW} tb_lineno: {exc_traceback.tb_lineno}") 
+
+######################################################
+# THE RS CLASS                                       #
+######################################################
 class Rs:
 
+    star_range = range(params.SUPPORTED_RS_LEVELS_MIN,
+params.SUPPORTED_RS_LEVELS_MAX +1)
     qms = []
-    queue_embeds = {}
     afk_warned_players = []
     afk_check_messages = {}
     time_last_queue_post = time.time()
+    time_last_queues_post = {}
+    queue_embeds = {}
     queue_status_embed = None
     stats = {}
     rs_roles = {}
     guild: discord.Guild = None
-    star_range = params.SUPPORTED_RS_LEVELS
+    bugs_ch = None
+    channel = None #RS single channel or dash object
+    channels = {} #RS channel objects
 
     # dict to handle open user dialogues (expecting a reaction to be closed)
     # key: discord.Message.id
@@ -77,26 +115,36 @@ class Rs:
         global bot
         bot = bot_ref
         Rs.guild = bot.get_guild(params.SERVER_DISCORD_ID)
-        #get the discord.Role(s) for people who are allowed to join
-        for emoji, role_name in zip(params.RS_EMOJIS[-8:], params.RS_ROLES[-8:]):
+        Rs.bugs_ch = bot.get_channel(params.SERVER_BUG_CHANNEL_ID)
+        Rs.channel = bot.get_channel(params.SERVER_RS_CHANNEL_ID)
+
+        for emoji, role_name in zip(params.RS_EMOJIS[-8:],
+                                    params.RS_ROLES[-8:]):
             role = discord.utils.get(Rs.guild.roles, name=role_name)
             if role:
                 Rs.rs_roles[emoji] = role
             else:
-                logger.error(f"unable to retrieve role {role_name}, bot will NOT operate as intended")
-                raise Exception(f"unable to retrieve role {role_name}, bot will NOT operate as intended")
-        
-        # rs queue management (data storage)        
-        for i in (star_range) :
-            role = discord.utils.get(
-              Rs.guild.roles, name = getattr ( params, f'RS{i}_ROLE' )
-              ).mention
-            Rs.qms.append(QueueManager( f'RS{i}', i, 0xff3300, role))
+                print(
+                    f"unable to retrieve role {role_name}, bot will NOT operate as intended"
+                )
+                raise Exception(
+                    f"unable to retrieve role {role_name}, bot will NOT operate as intended"
+                )
 
-        # queue status embed(s)
-        for i in Rs.star_range :
-            Rs.queue_embeds [i - min(Rs.star_range)] = (f'RS{i} : None')
-        
+        # rs queue management (data storage)
+        for i in (Rs.star_range):
+            Rs.qms.append(QueueManager(f'rs{i}', i, 0xff3300))
+
+        if params.SPLIT_CHANNELS:
+          # record queues *display* update
+          for i in Rs.star_range: Rs.time_last_queues_post.update({i : 0})
+          # queue status embeds rsx=active_queue i=placeholder
+          for i in Rs.star_range: Rs.queue_embeds.update({f'rs{i}' : None, i : None})
+          #  get RS channel objects
+          Rs.channels[0] = Rs.channel #compatibility
+          for i in Rs.star_range:
+              Rs.channels[i] = bot.get_channel(params.RS_CHANNELS.get(f'rs{i}'))
+
         Rs.queue_status_embed = None
 
         # message refs
@@ -109,14 +157,14 @@ class Rs:
         Rs.afk_check_messages = {}  # dict: key=discord_id, value=msg_id
 
         # rs run stats
-        if params.OLD_STARS : # if present add earlier stats
-            for o in params.OLD_STARS :
-              Rs.stats[o] = params.OLD_STARS.get(o)
-        else : 
-            for i in Rs.star_range :
-              Rs.stats[f'RS{i}'] = 0
-    
-        Rs._read_rs_records()
+        if params.OLD_STARS:  # if present add earlier stats
+            for o in params.OLD_STARS:
+                Rs.stats[o] = params.OLD_STARS.get(o)
+        else:
+            for i in Rs.star_range:
+                Rs.stats[f'rs{i}'] = 0
+
+        Rs._read_RS_records()
 
     @staticmethod
     async def exit():
@@ -136,7 +184,7 @@ class Rs:
     async def handle_reaction(user: discord.Member,
                               reaction: discord.Reaction):
         """
-        Reaction handler of Rs module
+        Reaction handler of Rs dashboard module
         :param user:
         :param reaction:
         :return:
@@ -144,6 +192,7 @@ class Rs:
 
         msg = reaction.message
         msg_id = reaction.message.id
+        # channel = reaction.message.channel.id  # not used?
 
         # message is a dialogue message
         if msg_id in Rs.dialogues.keys():
@@ -155,157 +204,93 @@ class Rs:
                     # emoji found -> call its callback function and close the dialogue
                     if reaction.emoji == emo:
                         print(
-                            f'Rs.handle_reaction(): {emo}: calling: {callback}'
+                            f'handle reaction: {emo} calling: {callback}'
                         )
                         #await callback(user)
                         Rs.add_job(callback, [user])
                         Rs.dialogues.pop(msg_id)
                         break
 
-
-        # reactive queue system
-        # for rs in Rs.queue_embeds.keys():
-        #     rsqemb = Rs.queue_embeds[rs]
-        #     if rsqemb is not None and rsqemb.id == msg_id:
-        #         if reaction.emoji == params.START_EMOJI:
-        #             print(f'Rs.handle_reaction(): {user} trying to start {rs} via reaction')
-        #             await Rs.start_queue(user, level=int(str.replace(rs, 'RS', '')))
-        #             pass
-        #         elif reaction.emoji == params.JOIN_EMOJI:
-        #             print(f'Rs.handle_reaction(): {user} trying to join {rs} via reaction')
-        #             await Rs.enter_queue(user, level=int(str.replace(rs, 'RS', '')), caused_by_reaction=True)
-        #             pass
-        #         elif reaction.emoji == params.LEAVE_EMOJI:
-        #             print(f'Rs.handle_reaction(): {user} trying to leave {rs} via reaction')
-        #             await Rs.leave_queue(user, level=int(str.replace(rs, 'RS', '')), caused_by_reaction=True)
-
-        # check if the reaction was added to a queue embed
-        # for (rs, qemb) in Rs.queue_embeds.items():
-        # if it was a queue embed
-        # if qemb is not None and msg_id == qemb.id:
         if Rs.queue_status_embed is not None and msg_id == Rs.queue_status_embed.id:
-          
-            player_own_queue = None
-            #player_own_queue = Rs.qms[emoji_to_int(str(reaction.emoji))].find_player_in_queue_by_discord(user)
+
+            # player_own_queue = None
 
             if reaction.emoji == params.LEAVE_EMOJI:
                 print(
-                    f'Rs.handle_reaction(): {user} trying to leave all queues via reaction'
+                    f'handle reaction: {user} trying to leave all queues via reaction'
                 )
                 Rs.add_job(Rs.leave_queue, [user, 0, True, False, False, None])
 
-            # elif player_own_queue != None : # not working can't check if player already in queue, see commented above ... check qm.find_player_in_queue_by_discord
-            #     Rs.add_job(Rs.leave_queue, [user, 0, False, False, False, None])
-            #     await msg.channel.send(f"` {user.display_name} has left RS{emoji_to_int(str(reaction.emoji))} queue `", delete_after = params.MSG_DELETION_DELAY)
-                
-            elif params.RS_ROLES[emoji_to_int(str(reaction.emoji)) - 4 ] not in [ro.name for ro in user.roles]:
-                await msg.channel.send(f"` {user.display_name}, {params.TEXT_NOROLESET} RS{emoji_to_int(str(reaction.emoji))} role `", delete_after = params.MSG_DELETION_DELAY)
-                
-            elif params.RESTRICTING_ROLES[emoji_to_int(str(reaction.emoji)) - 4 ] in [ro.name for ro in user.roles]:
-                await msg.channel.send(f"` We are sorry {user.display_name}, but you can't join RS{emoji_to_int(str(reaction.emoji))} queue `", delete_after = params.MSG_DELETION_DELAY)
-            
-            elif reaction.emoji == params.RS4_EMOJI:
-                print(
-                    f'Rs.handle_reaction(): {user} trying to join RS4 via reaction'
-                )
-                # await Rs.enter_queue(user, level=4, caused_by_reaction=True)
-                Rs.add_job(Rs.enter_queue, [user, 4, '', True, False])
+            else:
+                level = emoji2int(str(reaction.emoji))
 
-            elif reaction.emoji == params.RS5_EMOJI:
-                print(
-                    f'Rs.handle_reaction(): {user} trying to join RS5 via reaction'
-                )
-                # await Rs.enter_queue(user, level=5, caused_by_reaction=True)
-                Rs.add_job(Rs.enter_queue, [user, 5, '', True, False])
+                if params.RS_ROLES[level - 4] not in [ro.name for ro in user.roles]:
+                    await msg.channel.send(
+                        f"` {user.display_name}, {params.TEXT_NOROLESET} rs{level} role `",
+                        delete_after=params.MSG_DELETION_DELAY)
 
-            elif reaction.emoji == params.RS6_EMOJI:
-                print(
-                    f'Rs.handle_reaction(): {user} trying to join RS6 via reaction'
-                )
-                # await Rs.enter_queue(user, level=6, caused_by_reaction=True)
-                Rs.add_job(Rs.enter_queue, [user, 6, '', True, False])
+                elif params.RESTRICTING_ROLES[level - 4] in [ro.name for ro in user.roles]:
+                    await msg.channel.send(
+                        f"` We are sorry {user.display_name}, but you can't join rs{level} queue `",
+                        delete_after=params.MSG_DELETION_DELAY)
 
-            elif reaction.emoji == params.RS7_EMOJI:
-                print(
-                    f'Rs.handle_reaction(): {user} trying to join RS7 via reaction'
-                )
-                # await Rs.enter_queue(user, level=7, caused_by_reaction=True)
-                Rs.add_job(Rs.enter_queue, [user, 7, '', True, False])
-
-            elif reaction.emoji == params.RS8_EMOJI:
-                print(
-                    f'Rs.handle_reaction(): {user} trying to join RS8 via reaction'
-                )
-                # await Rs.enter_queue(user, level=8, caused_by_reaction=True)
-                Rs.add_job(Rs.enter_queue, [user, 8, '', True, False])
-
-            elif reaction.emoji == params.RS9_EMOJI:
-                print(
-                    f'Rs.handle_reaction(): {user} trying to join RS9 via reaction'
-                )
-                # await Rs.enter_queue(user, level=9, caused_by_reaction=True)
-                Rs.add_job(Rs.enter_queue, [user, 9, '', True, False])
-            elif reaction.emoji == params.RS10_EMOJI:
-                print(
-                    f'Rs.handle_reaction(): {user} trying to join RS10 via reaction'
-                )
-                # await Rs.enter_queue(user, level=10, caused_by_reaction=True)
-                Rs.add_job(Rs.enter_queue, [user, 10, '', True, False])
-
-            elif emoji_to_int(str(reaction.emoji)) == 11 :
-                print( 
-                    f'Rs.handle_reaction(): {user} trying to join RS11 via reaction'
-                )
-                # await Rs.enter_queue(user, level=11, caused_by_reaction=True)
-                Rs.add_job(Rs.enter_queue, [user, 11, '', True, False])
+                elif level in Rs.star_range:
+                    print(
+                        f'handle reaction: {user} trying to join rs{level} via reaction'
+                    )
+                    Rs.add_job(Rs.enter_queue, [user, level, '', True, False])
 
             await Rs.queue_status_embed.remove_reaction(reaction.emoji, user)
 
     @staticmethod
     def get_qm(level: int):
-        if level in params.SUPPORTED_RS_LEVELS:
-            return Rs.qms[ level - min(star_range) ]
+        if level in Rs.star_range:
+            return Rs.qms[level - min(Rs.star_range)]
         else:
             raise ValueError
 
     @staticmethod
     def add_job(callback, args):
-        call_info = ''
+        if params.DEBUG_MODE: call_info = f'call:{callback} args:{args}'
         # most rs commands have discord.Member as first arg -> add as additional log info
         if len(args) > 0 and isinstance(args[0], discord.Member):
-            call_info = 'for ' + args[0].name + '#' + args[0].discriminator
-        print(f'Rs.add_job(): scheduled {callback.__name__}() {call_info}')
+            call_info = 'for ' + args[0].name
+            print(f'      job queue: {callback.__name__} {call_info}')
 
         # schedule job via queue
         Rs.jobs.put((callback, args))
-        print(f'Rs.add_job(): {Rs.jobs.qsize()} job(s) left')
+        print(f'  jobs in queue: {Rs.jobs.qsize()}')
 
     @staticmethod
-    @tasks.loop(seconds=0.2)
-    async def task_process_queue():
-        #while True:
-        dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
+    @tasks.loop(seconds=params.TIME_BOT_JOB_TASK_RATE)
+    async def task_process_job_queue():
+
         try:
-            await asyncio.sleep(0.1)
+            #await asyncio.sleep(0.1)
 
             # call to retrieve next job
             job = Rs.jobs.get_nowait()
             callback, args = job
 
-            print(f'Rs.task_process_queue(): executing {callback.__name__}()')
+            print(f'\n  executing job: {callback.__name__}\n')
             await callback(*args)
 
-            print(f'Rs.task_process_queue(): {Rs.jobs.qsize()} job(s) left')
-        
+            print(f'  jobs in queue: {Rs.jobs.qsize()}')
+
         except Empty:
             pass
-        except discord.errors.HTTPException as e :
-            print(f'Rs.task_process_queue(): discord.errors.HTTPException {str(e)}')
+        except discord.errors.HTTPException as e:
+            print(
+                f'Rs.task_process_job_queue(): discord.errors.HTTPException {str(e)}'
+            )
         except discord.DiscordException as e:
-            await dbg_ch.send(f':warning: **ERROR**:[task_process_queue] Rs.task_process_queue(): generic discord exception {str(e)}')
+            print(
+                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[task_process_job_queue]: generic discord exception {str(e)}'
+            )
         except Exception as e:
-            await dbg_ch.send(f':warning: **ERROR**:[task_process_queue] Rs.task_process_queue(): generic exception: {str(e)}')
-            print(f'Rs.task_process_queue(): generic exception {str(e)}')
+            print(
+                f'[task_process_job_queue]: generic exception {str(e)} call:{callback} arg: {args}\njob: {job}\n'
+            )
 
     @staticmethod
     @tasks.loop(seconds=params.TIME_BOT_AFK_TASK_RATE)
@@ -314,18 +299,18 @@ class Rs:
         Cyclic afk check for all queued players
         :return: never returns
         """
-        dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
         try:
-            # for each RS queue
+            # for each rs queue
             for qm in Rs.qms:
                 # ask QM for afk players
                 afks = qm.get_and_update_afk_players()
                 if len(afks) > 0:
                     print(
                         f'task_check_afk(): {qm.name}: '
-                        f'afk list: {[[a.discord_name, str(a.afk_timer)+"s"] for a in afks]}'
+                        f'afk list: {[[a.discord_nick, secs2time(a.afk_timer)] for a in afks]}'
                     )
 
+                
                 # for each afk player
                 for p in afks:
 
@@ -342,11 +327,12 @@ class Rs:
                             Rs.afk_warned_players.remove(p)
 
                         # send afk check msg
-                        msg = await bot.get_channel(
-                            params.SERVER_RS_CHANNEL_ID).send(
-                            f' {p.discord_mention} ⚠️ ` still around? Confirm below. `'
-                        )
+                        msg = await Rs.channel.send(
+                            f' {p.discord_mention} {params.WARNING_EMOJI} ` {params.TEXT_STILL_AROUND} `',
+                            delete_after=params.TIME_AFK_KICK -
+                            params.TIME_AFK_WARN)
                         await msg.add_reaction(params.CONFIRM_EMOJI)
+                        # await asyncio.sleep(0.001)
 
                         # create user dialogue
                         Rs.dialogues[msg.id] = (p.discord_id,
@@ -358,17 +344,15 @@ class Rs:
                         Rs.afk_warned_players.append(p)
                         Rs.afk_check_messages[p.discord_id] = msg.id
                         print(
-                            f'task_check_afk(): new active warnings across all queues: '
-                            f'{[a.discord_name for a in Rs.afk_warned_players]}'
+                            f' task_check_afk: new active warnings across all queues: {[a.discord_name for a in Rs.afk_warned_players]}'
                         )
 
-                        # await Rs.display_queues(repost=True)
-                        Rs.add_job(Rs.display_queues, [True])
+                        await Rs.display_queues(True)
 
                     # already flagged and counting -> keep counting
                     elif p.afk_timer < params.TIME_AFK_KICK:
                         print(
-                            f'task_check_afk(): {qm.name}: {p.discord_name} has been afk for {p.afk_timer}s (kicking after {params.TIME_AFK_KICK}s)'
+                            f' task check_afk: {qm.name}: {p.discord_name} has been afk for {secs2time(p.afk_timer)} (kicking after {secs2time(params.TIME_AFK_KICK - p.afk_timer)})'
                         )
                         p.afk_timer = p.afk_timer + params.TIME_BOT_AFK_TASK_RATE
 
@@ -376,7 +360,7 @@ class Rs:
                     else:
                         # kick this player
                         print(
-                            f'task_check_afk(): {qm.name}: kicking player {p.discord_name}'
+                            f' task check_afk: {qm.name}: kicking player {p.discord_name}'
                         )
                         # await Rs.leave_queue(caller=None, caused_by_afk=True, player=p)
                         Rs.add_job(Rs.leave_queue,
@@ -386,39 +370,48 @@ class Rs:
                         if p in Rs.afk_warned_players:
                             Rs.afk_warned_players.remove(p)
                         await Rs._delete_afk_check_msg(p.discord_id)
-        
+
         except discord.errors.HTTPException:
-            print(f'task_check_afk(): discord.errors.HTTPException')
+            print(f'task_check_afk(): {discord.errors.HTTPException}')
         except discord.DiscordException as e:
-            await dbg_ch.send(f':warning: **ERROR**:[task_check_afk] Rs.task_process_queue(): generic discord exception {str(e)}')
+            print(
+                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[task_check_afk]: generic discord exception {str(e)}'
+            )
         except Exception as e:
-            await dbg_ch.send(f':warning: **ERROR**:[task_check_afk] Rs.task_process_queue(): generic exception: {str(e)}')
-            
+            print(
+                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[task_check_afk]: generic exception: {str(e)}'
+            )
+            print(
+                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[task_check_afk]: generic exception: {str(e)}'
+            )
+
     @staticmethod
-    @tasks.loop(seconds=params.TIME_BOT_Q_TASK_RATE)
-    async def task_repost_q():
+    @tasks.loop(seconds=params.TIME_BOT_QUEUE_TASK_RATE)
+    async def task_repost_queues():
         """
         Cyclic reposting of running queues
         :return: never returns
         """
-        dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
+        # await asyncio.sleep(0.1)
         try:
-            print(f'Rs.task_repost_q(): executing...')
-            Rs.add_job(Rs.display_queues, [])
+            # print(' executing task: display_queues()')
+            Rs.add_job(Rs.display_queues, [True])
+
         except discord.errors.HTTPException:
-            print(f'Rs.task_repost_q(): discord.errors.HTTPException')
+            print(f'Rs.task_repost_queues(): {discord.errors.HTTPException}')
             pass
         except discord.DiscordException as e:
-            await dbg_ch.send(f':warning: **ERROR**:[task_repost_q] Rs.task_process_queue(): generic discord exception {str(e)}')
+            print(
+                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[task_repost_queues] generic discord exception {str(e)}'
+            )
             pass
         except Exception as e:
-            await dbg_ch.send(f':warning: **ERROR**:[task_repost_q] Rs.task_process_queue(): generic exception: {str(e)}')
+            print(
+                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[task_repost_queues]: generic exception: {str(e)}'
+            )
 
     @staticmethod
-    async def start_queue(
-        caller: discord.Member,
-        level: int = 0,
-    ):
+    async def start_queue( caller: discord.Member, level: int = 0 ):
         """
         Force start of a queue (early start)
         :param caller:
@@ -430,15 +423,20 @@ class Rs:
         try:
             qm = Rs.get_qm(level)
         except ValueError:
-            m = await bot.get_channel(
-                params.SERVER_RS_CHANNEL_ID).send(f'{caller.mention} ` Invalid queue "RS{level}" `', delete_after = params.MSG_DISPLAY_TIME)
+            if params.SPLIT_CHANNELS: l=level 
+            else: l=0
+            await Rs.channels[l].send(
+                f'{caller.mention} ` Invalid queue "rs{level}" `',
+                delete_after=params.MSG_DISPLAY_TIME)
             return
-        except discord.errors.HTTPException as e :
+        except discord.errors.HTTPException as e:
             print(f'Rs.start_queue(): discord.errors.HTTPException {str(e)}')
         except discord.DiscordException as e:
-            print(f':warning: **ERROR**:[task_process_queue] Rs.start_queue(): generic discord exception {str(e)}')
+            print(
+                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[start_queue] Rs.start_queue(): generic discord exception {str(e)}'
+            )
         except Exception as e:
-            print(f'Rs.start_queue(): generic exception {str(e)}')
+            print(f'Rs.start_queue(1): generic exception {str(e)}')
 
         p = qm.find_player_in_queue_by_discord(caller)
         q = qm.queue
@@ -449,42 +447,42 @@ class Rs:
             # check this user's roles
             for r in caller.roles:
                 # has admin/mod powers
-                if r.name in params.SERVER_ADMIN_ROLES + params.SERVER_MODERATOR_ROLES:
+                if r.name in (params.SERVER_ADMIN_ROLES + params.SERVER_MODERATOR_ROLES):
                     authorized = True
-                    print(
-                        f'Rs.start_queue(): {caller} is authorized (moderator)'
-                    )
+                    print(f'    start_queue: {caller} is authorized (moderator)')
                     break
         # player in queue -> authorized
         else:
             authorized = True
-            print(f'Rs.start_queue(): {caller} is authorized (member)')
+            print(f'    start_queue: {caller} is authorized (queue member)')
 
         # start the queue
-        if authorized is True and len(q) > 0:
+        if authorized and len(q) > 0:
             await Rs._queue_ready(level)
         elif len(q) == 0:
-            m = await bot.get_channel(
-                params.SERVER_RS_CHANNEL_ID
-            ).send(f'{caller.mention} ` No RS{level} queue found! `', delete_after = params.MSG_DISPLAY_TIME)
+            await Rs.channel.send(
+                f'{caller.mention} ` No rs{level} queue found! `',
+                delete_after=params.MSG_DISPLAY_TIME)
         else:
-            print(f'Rs.start_queue(): {caller} is not authorized')
-            m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(
-                f'{caller.mention} ` Only queued players or @Moderators can force a start. `'
-            , delete_after = params.MSG_DISPLAY_TIME)
+            print(f'    start_queue: {caller} is not authorized')
+            msg = f'{caller.mention} ` Only queued players or @Moderators can force a start. `'
+            if params.SPLIT_CHANNELS: l=level 
+            else: l=0
+            await Rs.channels[level].send(msg, delete_after = params.MSG_DISPLAY_TIME)
+
 
     @staticmethod
     async def clear_queue(caller: discord.Member, level: int = 1):
-
-        print(f'Rs.clear_queue(): called by {caller}')
+      
+        print(f'    clear queue: called by {caller}')
 
         # try to fetch QM for this level
         try:
             qm = Rs.get_qm(level)
         except ValueError:
-            m = await bot.get_channel(
-                params.SERVER_RS_CHANNEL_ID
-            ).send(f'{caller.mention} ` Invalid queue "RS{level}" `', delete_after = params.MSG_DISPLAY_TIME)
+            await Rs.channel.send(
+                f'{caller.mention} ` Invalid queue "rs{level}" `',
+                delete_after=params.MSG_DISPLAY_TIME)
             return
 
         p = qm.find_player_in_queue_by_discord(caller)
@@ -498,20 +496,18 @@ class Rs:
                               params.SERVER_MODERATOR_ROLES):
                     authorized = True
                     print(
-                        f'Rs.clear_queue(): {caller} is authorized (admin/mod)'
+                        f'    clear_queue: {caller} is authorized (admin/mod)'
                     )
                     if len(q) == 0:
-                        m = await bot.get_channel(
-                            params.SERVER_RS_CHANNEL_ID
-                        ).send(f'{caller.mention} ` No RS{level} queue found! `', delete_after = params.MSG_DISPLAY_TIME)
-                        print(
-                            f'Rs.clear_queue(): no rs{level} queue found. aborting'
-                        )
+                        await Rs.channel.send(
+                            f'{caller.mention} ` No rs{level} queue found! `',
+                            delete_after=params.MSG_DISPLAY_TIME)
+                        print(f'{cr.Fore.CYAN}    clear_queue: no rs{level} queue found. aborting')
                         return
                     break
         else:
             authorized = True
-            print(f'Rs.clear_queue(): {caller} is authorized (member)')
+            print(f'    clear_queue: {caller} is authorized (member)')
 
         # clear the queue
         if authorized is True:
@@ -520,18 +516,18 @@ class Rs:
                 for p in qm.queue:
                     await Rs._delete_afk_check_msg(p.discord_id)
                 qm.clear_queue()
-                m = await bot.get_channel(
-                    params.SERVER_RS_CHANNEL_ID
-                ).send(f'{caller.mention} ` RS{level} queue cleared! `', delete_after = params.MSG_DISPLAY_TIME)
+                await Rs.channel.send(
+                    f'{caller.mention} ` rs{level} queue cleared! `',
+                    delete_after=params.MSG_DISPLAY_TIME)
                 await Rs.display_queues(True)
             else:
-                m = await bot.get_channel(
-                    params.SERVER_RS_CHANNEL_ID
-                ).send(f'{caller.mention} ` No RS{level} queue found! `', delete_after = params.MSG_DISPLAY_TIME)
+                await Rs.channel.send(
+                    f'{caller.mention} ` No rs{level} queue found! `',
+                    delete_after=params.MSG_DISPLAY_TIME)
         else:
-            m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(
-                f'{caller.mention} ` Only queued players or administrators can clear a queue. `'
-            , delete_after = params.MSG_DISPLAY_TIME)
+            await Rs.channel.send(
+                f'{caller.mention} ` Only queued players or administrators can clear a queue. `',
+                delete_after=params.MSG_DISPLAY_TIME)
 
     @staticmethod
     async def enter_queue(caller: discord.Member,
@@ -551,34 +547,13 @@ class Rs:
         """
 
         # arg check: valid rs level
-        if level not in params.SUPPORTED_RS_LEVELS and level != 0:
-            m = await bot.get_channel(
-                params.SERVER_RS_CHANNEL_ID
-            ).send(f'RS{level}? Not in this galaxy. Try again!', delete_after = params.MSG_DISPLAY_TIME)
+        if level not in Rs.star_range:
+            await Rs.channel.send(
+                f'rs{level}? Not in this galaxy. Try again!',
+                delete_after=params.MSG_DISPLAY_TIME)
             return
-
-        auto_detect_rs = False
-
-        # no level specified: check callers roles and auto detect highest RS level
-        if level == 0:
-            auto_detect_rs = True
-            level = Rs.get_level_from_rs_role(caller)
-            # couldn't find any RS roles
-            if level == 0:
-                m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(
-                    f'Excuse me {caller.mention}` it appears you don\'t have an RS role set. `'
-                , delete_after = params.MSG_DISPLAY_TIME)
-                return
-
-        # try to fetch QM for this level
-        try:
-            qm = Rs.get_qm(level)
-        except ValueError:
-            m = await bot.get_channel(
-                params.SERVER_RS_CHANNEL_ID
-            ).send(f'{caller.mention} Invalid queue "RS{level}"', delete_after = params.MSG_DISPLAY_TIME)
-            return
-
+        
+        qm = Rs.get_qm(level)
         queue = None
         queue_len = 0
         res = QueueManager.NOTHING
@@ -593,16 +568,20 @@ class Rs:
 
         if queue_len in params.PING_THRESHOLDS and (
                 time.time() - qm.last_role_ping >= params.PING_COOLDOWN):
-            ping_string = qm.role_mention
+            if queue_len < 3: ping_string = params.SERVER_PING_ROLES[level-4]
+            elif  queue_len == 3: ping_string = params.SERVER_SOFT_PING_ROLES[level-4]
             qm.last_role_ping = time.time()
         else:
-            ping_string = f'@rs{level}'
+            ping_string = f'RS{level}'
 
         # new in this queue -> standard join
         if res == QueueManager.PLAYER_JOINED:
-            m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(
-                f'` {player.discord_nick} joined` {ping_string} ` ({queue_len}/4) `'
-            , delete_after = params.MSG_DISPLAY_TIME)
+            msg = f'` {player.discord_nick} joined ` {ping_string} ` ({queue_len}/4) `'
+            if params.SPLIT_CHANNELS:
+                await Rs.channels[level].send(msg, delete_after=params.MSG_DISPLAY_TIME)
+            else:
+                await Rs.channel.send(
+                    msg, delete_after=params.MSG_DISPLAY_TIME)
             await Rs.display_queues(True)
 
         # open afk warning -> always reset when enter_queue is called
@@ -644,7 +623,7 @@ class Rs:
         """
 
         # invalid input
-        if level not in params.SUPPORTED_RS_LEVELS and level != 0:
+        if level not in Rs.star_range and level != 0:
             return
 
         # leaving specific queue only
@@ -665,11 +644,9 @@ class Rs:
                     print(
                         f'Rs.leave_queue(): {player.discord_name} leaving {qm.name} via afk_kick'
                     )
-                    m = await bot.get_channel(
-                        params.SERVER_RS_CHANNEL_ID
-                    ).send(
-                        f'` {player.discord_nick} timed out for {qm.name} ({len(q)}/4) `'
-                    , delete_after = params.MSG_DISPLAY_TIME)
+                    await Rs.channel.send(
+                        f'` {player.discord_nick} timed out for {qm.name} ({len(q)}/4) `',
+                        delete_after=params.MSG_DISPLAY_TIME)
                     await Rs._delete_afk_check_msg(player.discord_id)
 
         # automatic removal due to another queue finishing [in this case, <rs> will be skipped!]
@@ -685,12 +662,10 @@ class Rs:
                     print(
                         f'Rs.leave_queue(): {player.discord_name} leaving {qm.name} via other_queue_finished'
                     )
-                    m = await bot.get_channel(
-                        params.SERVER_RS_CHANNEL_ID
-                    ).send(
-                        f'` {player.discord_nick} removed from {qm.name} ({len(q)}/4) `'
-                    , delete_after = params.MSG_DISPLAY_TIME)
-                    #await Rs.display_queues()
+                    await Rs.channels[level].send(
+                        f'` {player.discord_nick} removed from {qm.name} ({len(q)}/4) `',
+                        delete_after=params.MSG_DISPLAY_TIME)
+                    await Rs.display_queues(True)
 
         # reaction used
         elif caused_by_reaction:
@@ -704,13 +679,11 @@ class Rs:
                     print(
                         f'Rs.leave_queue(): {player.discord_name} leaving {qm.name} via reaction'
                     )
-                    m = await bot.get_channel(
-                        params.SERVER_RS_CHANNEL_ID
-                    ).send(
-                        f'` {player.discord_nick} left {qm.name} ({lq}/4) `'
-                    , delete_after = params.MSG_DISPLAY_TIME)
+                    await Rs.channel.send(
+                        f'` {player.discord_nick} left {qm.name} ({lq}/4) `',
+                        delete_after=params.MSG_DISPLAY_TIME)
                     await Rs._delete_afk_check_msg(player.discord_id)
-                # await Rs.display_queues()
+                await Rs.display_queues(True)
 
         # command used
         else:
@@ -727,43 +700,47 @@ class Rs:
                 lq = len(q)
                 if res == QueueManager.PLAYER_LEFT:
                     print(
-                        f'Rs.leave_queue(): {caller} leaving {qm.name} via command'
+                        f'    leave_queue: {caller} leaving {qm.name} via command'
                     )
-                    m = await bot.get_channel(
-                        params.SERVER_RS_CHANNEL_ID
-                    ).send(
-                        f'` {player.discord_nick} left {qm.name} ({lq}/4) `', delete_after = params.MSG_DISPLAY_TIME)
+                    await Rs.channel.send(
+                        f'` {player.discord_nick} left {qm.name} ({lq}/4) `',
+                        delete_after=params.MSG_DISPLAY_TIME)
                     await Rs._delete_afk_check_msg(player.discord_id)
 
         await Rs.display_queues(True)
 
     @staticmethod
-    async def display_queues(force_update: bool = False, footer_text: str = params.TEXT_FOOTER_TEXT):
+    async def display_queues(force_update: bool = False,
+                             footer_text: str = params.TEXT_FOOTER_TEXT):
         """
 
         :param force_update: force reposting the embed
         :return:
         """
 
-        secs_since_last_call = round(time.time() - Rs.time_last_queue_post)
-        if force_update is False and secs_since_last_call < params.TIME_Q_REPOST_COOLDOWN:
+        last_posted = round(time.time() - Rs.time_last_queue_post)
+        if force_update is False and last_posted < params.TIME_Q_REPOST_COOLDOWN:
             print(
-                f'Rs.display_queues(): skipping due to spam (last update: {secs_since_last_call}s ago)'
+                f'Rs.display_queues(): skipping due to spam (last update: {last_posted}s ago)'
             )
             return
 
         embed = discord.Embed(color=params.QUEUE_EMBED_COLOR)
-        embed.set_author(name=params.QUEUE_EMBED_TITLE, icon_url=params.QUEUE_EMBED_ICON)
+        embed.set_author(name=params.QUEUE_EMBED_TITLE,
+                         icon_url=params.QUEUE_EMBED_ICON)
         embed.set_footer(text=footer_text)
         inl = True
-        any_queue_active = False
+        queue_active = False
+
+        if params.SPLIT_CHANNELS:
+             await Rs.display_individual_queues()
 
         # process all rs queues
         for j, qm in enumerate(Rs.qms):
 
             # queue is populated
             if len(qm.queue) > 0:
-                any_queue_active = True
+                queue_active = True
 
             # fetch the queue and add to embed
             q = qm.queue
@@ -784,8 +761,7 @@ class Rs:
                     note_text = ''
 
                 # print player
-                team = team + f' \u2800 \u2800{p.discord_nick + warn_text + note_text} ' \
-                              f':watch: {convert_secs_to_time(seconds=time.time() - p.timer)}\n'
+                team = team + f' \u2800 \u2800{p.discord_nick + warn_text + note_text} :watch: {secs2time(time.time() - p.timer)}\n'
 
             # add the entry to embed
             if team != '':
@@ -798,47 +774,200 @@ class Rs:
                 inl = False
 
         # all queues empty -> post with message
-        if not any_queue_active:
-            fch = bot.get_channel(params.SERVER_BUG_CHANNEL_ID)
-            embed.description = f'Start a new queue by typing `!in` or reacting below!\n Questions? `!help`\nBugs or Ideas? Please report them in {fch.mention}!'
+        if not queue_active:
+            embed.description = f'{params.TEXT_EMPTY_QUEUE_DASH} {Rs.bugs_ch.mention}!'
 
         # post embed (first time)
         if Rs.queue_status_embed is None:
             await Rs._post_status_embed(embed)
-        # edit er repost
+        # edit or repost
         else:
-            rs_chan = bot.get_channel(params.SERVER_RS_CHANNEL_ID)
+            rs_chan = Rs.channel
 
             # last message is not the embed -> delete and repost, keep as is otherwise and just edit
-            if rs_chan.last_message is not None and \
-                    rs_chan.last_message.author.id != bot.user.id:
-                print('Rs.display_queues(): reposting')
+            #TODO remove repost for dash
+            if rs_chan.last_message is not None and rs_chan.last_message.author.id != bot.user.id:
+                print('dashboard embed: reposting')
                 await Rs._post_status_embed(embed)
                 await Rs.queue_status_embed.delete
             else:
                 await Rs.queue_status_embed.edit(embed=embed)
-                print('Rs.display_queues(): updated')
+                print('dashboard embed: updated')
 
         Rs.time_last_queue_post = time.time()
 
     @staticmethod
-    async def _post_status_embed(embed: discord.Embed):
-        Rs.queue_status_embed = await bot.get_channel(
-            params.SERVER_RS_CHANNEL_ID).send(embed=embed)
-        dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
-        try:
-            e2i={}
-            for i in Rs.star_range :
-              e = (f'RS{i}_EMOJI')
-              await Rs.queue_status_embed.add_reaction(getattr(params,e))
-            await Rs.queue_status_embed.add_reaction(params.LEAVE_EMOJI)
+    async def display_individual_queues():
+
+        for i in Rs.star_range:
+            # await asyncio.sleep(0.01)
+            await Rs.display_individual_queue(i, True, False)
+
+
+    @staticmethod
+    async def display_individual_queue(level: int = 0,
+                                       add_reactions: bool = True,
+                                       force_update: bool = False):
+        """
+        :param name: name of the queue_manager (e.g. 'rs7')
+        :param level: level of the queue to be displayed
+        :return:
+        """
+
+        last_posted = round(time.time() - Rs.time_last_queues_post[level])
+
+        if force_update is False and last_posted < params.TIME_Q_REPOST_COOLDOWN:
+            print(
+                f'Rs.display_queues(): skipping due to spam (last update: {last_posted}s ago)'
+            )
+            return
+
+        else:
+            # process queue
+            qm = Rs.get_qm(level)
+
+            if qm.get_queue_updated or last_posted > params.TIME_Q_REPOST:
+
+                try:
+
+                    queue_len = len(qm.queue)
+
+                    # queue is empty -> send special embed
+                    if queue_len == 0:
+                        embed = discord.Embed(color=params.QUEUE_EMBED_COLOR)
+                        embed.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} empty?'
+                        embed.description = f'{params.TEXT_EMPTY_QUEUE} {Rs.bugs_ch.mention}!'
+                        # delete normal queue embed
+                        if Rs.queue_embeds[qm.name] is not None:
+                            await Rs.queue_embeds[qm.name].delete()
+                            Rs.queue_embeds.update({qm.name : None})
+
+                        # post placeholder queue embed
+                        Rs.queue_embeds[qm.level] = await Rs._post_individual_embed(embed, level, Rs.queue_embeds[qm.level])
+                        Rs.time_last_queues_post[level] = time.time()
+
+                        qm.set_queue_displayed()
+
+                    # populated queue
+                    else:
+                        # fetch the queue and build embed
+                        active_embed = discord.Embed(
+                            color=params.QUEUE_EMBED_COLOR)
+                        active_embed.set_author(name='', icon_url='')
+                        active_embed.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} ({queue_len}/4) \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800  \u2800 '
+                        team = ''
+
+                        # for each player: make entry in embed
+                        for i, p in enumerate(qm.queue):
+
+                            # AFK warning
+                            if p.afk_flag is True:
+                                warn_text = ' ⚠️ '
+                            else:
+                                warn_text = ''
+
+                            if p.note != '':
+                                note_text = f' · {p.note}'
+                            else:
+                                note_text = ''
+
+                            # print player
+                            team = team + f'{p.discord_nick + warn_text + note_text}  ' \
+                                          f':watch: {secs2time(time.time()-p.timer)}\n'
+
+                        queue_age = qm.get_queue_age()
+                        active_embed.description = team
+                        active_embed.set_footer(
+                            text=
+                            f'Queue updated {secs2time(time.time()-queue_age)} ago.'
+                        )
+
+                        # make sure that the placeholder for "all queues empty" is removed
+                        if Rs.queue_embeds[qm.level] is not None:
+                            await Rs.queue_embeds[qm.level].delete()
+                            Rs.queue_embeds[qm.level] = None
+
+                        # update queue embed
+                        Rs.queue_embeds[qm.name] = await Rs._post_individual_embed(
+                                active_embed, qm.level, Rs.queue_embeds[qm.name])
+
+                        # something was posted, so remember the time
+                        Rs.time_last_queues_post[level] = time.time()
+                        qm.set_queue_age(time.time()) # hmmm
+                        qm.set_queue_displayed()
                 
+                except discord.errors.NotFound:
+                    print('[display_individual_queue]: lost message handle (NotFound)')
+                    Rs.queue_embeds[qm.level] = None
+
+                except Exception as ex:
+                    exception_type = type(ex).__name__
+                    print(
+                        f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[display_individual_queue]: generic exception: {str(ex)}'
+                    )
+                    print(f'exception type: {exception_type}')
+                    lumberjack(sys.exc_info())
+        return
+
+    @staticmethod
+    async def _post_status_embed(embed: discord.Embed):
+        Rs.queue_status_embed = await Rs.channel.send(embed=embed)
+
+        try:
+            for i in Rs.star_range:
+                e = (f'RS{i}_EMOJI')
+                await Rs.queue_status_embed.add_reaction(getattr(params, e))
+            await Rs.queue_status_embed.add_reaction(params.LEAVE_EMOJI)
+
         except discord.errors.NotFound:
             print('Rs._post_status_embed(): lost message handle (NotFound)')
             Rs.queue_status_embed = None
         except discord.DiscordException as e:
-            await dbg_ch.send(f':warning: **ERROR**:[_post_status_embed] Rs.task_process_queue(): generic discord exception {str(e)}')
+            print(
+                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[_post_status_embed]: generic discord exception {str(e)}'
+            )
             pass
+
+    @staticmethod
+    async def _post_individual_embed(embed_to_post: discord.Embed,
+                                     level: int, old_embed: discord.Embed = None):
+                
+        # last message is not the embed -> delete and repost, keep as is otherwise and just edit
+        if (Rs.channels[level].last_message is not None and Rs.channels[level].last_message.author.id != bot.user.id) or old_embed == None:
+
+            print(f' queue {level:>2} embed: reposting')
+            current_embed = await Rs.channels[level].send(embed=embed_to_post)
+            if old_embed != None: await old_embed.delete()
+            # Rs.queue_status_embeds.update({channel : current_embed})
+
+        else:
+            await old_embed.edit(embed=embed_to_post)
+            current_embed = old_embed
+            print(f' queue {level:>2} embed: updated')
+
+        try:
+            await current_embed.add_reaction(params.JOIN_EMOJI)
+            await current_embed.add_reaction(params.UNJOIN_EMOJI)
+            await current_embed.add_reaction(params.START_EMOJI)
+
+        except discord.errors.NotFound:
+            print('[_post_individual_embed]: lost message handle (NotFound)')
+            current_embed = None
+        except discord.DiscordException as e:
+            print(
+                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[_post_individual_embed]: generic discord exception {str(e)}'
+            )
+            pass
+        except Exception as ex:
+            exception_type = type(ex).__name__
+            print(
+                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[_post_individual_embed]: generic exception: {str(ex)}'
+            )
+            print(f'\nexception type: {exception_type}')
+            print(f'\n{Rs.queue_embeds}')
+
+        finally:
+            return current_embed
 
     @staticmethod
     async def _reset_afk(discord_user: discord.Member):
@@ -861,11 +990,7 @@ class Rs:
                 players_queues.append(qm.name)
 
         # update all affected queues
-        #for pq in players_queues:
-        # await Rs.display_queues(True)
         Rs.add_job(Rs.display_queues, [True])
-        # m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(
-        #     f':white_check_mark: {discord_user.display_name} you are in for {", ".join(players_queues)}!', delete_after = params.MSG_DISPLAY_TIME)
 
         print(
             f'Rs._reset_afk(): pending afk warning for {discord_user} was reset'
@@ -876,10 +1001,8 @@ class Rs:
 
         if player_id in Rs.afk_check_messages.keys():
             try:
-                msg = await bot.get_channel(
-                    params.SERVER_RS_CHANNEL_ID
-                ).fetch_message(Rs.afk_check_messages[player_id])
-                await msg.delete(delay=1)
+                msg = await Rs.channel.fetch_message(Rs.afk_check_messages[player_id])
+                await msg.delete()
                 Rs.afk_check_messages.pop(player_id)
             except discord.errors.NotFound:
                 pass
@@ -895,42 +1018,47 @@ class Rs:
         # try to fetch QM for this level
         try:
             qm = Rs.get_qm(level)
+            Rs.time_last_queues_post.update({level : time})  #reset queue timer
+            qm.set_queue_age(0)
         except ValueError:
-            m = await bot.get_channel(
-                params.SERVER_RS_CHANNEL_ID
-            ).send(f'` Oops! Invalid queue "RS{level}". Call for help! `', delete_after = params.MSG_DISPLAY_TIME)
+            await Rs.channel.send(
+                f'` Oops! Invalid queue "rs{level}". Call for help! `',
+                delete_after=params.MSG_DISPLAY_TIME)
             return
+        except Exception as e:
+            print(f'[_queue_ready](1): generic exception {str(e)}')
 
         # ping all players
         pings = [p.discord_mention for p in qm.queue]
         msg = ', '.join(pings)
-        msg = f':regional_indicator_r::regional_indicator_s:{int_to_emoji(qm.level)} ready! ' + msg + f' {params.TEXT_MEET_WERE}'
-        m = await bot.get_channel(params.SERVER_RS_CHANNEL_ID).send(msg)
-        
+        msg = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} ready! ' + msg + f' {params.TEXT_MEET_WERE}'
+        if params.SPLIT_CHANNELS:
+            await Rs.channels[level].send(msg)
+        else:
+            await Rs.channel.send(msg)
+
         # remove players from other queues and/or remove any pending afk checks if applicable
         for p in qm.queue:
             await Rs._delete_afk_check_msg(p.discord_id)
-            await Rs.leave_queue(None,
-                                 level=level,
-                                 caused_by_other_queue_finished=True,
-                                 player=p)
+            await Rs.leave_queue(None, level=level, caused_by_other_queue_finished=True, player=p)
 
         # record & reset queue
-        Rs._record_rs_run(level, qm.queue)
+        Rs._record_RS_run(level, qm.queue)
+
         qm.clear_queue()
 
         # update embed
-        await asyncio.sleep(1)
-        await Rs.display_queues(True)
+        Rs.add_job(Rs.display_queues, [True])
+
 
     @staticmethod
-    def get_level_from_rs_role(caller) -> int:
+    def get_level_from_RS_role(caller) -> int:
         player_roles = caller.roles
         level = 0
         for r in player_roles:
-            # role must be 3 or 5 chars long, start with anycase "VRS" followed by one or two digits
-            if len(r.name) in range(3, 5) and re.match('[vR][rR][sS][14-9][0-1]?',
-                                                       r.name):
+            # role must be 3 or 5 chars long, start with anycase "Vrs" followed by one or two digits
+            if len(r.name) in range(3, 5) and re.match(
+                    '[vR][rR][sS][14-9][0-1]?', r.name):
                 # extract rs level as integer and update highest if applicable
                 rsr = int(re.match('[14-9][0-1]?', r.name[2:]).string)
                 if rsr > level:
@@ -938,168 +1066,48 @@ class Rs:
         return level
 
     @staticmethod
-    def get_level_from_rs_roles(caller) -> list:
+    def get_level_from_RS_roles(caller) -> list:
         player_roles = caller.roles
         levels = []
         for r in player_roles:
-            # role must be 3 or 5 chars long, start with anycase "VRS" followed by one or two digits
-            if len(r.name) in range(3, 5) and re.match('[vR][rR][sS][14-9][0-1]?',
-                                                       r.name):
+            # role must be 3 or 5 chars long, start with anycase "Vrs" followed by one or two digits
+            if len(r.name) in range(3, 5) and re.match(
+                    '[vR][rR][sS][14-9][0-1]?', r.name):
                 # extract rs level as integer and update highest if applicable
                 rsr = int(re.match('[14-9][0-1]?', r.name[2:]).string)
                 levels.append(rsr)
         return levels
 
     @staticmethod
-    async def display_queues_individually(name: str = '',
-                                          level: int = 0,
-                                          add_reactions: bool = True):
-        """
+    def _record_RS_run(rs_level: int, queue: List):
 
-        :param name: name of the queue_manager (e.g. 'RS7')
-        :param level: level of the queue to be displayed
-        :return:
-        """
-
-        # no arguments: display all
-        if name == '' and level not in params.SUPPORTED_RS_LEVELS:
-            pass
-
-        any_queue_active = False
-
-        # process all rs queues
-        for qm in Rs.qms:
-
-            # queue is populated
-            if len(qm.queue) > 0:
-                any_queue_active = True
-
-            # empty queue: player just left -> delete embed
-            else:
-                # delete old embed of this qm
-                if Rs.queue_embeds[qm.name] is not None:
-                    await Rs.queue_embeds[
-                        qm.name].delete(delay=params.MSG_DELETION_DELAY)
-                    Rs.queue_embeds[qm.name] = None
-                # skip posting any embeds
-                continue
-
-            # specific queue requested -> skip if this qm is not the specified one
-            if (name != '' and name != qm.name) or (
-                    level in params.SUPPORTED_RS_LEVELS and level != qm.level):
-                continue
-                pass
-
-            # make sure that the placeholder for "all queues empty" is removed
-            if Rs.queue_embeds['empty'] is not None:
-                await Rs.queue_embeds['empty'].delete(
-                    delay=params.MSG_DELETION_DELAY)
-                Rs.queue_embeds['empty'] = None
-
-            # fetch the queue and build embed
-            q = qm.queue
-            embed = discord.Embed(color=params.EMBED_QUEUE_COLOR)
-            embed.title = qm.name + f'Queue ({len(q)}/4)'
-            team = ''
-
-            # for each player: make entry in embed
-            for i, p in enumerate(q):
-
-                # AFK warning
-                if p.afk_flag is True:
-                    warn_text = ' ⚠️ '
-                else:
-                    warn_text = ''
-
-                if p.note != '':
-                    note_text = f'- "_{p.note}_"'
-                else:
-                    note_text = ''
-
-                # print player
-                team = team + f'{p.discord_nick + warn_text + note_text}  ' \
-                              f':watch: {convert_secs_to_time(seconds=time.time()-p.timer)}\n'
-
-            queue_age = qm.get_queue_age(q)
-            embed.description = team
-            embed.set_footer(
-                text=
-                f'Queue started {convert_secs_to_time(seconds=time.time()-queue_age)} ago.'
-            )
-
-            # update queue embed
-            if Rs.queue_embeds[qm.name] is not None:
-                await Rs.queue_embeds[qm.name
-                                      ].delete(delay=params.MSG_DELETION_DELAY)
-            Rs.queue_embeds[qm.name] = await bot.get_channel(
-                params.SERVER_RS_CHANNEL_ID).send(embed=embed)
-
-            # reactive queue system
-            if add_reactions:
-                try:
-                    await Rs.queue_embeds[qm.name
-                                          ].add_reaction(params.JOIN_EMOJI)
-                    await Rs.queue_embeds[qm.name
-                                          ].add_reaction(params.LEAVE_EMOJI)
-                    await Rs.queue_embeds[qm.name
-                                          ].add_reaction(params.START_EMOJI)
-                # already got deleted (discord)
-                except discord.errors.NotFound:
-                    pass
-                # already got deleted (srv object)
-                except AttributeError:
-                    pass
-
-        # all queues empty -> send special embed
-        if not any_queue_active:
-            embed = discord.Embed(color=params.EMBED_QUEUE_COLOR)
-            embed.title = 'No running queues?'
-            embed.description = 'Start a new one by reacting below!\n' \
-                                'Questions? `!help` or ask a `@moderator`!\n' \
-                                'Bugs or Ideas? Please report them to `#bugs`!'
-            # update embed
-            if Rs.queue_embeds['empty'] is not None:
-                await Rs.queue_embeds['empty'].delete(
-                    delay=params.MSG_DELETION_DELAY)
-            m = Rs.queue_embeds['empty'] = await bot.get_channel(
-                params.SERVER_RS_CHANNEL_ID).send(embed=embed)
-            await m.delete(delay=params.INFO_DISPLAY_TIME)
-
-        # spam brake
-        time.sleep(params.TIME_SPAM_BRAKE)
-
-        # in any case: something was posted, so remember the time
-        Rs.time_last_queue_msg = time.time()
-
-    @staticmethod
-    def _record_rs_run(rs_level: int, queue: List[player.Player]):
-        if rs_level not in params.SUPPORTED_RS_LEVELS:
-            print(f'record_rs_run(): {rs_level} not a valid level, skipping')
+        if rs_level not in Rs.star_range:
+            print(f'record_RS_run(): {rs_level} not a valid level, skipping')
             return
 
         plist = ''
         for p in queue:
-            plist = plist + f'{p.discord_name} ({p.discord_id}); '
-        line = f'{time.asctime()}\tRS{rs_level}\t{len(queue)}/4\t{plist}'
+            plist += f'{p.discord_name} ({p.discord_id}); '
+        
+        line = f'{time.asctime()}\trs{rs_level}\t{len(queue)}/4\t{plist}'
 
-        completed_queues_file = open("completed_queues.txt",
-                                     "a",
-                                     encoding="utf-8")
+        completed_queues_file = open("completed_queues.txt", "a", encoding="utf-8")
         completed_queues_file.write(line + '\n')
         completed_queues_file.flush()
         completed_queues_file.close()
 
-        Rs.stats[f'RS{rs_level}'] += 1
+        Rs.stats[f'rs{rs_level}'] += 1
 
     @staticmethod
-    def _read_rs_records():
+    def _read_RS_records():
 
         completed_queues_path = Path("completed_queues.txt")
         if not completed_queues_path.exists():
             completed_queues_path.touch()
-        completed_queues_file = open(completed_queues_path, "r", encoding="utf-8")
+        completed_queues_file = open(completed_queues_path,
+                                     "r",
+                                     encoding="utf-8")
         queues = completed_queues_file.readlines()
-        
 
         for q in queues:
             tokens = q.split('\t')
