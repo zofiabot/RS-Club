@@ -3,7 +3,7 @@ import re
 import discord
 from discord.ext import commands
 from datetime import datetime, timedelta
-from params_rs import params 
+from params import params 
 from redstar import Rs
 from keep_awake import keep_awake # used to keep the server awake otherwise it goes to sleep after 1h of inactivity
 import dotenv
