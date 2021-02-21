@@ -16,7 +16,7 @@ cr.init(autoreset=True)
 import discord
 from discord.ext import tasks
 
-from params_rs import params
+from params import params
 # import player
 from player import Player
 from queue_manager import QueueManager
