@@ -12,6 +12,7 @@ jsonpickle = "^1.5.1"
 flatten-json = "^0.1.8"
 params = "^0.9.0"
 python-dotenv = "^0.15.0"
+colorama = "^0.4.4"
 
 [tool.poetry.dev-dependencies]
 
