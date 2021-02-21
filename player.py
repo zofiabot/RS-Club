@@ -2,7 +2,7 @@ import time
 import re
 import discord
 
-import params_rs as params
+from params import params
 
 
 class Player:

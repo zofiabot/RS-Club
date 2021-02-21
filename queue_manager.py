@@ -2,7 +2,7 @@ from typing import List
 
 from player import Player
 import time
-import params_rs as params
+from params import params
 import jsonpickle
 
 

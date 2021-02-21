@@ -7,7 +7,6 @@ from queue import Empty
 from typing import Union, List, Dict, Tuple, Callable, Awaitable
 from pathlib import Path
 
-# from pprint import pprint
 # lumberjack: sys, traceback, colorama
 import sys, traceback
 import colorama as cr
@@ -17,7 +16,6 @@ import discord
 from discord.ext import tasks
 
 from params import params
-# import player
 from player import Player
 from queue_manager import QueueManager
 
