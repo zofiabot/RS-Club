@@ -243,7 +243,7 @@ async def cmd_display_rs_queues(ctx: discord.ext.commands.Context):
     print(f'cmd_display_rs_queues(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}')
 
     # relay command to module
-    Rs.add_job(Rs.display_individual_queue, [level, True, False])
+    Rs.add_job(Rs.display_individual_queue, [level, True, True])
 
 @bot.command(name='start', help='Start a queue early', aliases=params.start_queue_aliases)
 
@@ -381,6 +381,7 @@ async def on_ready():
     print(f'    Starting up: {bot.user.name} is ready')
     if dbg_ch:
         await dbg_ch.send('ℹ️ on_ready(): Bot Initialization complete')
+
 
 @bot.event
 async def on_connect():
