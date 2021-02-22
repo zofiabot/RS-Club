@@ -233,17 +233,17 @@ async def cmd_display_rs_queues(ctx: discord.ext.commands.Context):
     :return:
     """
     # only handle rs commands in the rs channel
-    if ctx.message.channel.id != params.SERVER_RS_CHANNEL_ID:
+    if ctx.message.channel.id not in Rs.channels:
         return
-
-        #TODO individual queues
+    else:
+      level = Rs.get_level_from_rs_string(ctx.message.channel.name)
 
     # standard handling of commands
     await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
     print(f'cmd_display_rs_queues(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}')
 
     # relay command to module
-    Rs.add_job(Rs.display_queues, [False])
+    Rs.add_job(Rs.display_individual_queue, [level, True, False])
 
 @bot.command(name='start', help='Start a queue early', aliases=params.start_queue_aliases)
 
@@ -381,7 +381,6 @@ async def on_ready():
     print(f'    Starting up: {bot.user.name} is ready')
     if dbg_ch:
         await dbg_ch.send('ℹ️ on_ready(): Bot Initialization complete')
-
 
 @bot.event
 async def on_connect():

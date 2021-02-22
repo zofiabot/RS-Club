@@ -1050,17 +1050,15 @@ params.SUPPORTED_RS_LEVELS_MAX +1)
 
 
     @staticmethod
-    def get_level_from_RS_role(caller) -> int:
+    def get_max_level_from_RS_roles(caller) -> int: # currently unused
         player_roles = caller.roles
         level = 0
+
         for r in player_roles:
             # role must be 3 or 5 chars long, start with anycase "Vrs" followed by one or two digits
-            if len(r.name) in range(3, 5) and re.match(
-                    '[vR][rR][sS][14-9][0-1]?', r.name):
-                # extract rs level as integer and update highest if applicable
-                rsr = int(re.match('[14-9][0-1]?', r.name[2:]).string)
-                if rsr > level:
-                    level = rsr
+            rsr = Rs.get_level_from_rs_string(r.name)
+            if rsr > level:
+                level = rsr
         return level
 
     @staticmethod
@@ -1069,12 +1067,23 @@ params.SUPPORTED_RS_LEVELS_MAX +1)
         levels = []
         for r in player_roles:
             # role must be 3 or 5 chars long, start with anycase "Vrs" followed by one or two digits
-            if len(r.name) in range(3, 5) and re.match(
-                    '[vR][rR][sS][14-9][0-1]?', r.name):
-                # extract rs level as integer and update highest if applicable
-                rsr = int(re.match('[14-9][0-1]?', r.name[2:]).string)
-                levels.append(rsr)
+            rsr = Rs.get_level_from_rs_string(r.name)
+            levels.append(rsr)
         return levels
+
+    @staticmethod
+    def get_level_from_rs_string(role: str) -> int:
+
+        # role must be 3 or 5 chars long, start with anycase "Vrs" followed by one or two digits
+        if len(role) in range(4, 5) and re.match( # VRSxx
+                '[vR][rR][sS][14-9][0-1]?', role):
+            # extract rs level as integer and update highest if applicable
+            level = int(re.match('[14-9][0-1]?', role[2:]).string)
+        elif len(role) in range(3, 4) and re.match( # RSxx
+                '[rR][sS][14-9][0-1]?', role):
+            # extract rs level as integer and update highest if applicable
+            level = int(re.match('[14-9][0-1]?', role[2:]).string)
+        return level
 
     @staticmethod
     def _record_RS_run(rs_level: int, queue: List):
