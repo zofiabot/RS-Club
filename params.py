@@ -15,9 +15,10 @@ class params:
       except Exception:
         continue
     JOIN_EMOJI = '➕'
+    UNQUEUE_EMOJI = '✖️'
     UNJOIN_EMOJI = '➖'
-    LEAVE_EMOJI = '❎'
     START_EMOJI = '✔️'
+    LEAVE_EMOJI = '❎'
     CONFIRM_EMOJI = '✅'
     CANCEL_EMOJI = '❎'
     GO_BACK_EMOJI = '🔙'
@@ -37,14 +38,14 @@ class params:
     RS11_EMOJI = '<:eleven:760869824036601939>'
     RS11_EMOJI_ID = 760869824036601939
     RS_EMOJIS =  [RS4_EMOJI, RS5_EMOJI, RS6_EMOJI, RS7_EMOJI, RS8_EMOJI, RS9_EMOJI, RS10_EMOJI, RS11_EMOJI]
-    TEXT_EMPTY_QUEUE = 'Start a new queue by typing `!in` or reacting below!\nLeave by reacting with ❎\nQuestions? `!help`\nBugs or Ideas? Please report them in '
+    TEXT_EMPTY_QUEUE = 'Start a new queue by reacting with `➕`!\nLeave by reacting with `✖️`\nStart queue without waiting for 4/4 using `✔️`\nRules? `!r` Questions? `!h`\nBugs or Ideas? Please report in '
     TEXT_EMPTY_QUEUE_DASH = 'Start a new queue by reacting below!\nLeave **all queues** by reacting with ❎\nBugs or Ideas? Please report them in '
     TEXT_RULES_FORMAT = 'Message'
     TEXT_RULES_TITLE = 'Club Rules'
     TEXT_RULES_EN = 'Lorem ipsum sit amet...'
     TEXT_RULES = TEXT_RULES_EN
     TEXT_MEET_WERE = '...meet where?'
-    TEXT_NOROLESET = "you didn't sellect ping level for"
+    TEXT_NOROLESET = "you didn't select ping level for"
     TEXT_STILL_AROUND = 'still around? Confirm below.'
     TEXT_FOOTER_TEXT = '\u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800   \u2800'
     SERVER_DISCORD_NAME = ''

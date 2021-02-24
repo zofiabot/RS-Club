@@ -101,8 +101,8 @@ class QueueManager:
     def get_queue_age(self):
         return self.age
 
-    def set_queue_age(self, time_set):
-        self.age = time_set
+    def set_queue_updated(self):
+        self.updated = True
 
     def get_queue_updated(self):
         return self.updated
