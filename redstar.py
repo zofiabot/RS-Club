@@ -183,68 +183,8 @@ class Rs:
         except discord.NotFound:
             pass
 
-    # @staticmethod
-    # async def handle_single_queue_reaction(user: discord.Member,
-    #                           reaction: discord.Reaction, level: int):
-    #     """
-    #     Reaction handler of single Rs embed
-    #     :param user:
-    #     :param reaction:
-    #     :param level:
-    #     :return:
-    #     """
 
-    #     msg = reaction.message
-    #     msg_id = reaction.message.id
-    #     # channel = reaction.message.channel.id  # not used?
 
-    #     # message is a dialogue message
-    #     if msg_id in Rs.dialogues.keys():
-    #         # check if the user reacting is the dialogue owner
-    #         owner_id, chan_id, emoji_callbacks = Rs.dialogues[msg_id]
-    #         if owner_id == user.id:
-    #             # check supported emojis for this message
-    #             for emo, callback in emoji_callbacks:
-    #                 # emoji found -> call its callback function and close the dialogue
-    #                 if reaction.emoji == emo:
-    #                     print(
-    #                         f'handle reaction: {emo} calling: {callback}'
-    #                     )
-    #                     #await callback(user)
-    #                     Rs.add_job(callback, [user])
-    #                     Rs.dialogues.pop(msg_id)
-    #                     break     
-
-    #     if Rs.dashboard_embed is not None and msg_id == Rs.dashboard_embed.id:
-
-    #         # player_own_queue = None
-
-    #         if reaction.emoji == params.LEAVE_EMOJI:
-    #             print(
-    #                 f'handle reaction: {user} trying to leave all queues via reaction'
-    #             )
-    #             await Rs.leave_queue(user, 0, True, False, False, None)
-
-    #         else:
-    #             level = emoji2int(str(reaction.emoji))
-
-    #             if params.RS_ROLES[level - 4] not in [ro.name for ro in user.roles]:
-    #                 await msg.channel.send(
-    #                     f"` {user.display_name}, {params.TEXT_NOROLESET} rs{level} role `",
-    #                     delete_after=params.MSG_DELETION_DELAY)
-
-    #             elif params.RESTRICTING_ROLES[level - 4] in [ro.name for ro in user.roles]:
-    #                 await msg.channel.send(
-    #                     f"` We are sorry {user.display_name}, but you can't join rs{level} queue `",
-    #                     delete_after=params.MSG_DELETION_DELAY)
-
-    #             elif level in Rs.star_range:
-    #                 print(
-    #                     f'handle reaction: {user} trying to join rs{level} via reaction'
-    #                 )
-    #                 await Rs.enter_queue(user, level, '', True, False)
-
-    #         await Rs.dashboard_embed.remove_reaction(reaction.emoji, user)
 
     @staticmethod
     async def handle_reaction(user: discord.Member,
