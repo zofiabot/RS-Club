@@ -435,9 +435,9 @@ async def on_ready():
 	await clean_logs()
 
 	# launch loop tasks
-	if not Rs.task_process_job_queue.is_running():
-		Rs.task_process_job_queue.start()
-		print('    Starting up: launching task process_job_q')
+	# if not Rs.task_process_job_queue.is_running():
+	# 	Rs.task_process_job_queue.start()
+	# 	print('    Starting up: launching task process_job_q')
 	if not Rs.task_check_afk.is_running():
 		Rs.task_check_afk.start()
 		print('    Starting up: launching task check_afk')
@@ -445,14 +445,21 @@ async def on_ready():
 		Rs.task_repost_queues.start()
 		print('    Starting up: launching task repost_queues')
 
-	# other stuff
-	if not params.DEBUG_MODE:
-		Rs.add_job(Rs.display_queues, [False])
+	# # other stuff
+	# if not params.DEBUG_MODE:
+	# 	await Rs.display_dashboard()
 
-	if not params.DEBUG_MODE and params.SPLIT_CHANNELS:
-		for star in Rs.star_range:
-			Rs.add_job(Rs.display_individual_queue,
-			           [star, True, False])  # q, rections, force
+	# if not params.DEBUG_MODE and params.SPLIT_CHANNELS:
+	# 	display_individual_queues()  # q, rections, force
+
+	# # other stuff
+	# if not params.DEBUG_MODE:
+	# 	Rs.add_job(Rs.display_dashboard, [False])
+
+	# if not params.DEBUG_MODE and params.SPLIT_CHANNELS:
+	# 	for star in Rs.star_range:
+	# 		Rs.add_job(Rs.display_individual_queue,
+	# 		           [star, True, False])  # q, rections, force
 
 	global bot_ready
 	bot_ready = True
@@ -481,26 +488,37 @@ async def on_resumed():
 @bot.event
 async def on_reaction_add(reaction, user):
 
-	global bot_ready
-	if not bot_ready:
-		return
+    global bot_ready
+    if not bot_ready:
+      return
 
-	# early catch for own reactions
-	if user.id == bot.user.id:
-		return
+    # early catch for own reactions
+    elif user.id == bot.user.id:
+      return
+    
+    try:
+      
+        # print(f'on_reaction_add(): {reaction.emoji} by {user}')
+        name = reaction.message.channel.name
+        level = Rs.get_level_from_rs_string(name)
 
-	# print(f'on_reaction_add(): {reaction.emoji} by {user}')
+        # dashboard
+        if level == 0:
+          await Rs.handle_reaction(user, reaction)
 
-	level = Rs.get_level_from_rs_string(reaction.message.channel.name)
+        # single que
+        elif level in Rs.star_range:
+          await Rs.handle_single_queue_reaction(user, reaction, level, name)
+          return
 
-	# RS reactive queue system
-	if level == 0:
-		await Rs.handle_reaction(user, reaction)
-
-	# multique
-	elif level in Rs.channels.keys():
-		await Rs.handle_single_queue_reaction(user, reaction, level)
-		return
+    except discord.errors.HTTPException as e:
+        print(
+            f'on_reaction_add: discord.errors.HTTPException {str(e)}'
+        )
+    except discord.DiscordException as e:
+        print(f'⚠️ [on_reaction_add]: generic discord exception {str(e)}')
+    except Exception as e:
+        print(f'⚠️ [on_reaction_add]: generic exception {str(e)} reaction:{reaction}')
 
 
 @bot.event

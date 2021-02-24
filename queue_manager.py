@@ -104,9 +104,6 @@ class QueueManager:
     def set_queue_updated(self):
         self.updated = True
 
-    def get_queue_updated(self):
-        return self.updated
-
     def set_queue_displayed(self):
         self.updated = False
 
@@ -134,7 +131,7 @@ class QueueManager:
             self.queue = data[2]
             file.close()
             print(f'       queue {self.level:>2}: restored')
-            self.updated = True
+            # self.updated = True
         except FileNotFoundError:
             print(f'       queue {self.level:>2}: file not found')
     
