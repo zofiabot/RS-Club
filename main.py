@@ -13,7 +13,7 @@ intents = discord.Intents.default()
 intents.typing = False  #spammy
 intents.presences = False  #spammy
 
-bot = discord.ext.commands.Bot(command_prefix=['!'], intents=intents)
+bot = discord.ext.commands.Bot(command_prefix=['!', '+', '-'], intents=intents)
 bot.remove_command('help')
 bot_ready = True
 dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
@@ -202,7 +202,7 @@ async def cmd_enter_rs_queue(ctx: discord.ext.commands.Context,
 		return
 
 	# handle rs commands in single rs channels
-	elif ctx.message.channel.name in params.RS_CHANNELS.keys():
+	elif ctx.message.channel.name in params.RS_CHANNELS:
 		levels = [int(ctx.message.channel.name[2:])]
 
 	# handle rs commands in unified rs channel
@@ -212,9 +212,10 @@ async def cmd_enter_rs_queue(ctx: discord.ext.commands.Context,
 	# relay command to module (module checks for playable levels)
 	for level in levels:
 		if int(level) in Rs.star_range:
-			Rs.add_job(
-			    Rs.enter_queue,
-			    [ctx.author, int(level), comment, False, False])
+			  await Rs.enter_queue(ctx.author, int(level), comment, False, False)
+			# Rs.add_job(
+			#     Rs.enter_queue,
+			#     [ctx.author, int(level), comment, False, False])
 
 	# standard handling of commands
 	await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
@@ -253,10 +254,12 @@ async def cmd_leave_rs_queue(ctx: discord.ext.commands.Context,
 	# relay commands to module
 	for level in levels:
 		if int(level) == 0:  # 0 leaves all queues
-			Rs.add_job(
-			    Rs.leave_queue,
-			    [ctx.author, int(level), False, False, False, None])
-			break
+			  await Rs.leave_queue(ctx.author, int(level), False, False, False, None)
+			  break
+			# Rs.add_job(
+			#     Rs.leave_queue,
+			#     [ctx.author, int(level), False, False, False, None])
+			# break
 
 		if int(level) in Rs.star_range:
 			await Rs.leave_queue(ctx.author, int(level), False, False, False,
@@ -275,26 +278,23 @@ async def cmd_leave_rs_queue(ctx: discord.ext.commands.Context,
              help='Display the current RS queues',
              aliases=params.display_queue_aliases)
 async def cmd_display_rs_queues(ctx: discord.ext.commands.Context):
-	"""
-    Display current queues that contain at least one player
-    :param ctx: discord context
-    :param level: rs level to display
-    :return:
     """
-	# only handle rs commands in the rs channel
-	if ctx.message.channel.id not in Rs.channels:
-		return
-	else:
-		level = Rs.get_level_from_rs_string(ctx.message.channel.name)
+      Display current queues that contain at least one player
+      :param ctx: discord context
+      :param level: rs level to display
+      :return:
+      """
+    # only handle rs commands in the rs channel
+    if ctx.message.channel.id not in Rs.channels:
+      return
+    else:
+      level = Rs.get_level_from_rs_string(ctx.message.channel.name)
 
-	# standard handling of commands
-	await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
-	print(
-	    f'cmd_display_rs_queues(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}'
-	)
-
-	# relay command to module
-	Rs.add_job(Rs.display_individual_queue, [level, True, True])
+    # standard handling of commands
+    await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
+    # relay command to module
+    Rs.display_individual_queue(level, True, True)
+    # Rs.add_job(Rs.display_individual_queue, [level, True, True])
 
 
 @bot.command(name='start',
@@ -328,7 +328,8 @@ async def cmd_start_rs_queue(ctx: discord.ext.commands.Context,
 	counter = 0
 	for level in levels:
 		if int(level) in Rs.star_range:
-			Rs.add_job(Rs.start_queue, [ctx.author, int(level)])
+			await Rs.start_queue(ctx.author, int(level))
+			# Rs.add_job(Rs.start_queue, [ctx.author, int(level)])
 			counter += 1
 		if counter == 2:
 			await bot.get_channel(
@@ -366,7 +367,8 @@ async def cmd_clear_rs_queue(ctx: discord.ext.commands.Context, level: str):
 	)
 
 	# relay command to module
-	Rs.add_job(Rs.clear_queue, [ctx.author, int(level)])
+	await Rs.clear_queue(ctx.author, int(level))
+  # Rs.add_job(Rs.clear_queue, [ctx.author, int(level)])
 
 
 #################################
@@ -490,17 +492,19 @@ async def on_reaction_add(reaction, user):
 
     global bot_ready
     if not bot_ready:
-      return
+        return
 
     # early catch for own reactions
     elif user.id == bot.user.id:
-      return
+        return
     
     try:
       
-        # print(f'on_reaction_add(): {reaction.emoji} by {user}')
-        name = reaction.message.channel.name
-        level = Rs.get_level_from_rs_string(name)
+        print(f' on_reaction_add: {reaction.emoji} by {user}')
+        name = str(reaction.message.channel.name)
+        level = int(Rs.get_level_from_rs_string(name))      
+        print(f'\n\n----level: {name} level: {level*10}')
+
 
         # dashboard
         if level == 0:
@@ -508,13 +512,12 @@ async def on_reaction_add(reaction, user):
 
         # single que
         elif level in Rs.star_range:
-          await Rs.handle_single_queue_reaction(user, reaction, level, name)
-          return
+            print(f'level: {level} qm {Rs.get_qm(level)}')
+            await Rs.handle_single_queue_reaction(user, reaction, int(level), str(name))
+            return
 
     except discord.errors.HTTPException as e:
-        print(
-            f'on_reaction_add: discord.errors.HTTPException {str(e)}'
-        )
+        print(f'on_reaction_add: discord.errors.HTTPException {str(e)}')
     except discord.DiscordException as e:
         print(f'⚠️ [on_reaction_add]: generic discord exception {str(e)}')
     except Exception as e:
@@ -535,7 +538,7 @@ async def on_command_error(ctx, error):
 
 	try:
 		await ctx.message.add_reaction('🤖')
-		await ctx.message.add_reaction('❔')
+		# await ctx.message.add_reaction('❔')
 	except discord.errors.NotFound:
 		print('on_command_error(): message was deleted -> no reaction')
 	except Exception:

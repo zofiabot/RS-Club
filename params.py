@@ -53,7 +53,7 @@ class params:
     QUEUE_EMBED_TITLE = ''
     RS_ICON = '<:redstar:807239811068329985>'
     help_aliases = ['h', 'H', 'Help', 'rsh']
-    rs_aliases = ['rsc', 'Rs', 'rS', 'RS', 'RSC', 'Rsc']
+    # rs_aliases = ['rsc', 'Rs', 'rS', 'RS', 'RSC', 'Rsc']
     rs_stats_aliases = ['st', 't']
     rs_rules_aliases = ['r', 'rsr', 'rsrule', 'rule', 'rules']
     display_queue_aliases = ['q', 'Q', 'queue', 'Queue']

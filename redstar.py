@@ -108,7 +108,7 @@ class Rs:
                                                    Awaitable[None]]]]]] = {}
 
     # job queue: callback and its args as list
-    jobs = Queue()
+    # jobs = Queue()
     #Callable[..., Awaitable[None]], Tuple[Any, ...]]
 
     @staticmethod
@@ -212,7 +212,9 @@ class Rs:
                         )
                         #await callback(user)
                         # Rs.add_job(callback, [user])
-                        Rs.execute(callback, [user])
+                        await Rs._reset_afk(user) 
+                        #this breaks fuctionllity of dialogues... but I realy can't figure it out otherwise. Anyway or now we use iogue only for _reset_afk
+                        
                         Rs.dialogues.pop(msg_id)
                         Rs.dashboard_displayed = False
                         break
@@ -250,13 +252,17 @@ class Rs:
             Rs.dashboard_displayed = False
 
     @staticmethod
-    async def handle_single_queue_reaction(user: discord.Member, reaction: discord.Reaction, level: int = 0, name: str = ''):
+    async def handle_single_queue_reaction(user: discord.Member, reaction: discord.Reaction, level: int, name: str):
         """
         Reaction handler of Rs dashboard embed
         :param user:
         :param reaction:
+        :param level: star level
+        :param name: channel name
         :return:
         """
+
+        print(f'\n\nlevel: {level} name {name}\n\n')
         msg = reaction.message
         # msg_id = reaction.message.id
         qm = Rs.get_qm(level)
@@ -264,20 +270,18 @@ class Rs:
         if msg in [Rs.single_queue_embeds[qm.level], Rs.single_queue_embeds[qm.name]] :
 
             if reaction.emoji == params.UNQUEUE_EMOJI:
-                print(
-                    f'handle reaction: {user} trying to leave single queue'
-                )
-                await Rs.leave_queue(user, level, True, False, False, None)
+                print(f'handle reaction: {user} trying to leave single queue ({qm.name})')
+                await Rs.leave_queue(None, level, True, False, False, None)
+                return
             
             elif reaction.emoji == params.UNJOIN_EMOJI:
                 if qm.find_player_in_queue_by_discord(user) is not None:
                     # check if player has mates
                     #   # if yes unqueue mate
                     #   # else
-                        print(
-                            f'handle reaction: {user} trying to leave single queue'
-                        )
-                        await Rs.leave_queue(user, level, True, False, False, None)
+                    print(
+                        f'handle reaction: {user} trying to leave single queue ({qm.name})')
+                    await Rs.leave_queue(None , level, True, False, False, user)
                         
             elif reaction.emoji == params.START_EMOJI:
                 if qm.find_player_in_queue_by_discord(user) is not None:
@@ -313,8 +317,9 @@ class Rs:
                     )
                     await Rs.enter_queue(user, level, '', True, False)
 
-            await msg.remove_reaction(reaction.emoji, user)
-            Rs.set_queue_updated(level)
+        await msg.remove_reaction(reaction.emoji, user)
+        Rs.set_queue_updated(level)
+        return
 
     @staticmethod
     def get_qm(level: int):
@@ -324,7 +329,7 @@ class Rs:
             raise ValueError
 
     @staticmethod # add_job replacement
-    def execute(callback, args):
+    async def add_job(callback, args):
         if params.DEBUG_MODE: call_info = f'call:{callback} args:{args}'
         # most rs commands have discord.Member as first arg -> add as additional log info
         if len(args) > 0 and isinstance(args[0], discord.Member):
@@ -332,7 +337,8 @@ class Rs:
             print(f'      job queue: {callback.__name__} {call_info}')
 
         # execute
-        exec(callback, args)
+        await callback(*args)
+        lumberjack(sys.exc_info())
         
     # @staticmethod
     # def add_job(callback, args):
@@ -817,9 +823,12 @@ class Rs:
         :return:
         """
 
-        if Rs.dashboard_displayed and Rs.dashboard_embed is not None:
-          # print(f'dashboard embed: skipping')
-          return
+        last_posted = round(time.time() - Rs.time_last_dashboard_post)
+
+        # if it is not yet time to reresh, ebed exists and nothing changed
+        if last_posted < params.TIME_Q_REPOST and Rs.dashboard_embed is not None and Rs.dashboard_displayed:
+            # print(f'dashboard embed: skipping')
+            return
 
         embed = discord.Embed(color=params.QUEUE_EMBED_COLOR)
         embed.set_author(name=params.QUEUE_EMBED_TITLE,
@@ -918,15 +927,16 @@ class Rs:
 
         qm = Rs.get_qm(level)
 
-        # skip if not upted
-        # or post embed first time (if they are equal they have to be none)
+        # skip if updted and was already posted or first time 
+        # (if they are equal they have to be both None, this is 1st time)
+        # and if it is not yet time to reresh
 
-        if not qm.updated and Rs.single_queue_embeds[qm.level] != Rs.single_queue_embeds[qm.name]:
+        if qm.updated and Rs.single_queue_embeds[qm.level] != Rs.single_queue_embeds[qm.name] and last_posted > params.TIME_Q_REPOST:
             # print(f'queue {level:>2} embed: skipping')
             return
-
-        elif qm.updated or last_posted > params.TIME_Q_REPOST:
-        # process queue
+        
+        # process queue and post embed 
+        else:
 
             try:
 
@@ -944,6 +954,7 @@ class Rs:
 
                     # post placeholder queue embed
                     Rs.single_queue_embeds[qm.level] = await Rs._post_individual_queue_embed(embed, level, Rs.single_queue_embeds[qm.level])
+                    
                     Rs.time_last_queues_post[level] = time.time()
 
                     Rs.set_queue_displayed(level)
@@ -1038,7 +1049,7 @@ class Rs:
     async def _post_individual_queue_embed(embed_to_post: discord.Embed,
                                      level: int, old_embed: discord.Embed = None):
                 
-        # last message is not the embed -> delete and repost, keep as is otherwise and just edit
+        # last message is bot the embed -> delete and repost, keep as is otherwise and just edit
         if (Rs.channels[level].last_message is not None and Rs.channels[level].last_message.author.id != bot.user.id) or old_embed == None:
 
             print(f' queue {level:>2} embed: reposting')
@@ -1196,14 +1207,14 @@ class Rs:
 
         level = 0 # return 0 for dashboard
         # role must be 3 or 5 chars long, start with anycase "Vrs" followed by one or two digits
-        if len(role) in range(4, 5) and re.match( # VRSxx
-                '[vR][rR][sS][14-9][0-1]?', role):
+        if len(role) in range(4, 6) and re.match( # VRSxx
+                '[vV][rR][sS][14-9][0-1]?', role):
             # extract rs level as integer and update highest if applicable
-            level = int(re.match('[14-9][0-1]?', role[2:]).string)
-        elif len(role) in range(3, 4) and re.match( # RSxx
+            level = int(re.match('[1-9]*', role[2:]).string)
+        elif len(role) in range(3, 5) and re.match( # RSxx
                 '[rR][sS][14-9][0-1]?', role):
             # extract rs level as integer and update highest if applicable
-            level = int(re.match('[14-9][0-1]?', role[2:]).string)
+            level = int(re.match('[1-9]*', role[2:]).string)
         return level
 
     @staticmethod
