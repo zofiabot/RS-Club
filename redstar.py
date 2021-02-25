@@ -213,7 +213,7 @@ class Rs:
                         #await callback(user)
                         # Rs.add_job(callback, [user])
                         await Rs._reset_afk(user) 
-                        #this breaks fuctionllity of dialogues... but I realy can't figure it out otherwise. Anyway or now we use iogue only for _reset_afk
+                        # this breaks fuctionllity of dialogues... but I realy can't figure it out otherwise. Anyway or now we use dialogue only for _reset_afk
                         
                         Rs.dialogues.pop(msg_id)
                         Rs.dashboard_displayed = False
@@ -271,17 +271,17 @@ class Rs:
 
             if reaction.emoji == params.UNQUEUE_EMOJI:
                 print(f'handle reaction: {user} trying to leave single queue ({qm.name})')
-                await Rs.leave_queue(None, level, True, False, False, None)
-                return
-            
+                await Rs.leave_queue(user, level, True, False, False, None)
+                            
             elif reaction.emoji == params.UNJOIN_EMOJI:
-                if qm.find_player_in_queue_by_discord(user) is not None:
+                p = qm.find_player_in_queue_by_discord(user)
+                if p is not None:
                     # check if player has mates
                     #   # if yes unqueue mate
                     #   # else
                     print(
-                        f'handle reaction: {user} trying to leave single queue ({qm.name})')
-                    await Rs.leave_queue(None , level, True, False, False, user)
+                        f'handle reaction: {user} trying to leave single queue ({qm.name})({level})')
+                    await Rs.leave_queue(None, level, True, False, False, p)
                         
             elif reaction.emoji == params.START_EMOJI:
                 if qm.find_player_in_queue_by_discord(user) is not None:
@@ -289,7 +289,7 @@ class Rs:
                     #   # if yes unqueue mate
                     #   # else
                         print(
-                            f'handle reaction: {user} trying to leave single queue'
+                            f'handle reaction: {user} trying to start single queue'
                         )
                         await Rs.start_queue(user, level)
 
@@ -393,6 +393,7 @@ class Rs:
         """
         try:
             # for each rs queue
+            dashboard_needs_to_be_updated = 0
             for qm in Rs.qms:
                 # ask QM for afk players
                 afks = qm.get_and_update_afk_players()
@@ -421,7 +422,7 @@ class Rs:
 
                         # send afk check msg
                         msg = await Rs.channel.send(
-                            f' {p.discord_mention} {params.WARNING_EMOJI} ` {params.TEXT_STILL_AROUND} `',
+                            f' {params.WARNING_EMOJI} {p.discord_mention}\n` {params.TEXT_STILL_AROUND} `',
                             delete_after=params.TIME_AFK_KICK -
                             params.TIME_AFK_WARN)
                         await msg.add_reaction(params.CONFIRM_EMOJI)
@@ -474,6 +475,7 @@ class Rs:
             print(
                 f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[task_check_afk]: generic exception: {str(e)}'
             )
+            lumberjack(sys.exc_info())
 
     @staticmethod
     @tasks.loop(seconds=params.TIME_BOT_QUEUE_TASK_RATE)
@@ -725,14 +727,18 @@ class Rs:
         if player is None:
             player = Player(caller)
         
-        leaving_all_queues = True
+        # leaving all or specific queue only
+        if level != 0: 
+            leaving_all_queues = False
+        else:
+            leaving_all_queues = True
 
         # afk timeout
         if caused_by_afk is True:
             # try all queues and check if player can be removed from it
+            msg = [] # message for dashboard
             for qm in Rs.qms:
                 res, q = qm.player_left(player)
-                msg = [] # message for dashboard
                 if res == QueueManager.PLAYER_LEFT:
                     Rs.set_queue_updated(qm.level)
                     print(
@@ -766,9 +772,6 @@ class Rs:
                         f'` {player.discord_nick} removed from {qm.name} ({len(q)}/4) `',
                         delete_after=params.MSG_DISPLAY_TIME)
             return
-
-        # leaving all or specific queue only
-        elif level != 0: leaving_all_queues = False
 
         # reaction used
         elif caused_by_reaction:
@@ -1118,13 +1121,16 @@ class Rs:
                 p.timer = time.time()
                 if p in Rs.afk_warned_players:
                     Rs.afk_warned_players.remove(p)
+                    Rs.set_queue_updated(qm.level)
                 await Rs._delete_afk_check_msg(p.discord_id)
                 # collect all affected queues
                 players_queues.append(qm.name)
+                
 
         print(
             f'Rs._reset_afk(): pending afk warning for {discord_user} was reset'
         )
+        Rs.dashboard_displayed = False
 
     @staticmethod
     async def _delete_afk_check_msg(player_id):
@@ -1156,6 +1162,7 @@ class Rs:
             return
         except Exception as e:
             print(f'[_queue_ready](1): generic exception {str(e)}')
+            lumberjack(sys.exc_info())
 
         # ping all players
         pings = [p.discord_mention for p in qm.queue]

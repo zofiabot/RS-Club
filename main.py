@@ -5,6 +5,8 @@ from discord.ext import commands
 from datetime import datetime, timedelta
 from params import params
 from redstar import Rs
+from redstar import lumberjack
+import sys
 from keep_awake import keep_awake  # used to keep the server awake otherwise it goes to sleep after 1h of inactivity
 import dotenv
 # from pprint import pprint
@@ -500,10 +502,10 @@ async def on_reaction_add(reaction, user):
     
     try:
       
-        print(f' on_reaction_add: {reaction.emoji} by {user}')
+        print(f'on_reaction_add: {reaction.emoji} by {user}')
         name = str(reaction.message.channel.name)
         level = int(Rs.get_level_from_rs_string(name))      
-        print(f'\n\n----level: {name} level: {level*10}')
+        print(f'\n\n----level: {level} level: {name}\n')
 
 
         # dashboard
@@ -512,8 +514,8 @@ async def on_reaction_add(reaction, user):
 
         # single que
         elif level in Rs.star_range:
-            print(f'level: {level} qm {Rs.get_qm(level)}')
-            await Rs.handle_single_queue_reaction(user, reaction, int(level), str(name))
+            print(f'level: {level} qm: {Rs.get_qm(level)}\n')
+            await Rs.handle_single_queue_reaction(user, reaction, level, name)
             return
 
     except discord.errors.HTTPException as e:
@@ -522,6 +524,7 @@ async def on_reaction_add(reaction, user):
         print(f'⚠️ [on_reaction_add]: generic discord exception {str(e)}')
     except Exception as e:
         print(f'⚠️ [on_reaction_add]: generic exception {str(e)} reaction:{reaction}')
+        lumberjack(sys.exc_info())
 
 
 @bot.event
