@@ -134,4 +134,5 @@ class QueueManager:
             # self.updated = True
         except FileNotFoundError:
             print(f'       queue {self.level:>2}: file not found')
+        finally: self.updated = True
     

@@ -3,13 +3,12 @@ import re
 import discord
 from discord.ext import commands
 from datetime import datetime, timedelta
+
 from params import params
 from redstar import Rs
-from redstar import lumberjack
-import sys
 from keep_awake import keep_awake  # used to keep the server awake otherwise it goes to sleep after 1h of inactivity
 import dotenv
-# from pprint import pprint
+
 
 intents = discord.Intents.default()
 intents.typing = False  #spammy
@@ -286,17 +285,16 @@ async def cmd_display_rs_queues(ctx: discord.ext.commands.Context):
       :param level: rs level to display
       :return:
       """
-    # only handle rs commands in the rs channel
+    # only handle rs commands in the rs channels
     if ctx.message.channel.id not in Rs.channels:
       return
     else:
       level = Rs.get_level_from_rs_string(ctx.message.channel.name)
-
+      Rs.display_individual_queue(level)
     # standard handling of commands
     await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
     # relay command to module
-    Rs.display_individual_queue(level, True, True)
-    # Rs.add_job(Rs.display_individual_queue, [level, True, True])
+    # Rs.add_job(Rs.display_individual_queue, [level])
 
 
 @bot.command(name='start',
@@ -376,7 +374,7 @@ async def cmd_clear_rs_queue(ctx: discord.ext.commands.Context, level: str):
 #################################
 # System commands module:
 #################################
-@bot.command(name='ping', help='ping')
+@bot.command(name='pig', help='ping')
 async def cmd_ping(ctx):
 	await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
 	print(
@@ -439,31 +437,19 @@ async def on_ready():
 	await clean_logs()
 
 	# launch loop tasks
+
 	# if not Rs.task_process_job_queue.is_running():
 	# 	Rs.task_process_job_queue.start()
 	# 	print('    Starting up: launching task process_job_q')
+
 	if not Rs.task_check_afk.is_running():
 		Rs.task_check_afk.start()
 		print('    Starting up: launching task check_afk')
+
 	if not Rs.task_repost_queues.is_running():
 		Rs.task_repost_queues.start()
 		print('    Starting up: launching task repost_queues')
 
-	# # other stuff
-	# if not params.DEBUG_MODE:
-	# 	await Rs.display_dashboard()
-
-	# if not params.DEBUG_MODE and params.SPLIT_CHANNELS:
-	# 	display_individual_queues()  # q, rections, force
-
-	# # other stuff
-	# if not params.DEBUG_MODE:
-	# 	Rs.add_job(Rs.display_dashboard, [False])
-
-	# if not params.DEBUG_MODE and params.SPLIT_CHANNELS:
-	# 	for star in Rs.star_range:
-	# 		Rs.add_job(Rs.display_individual_queue,
-	# 		           [star, True, False])  # q, rections, force
 
 	global bot_ready
 	bot_ready = True
@@ -481,7 +467,7 @@ async def on_connect():
 
 @bot.event
 async def on_disconnect():
-	print(f'on_disconnect(): {bot.user.name} has disconnected')
+	print('on_disconnect(): Bot has disconnected')
 
 
 @bot.event
@@ -501,12 +487,11 @@ async def on_reaction_add(reaction, user):
         return
     
     try:
-      
-        print(f'on_reaction_add: {reaction.emoji} by {user}')
+        if reaction.custom_emoji: emo = '⑾' 
+        else: emo = reaction.emoji
+        print(f'on_reaction_add: {emo} by {user.display_name}')
         name = str(reaction.message.channel.name)
         level = int(Rs.get_level_from_rs_string(name))      
-        print(f'\n\n----level: {level} level: {name}\n')
-
 
         # dashboard
         if level == 0:
@@ -514,7 +499,6 @@ async def on_reaction_add(reaction, user):
 
         # single que
         elif level in Rs.star_range:
-            print(f'level: {level} qm: {Rs.get_qm(level)}\n')
             await Rs.handle_single_queue_reaction(user, reaction, level, name)
             return
 
@@ -524,7 +508,6 @@ async def on_reaction_add(reaction, user):
         print(f'⚠️ [on_reaction_add]: generic discord exception {str(e)}')
     except Exception as e:
         print(f'⚠️ [on_reaction_add]: generic exception {str(e)} reaction:{reaction}')
-        lumberjack(sys.exc_info())
 
 
 @bot.event
@@ -548,15 +531,10 @@ async def on_command_error(ctx, error):
 		pass
 
 	if isinstance(error, commands.errors.CheckFailure):
-		m = await ctx.send(
-		    f'{ctx.author.mention} You do not have the correct role for this command!'
-		)
-		await m.delete(delay=params.MSG_DISPLAY_TIME)
+		await ctx.send(f'{ctx.author.mention} You do not have the correct role for this command!', delete_after=params.MSG_DISPLAY_TIME)
+	
 	elif isinstance(error, commands.errors.MissingPermissions):
-		m = await ctx.send(
-		    f'{ctx.author.mention} I\'m missing permissions to do that!')
-		await m.delete(delay=params.MSG_DISPLAY_TIME)
-
+		await ctx.send(f'{ctx.author.mention} I\'m missing permissions to do that!', delete_after=params.MSG_DISPLAY_TIME)
 
 # kill handler to trigger a clean exit (e.g. to clear up any open chat clutter)
 def handle_exit():
