@@ -53,6 +53,13 @@ def strip_flags(message: str = ''):
     #TODO Strip flag emoji from first line
     return message
 
+def s_(num: int = 0):
+  string ='  \u2800 '
+  for i in range(0,num):
+    string += ' \u2800'
+  return string
+
+
 # lumberjack(sys.exc_info())
 def lumberjack(info):
     exc_type, exc_value, exc_traceback = info
@@ -86,7 +93,7 @@ class Rs:
     afk_check_messages = {}
     time_last_dashboard_post = time.time()
     time_last_queues_post = {}
-    single_queue_embeds = {}
+    single_queue_messages = {}
     dashboard_embed = None
     dashboard_updated = True
     dashboard_queue_displayed = {}
@@ -139,12 +146,15 @@ class Rs:
             Rs.dashboard_queue_displayed.update({ i : False })
 
         if params.SPLIT_CHANNELS:
-          # record queues *display* update
+
+          # record queues update time
           for i in Rs.star_range: Rs.time_last_queues_post.update({i : 0})
+
           # queue status embeds rsx=active_queue i=placeholder
-          for i in Rs.star_range: Rs.single_queue_embeds.update({f'rs{i}' : None, i : None})
+          for i in Rs.star_range: Rs.single_queue_messages.update({f'rs{i}' : None, i : None})
+
           #  get RS channel objects
-          Rs.channels[0] = Rs.channel #compatibility
+          Rs.channels[0] = Rs.channel # for compatibility
           for i in Rs.star_range:
               Rs.channels[i] = bot.get_channel(params.RS_CHANNELS.get(f'rs{i}'))
 
@@ -180,7 +190,7 @@ class Rs:
             if Rs.dashboard_embed is not None:
                 await Rs.dashboard_embed.delete()
             for i in Rs.star_range:
-                await Rs.single_queue_embeds[i].delete()
+                await Rs.single_queue_messages[i].delete()
         except discord.NotFound:
             pass
 
@@ -265,7 +275,7 @@ class Rs:
         # msg_id = reaction.message.id
         qm = Rs.get_qm(level)
 
-        if msg in [Rs.single_queue_embeds[qm.level], Rs.single_queue_embeds[qm.name]] :
+        if msg in [Rs.single_queue_messages[qm.level], Rs.single_queue_messages[qm.name]] :
 
             Rs.dashboard_updated = True
 
@@ -830,27 +840,25 @@ class Rs:
             return
 
         embed = discord.Embed(color=params.QUEUE_EMBED_COLOR)
-        embed.set_author(name=params.QUEUE_EMBED_TITLE,
-                        icon_url=params.QUEUE_EMBED_ICON)
+        embed.set_author(name=params.QUEUE_EMBED_TITLE, icon_url=params.QUEUE_EMBED_ICON)
         embed.set_footer(text=footer_text)
         inl = True
         no_players = True
 
-        for qm in Rs.qms:  # process all rs queues
-
-            if qm.level == 0:
-                continue
+        for qm in Rs.qms:  
+        # process all rs queues
 
             # await asyncio.sleep(0)
 
             if not Rs.dashboard_queue_displayed[qm.level]: 
                 
-                  if len(qm.queue) > 0: # if there is queue fetch the queue and add to embed
+                  if len(qm.queue) > 0: 
+                  # if there is queue fetch the queue and add to embed
                       team = ''
-                      no_players = False #there are players -> no 'empty embed'
+                      no_players = False #there are players -> no placeholder embed
 
-                      # for each player: make entry in embed
                       for i, p in enumerate(qm.queue):
+                      # for each player: make entry in embed
 
                           player_desc = p.discord_nick
                           # AFK warning
@@ -858,7 +866,7 @@ class Rs:
                               player_desc += ' ⚠️ ' + p.note
 
                           # print player
-                          team = team + f' \u2800 \u2800{player_desc} :watch: {secs2time(time.time() - p.timer)}\n'
+                          team = team + f' {s_(1)}{player_desc} :watch: {secs2time(time.time() - p.timer)}\n'
 
                       # add the entry to embed
                       if '♾' in team:
@@ -867,34 +875,36 @@ class Rs:
                       inl = False
                       Rs.teams.update({qm.level : {'name' : rs_name, 'value' : team, 'inline' : inl}})
                       embed.add_field(**Rs.teams[qm.level])
-                  else: # set empty team
+
+                  else: 
+                  # set empty team
                       Rs.teams.update({qm.level:{}})
                   
                   Rs.dashboard_queue_displayed.update({ qm.level : True })
 
-            elif Rs.teams[qm.level]: # if not updated queue exists
+            elif Rs.teams[qm.level]: 
+            # if not updated queue exists
                   no_players = False
                   embed.add_field(**Rs.teams[qm.level])
-                  
 
-        # all queues empty -> post with message
+        # all queues empty -> post with placeholder message
         if no_players:
             embed.description = f'{params.TEXT_EMPTY_QUEUE_DASH} {Rs.bugs_ch.mention}!'
-
 
         # post embed (first time)
         if Rs.dashboard_embed is None:
             await Rs._post_dashboard_embed(embed)
         
-        # edit or repost
         else:
-           
-            # last message is not the embed -> delete and repost, otherwise just edit
+        # edit or repost
             
+            # if we are running split channels no need to repost
             if params.SPLIT_CHANNELS:
                 await Rs.dashboard_embed.edit(embed=embed)
                 print('dashboard embed: updated')
+
             else:
+            # last message is not the embed -> delete and repost, otherwise just edit
                 if Rs.channel.last_message.author.id != bot.user.id:
                     print('dashboard embed: reposting')
                     await Rs.dashboard_embed.delete
@@ -905,115 +915,114 @@ class Rs:
 
 
     @staticmethod
-    async def display_individual_queues(force_update: bool = False):
+    async def display_individual_queues(force_repost: bool = False):
 
         for qm in Rs.qms:
             # check if last message in channel belongs to bot, force upddate otherwise
             message = Rs.channels[qm.level].last_message
 
+            last_posted = round(time.time() - Rs.time_last_queues_post[qm.level])
+
             if message is not None and message.author.id != bot.user.id: 
                 qm.set_queue_updated()
-                print(f'{message.author} in {qm.level}')
+                force_repost = True
 
-            if qm.updated: await Rs.display_individual_queue(qm)
+            if qm.updated or last_posted > params.TIME_SPAM_BRAKE: 
+                await Rs.display_individual_queue(qm, force_repost)
 
 
     @staticmethod
-    async def display_individual_queue(qm: QueueManager):
+    async def display_individual_queue(qm: QueueManager, force_repost: bool = False):
         """
         :param name: the queue_manager
-        :param level: level of the queue to be displayed
+        :param force_repost: force embed reposting
         :return:
         """
 
         level = qm.level
-        last_posted = round(time.time() - Rs.time_last_queues_post[level])
 
+        try:
 
-        # process queue and post embed 
-        if qm.updated or last_posted < params.TIME_SPAM_BRAKE:
+            queue_len = len(qm.queue)
 
-            try:
+            # queue is empty -> send special placeholder embed
+            if queue_len == 0:
 
-                queue_len = len(qm.queue)
+                embed_to_post = discord.Embed(color=params.QUEUE_EMBED_COLOR)
+                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} empty? {s_(9)}'
+                embed_to_post.description = f'{params.TEXT_EMPTY_QUEUE} {Rs.bugs_ch.mention}!'
 
-                # queue is empty -> send special embed
-                if queue_len == 0:
+                if Rs.single_queue_messages[qm.level] is not None:
+                # placeholder embed alredy displayed ---- can this be skipped?
+                    Rs.single_queue_messages[qm.level] = await Rs._post_individual_queue_embed(embed_to_post, level, Rs.single_queue_messages[qm.level], force_repost)    
 
-                    embed = discord.Embed(color=params.QUEUE_EMBED_COLOR)
-                    embed.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} empty? \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800  \u2800 '
-                    embed.description = f'{params.TEXT_EMPTY_QUEUE} {Rs.bugs_ch.mention}!'
+                # replace normal queue embed
+                elif Rs.single_queue_messages[qm.name] is not None:
+                    Rs.single_queue_messages[qm.level] = await Rs._post_individual_queue_embed(embed_to_post, level, Rs.single_queue_messages[qm.name], force_repost)
+                    Rs.single_queue_messages.update({qm.name : None})
 
-                    # placeholder embed alredy displayed set Rs.set_queue_displayed
-                    if Rs.single_queue_embeds[qm.level] is not None:
-                        Rs.set_queue_displayed(level)
-                        Rs.single_queue_embeds[qm.level] = await Rs._post_individual_queue_embed(embed, qm.level, Rs.single_queue_embeds[qm.level])                        
-                    # replace normal queue embed
-                    elif Rs.single_queue_embeds[qm.name] is not None:
-                        Rs.single_queue_embeds[qm.level] = await Rs._post_individual_queue_embed(embed, level, Rs.single_queue_embeds[qm.name])
-                        Rs.single_queue_embeds.update({qm.name : None})
-
-                    # post fresh placeholder queue embed
-                    else:
-                        Rs.single_queue_embeds[qm.level] = await Rs._post_individual_queue_embed(embed, level, None, True)
-
-                    Rs.time_last_queues_post[level] = time.time()
-
-                # populated queue
+                # post fresh placeholder queue embed
                 else:
-                    # fetch the queue and build embed
-                    active_embed = discord.Embed(
-                        color=params.QUEUE_EMBED_COLOR)
-                    active_embed.set_author(name='', icon_url='')
-                    active_embed.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} ({queue_len}/4) \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800  \u2800 '
-                    team = ''
+                    Rs.single_queue_messages[qm.level] = await Rs._post_individual_queue_embed(embed_to_post, level, None, True)  
 
-                    # for each player: make entry in embed
-                    for i, p in enumerate(qm.queue):
+                # something was posted, so remember the time
+                Rs.time_last_queues_post[level] = time.time()
+                Rs.set_queue_displayed(level)
 
-                        # AFK warning
-                        if p.afk_flag is True:
-                            warn_text = ' ⚠️ '
-                        else:
-                            warn_text = ''
+            # populated queue
+            else:
+                # fetch the queue and build embed
+                embed_to_post = discord.Embed(
+                    color=params.QUEUE_EMBED_COLOR)
+                embed_to_post.set_author(name='', icon_url='')
+                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} ({queue_len}/4) {s_(10)}'
+                team = ''
 
-                        if p.note != '':
-                            note_text = f' · {p.note}'
-                        else:
-                            note_text = ''
+                # for each player: make entry in embed
+                for i, p in enumerate(qm.queue):
 
-                        # print player
-                        team = team + f'{p.discord_nick + warn_text + note_text}  ' \
-                                      f':watch: {secs2time(time.time()-p.timer)}\n'
-
-                    active_embed.description = team
-                    active_embed.set_footer(text=params.TEXT_FOOTER_SINGLE_Q_TEXT)
-
-
-                    if Rs.single_queue_embeds[qm.name] is not None:
-                    # update queue embed
-                        Rs.single_queue_embeds[qm.name] = await Rs._post_individual_queue_embed(active_embed, qm.level, Rs.single_queue_embeds[qm.name])
-
-                    # replace the placeholder for "all queues empty"
-                    elif Rs.single_queue_embeds[qm.level] is not None:
-                        Rs.single_queue_embeds[qm.name] = await Rs._post_individual_queue_embed(active_embed, qm.level, Rs.single_queue_embeds[qm.level])
-                        Rs.single_queue_embeds[qm.level] = None
-
+                    # AFK warning
+                    if p.afk_flag is True:
+                        warn_text = ' ⚠️ '
                     else:
-                    # post new queue embed
-                        Rs.single_queue_embeds[qm.name] = await Rs._post_individual_queue_embed(active_embed, qm.level, None, True)
+                        warn_text = ''
 
-                    # something was posted, so remember the time
-                    Rs.time_last_queues_post[level] = time.time()
-                    Rs.set_queue_displayed(level)
-            
-            except discord.errors.NotFound:
-                print('[display_individual_queue]: lost message handle (NotFound)')
-                Rs.single_queue_embeds[qm.level] = None
+                    if p.note != '':
+                        note_text = f' · {p.note}'
+                    else:
+                        note_text = ''
 
-            except Exception as ex:
-                print(f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}[display_individual_queue]: generic exception: {str(ex)}\n exception type: {type(ex).__name__} ')
-                lumberjack(sys.exc_info())
+                    # print player
+                    team = team + f'{p.discord_nick + warn_text + note_text}  ' \
+                                  f':watch: {secs2time(time.time()-p.timer)}\n'
+
+                embed_to_post.description = team
+                embed_to_post.set_footer(text=params.TEXT_FOOTER_SINGLE_Q_TEXT)
+
+                if Rs.single_queue_messages[qm.name] is not None:
+                # update queue embed
+                    Rs.single_queue_messages[qm.name] = await Rs._post_individual_queue_embed(embed_to_post, level, Rs.single_queue_messages[qm.name],force_repost)
+
+                elif Rs.single_queue_messages[qm.level] is not None:
+                # replace the placeholder for "all queues empty"
+                    Rs.single_queue_messages[qm.name] = await Rs._post_individual_queue_embed(embed_to_post, level, Rs.single_queue_messages[qm.level],force_repost)
+                    Rs.single_queue_messages[qm.level] = None
+
+                else:
+                # post new queue embed
+                    Rs.single_queue_messages[qm.name] = await Rs._post_individual_queue_embed(embed_to_post, level, None, True) # force_repost = True
+
+                # something was posted, so remember the time
+                Rs.time_last_queues_post[level] = time.time()
+                Rs.set_queue_displayed(level)
+        
+        except discord.errors.NotFound:
+            print('[display_individual_queue]: lost message handle (NotFound)')
+            Rs.single_queue_messages[qm.level] = None
+
+        except Exception as ex:
+            print(f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}[display_individual_queue]: generic exception: {str(ex)}\n exception type: {type(ex).__name__} ')
+            lumberjack(sys.exc_info())
         return
 
     @staticmethod
@@ -1044,36 +1053,36 @@ class Rs:
             pass
 
     @staticmethod
-    async def _post_individual_queue_embed(embed_to_post: discord.Embed,level: int, old_embed: discord.Embed = None, force_update: bool = False):
+    async def _post_individual_queue_embed(embed_to_post: discord.Embed,level: int, old_embed: discord.Embed = None, force_repost: bool = False):
+
         try:
 
-            if force_update:
-
+            if force_repost or old_embed is None:
+            # delete old embed and post a new one or post for first time
                 print(f' queue {level:>2} embed: reposting')
                 if old_embed != None: await old_embed.delete()
                 return_embed = await Rs.channels[level].send(embed=embed_to_post)
 
             elif embed_to_post.description == old_embed.embeds[0].description:
-                return_embed = old_embed
-
-            elif old_embed is not None:
-                await Rs.channels[level].last_message.edit(embed=embed_to_post)
-                return_embed = old_embed
-                print(f' queue {level:>2} embed: updated')
+            # if embed is the same, do nothing, return old one
+                print(f' queue {level:>2} embed: skipping')
+                return old_embed
 
             else:
-                print(f' queue {level:>2} embed: posting')
-                return_embed = await Rs.channels[level].send(embed=embed_to_post)
+            # new embed is diferent than the old one: update (edit)
+                await old_embed.edit(embed=embed_to_post)
+                print(f' queue {level:>2} embed: updated')
+                return await Rs.channels[level].fetch_message(old_embed.id)
 
             await return_embed.add_reaction(params.JOIN_EMOJI)
-            # await return_embed.add_reaction(params.UNJOIN_EMOJI) # for buddy system
+            # await return_embed.add_reaction(params.UNJOIN_EMOJI) # for mate system
             await return_embed.add_reaction(params.UNQUEUE_EMOJI)
             await return_embed.add_reaction(params.START_EMOJI)
 
             return return_embed
 
-        except discord.errors.NotFound:
-            print('[_post_individual_queue_embed]: lost message handle (NotFound)')
+        except discord.errors.NotFound as e:
+            print(f'[_post_individual_queue_embed]: lost message handle (NotFound)\n{str(e)}')
             return_embed = None
         except discord.DiscordException as e:
             print(
@@ -1083,6 +1092,7 @@ class Rs:
         except Exception as ex:
             print(
                 f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}[_post_individual_queue_embed]: generic exception: {str(ex)}\nexception type: {type(ex).__name__}')
+            lumberjack(sys.exc_info())
 
         
 

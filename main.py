@@ -9,7 +9,6 @@ from redstar import Rs
 from keep_awake import keep_awake  # used to keep the server awake otherwise it goes to sleep after 1h of inactivity
 import dotenv
 
-
 intents = discord.Intents.default()
 intents.typing = False  #spammy
 intents.presences = False  #spammy
@@ -221,7 +220,7 @@ async def cmd_enter_rs_queue(ctx: discord.ext.commands.Context,
 	# standard handling of commands
 	await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
 	print(
-	    f'cmd_enter_rs_queue(): called by {ctx.author} using [ "{ctx.message.content}" ] in #{ctx.channel.name}'
+	    f'_enter_rs_queue: called by {ctx.author} using `{ctx.message.content}` in{ctx.channel.name}'
 	)
 
 	return
@@ -269,7 +268,7 @@ async def cmd_leave_rs_queue(ctx: discord.ext.commands.Context,
 	# standard handling of commands
 	await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
 	print(
-	    f'cmd_leave_rs_queue(): called by {ctx.author} using [ "{ctx.message.content}" ] in #{ctx.channel.name}'
+	    f'_leave_rs_queue: called by {ctx.author} using `{ctx.message.content}` in{ctx.channel.name}'
 	)
 
 	return
@@ -340,7 +339,7 @@ async def cmd_start_rs_queue(ctx: discord.ext.commands.Context,
 	# standard handling of commands
 	await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
 	print(
-	    f'cmd_start_rs_queue(): called by {ctx.author} using [ "{ctx.message.content}" ] in #{ctx.channel.name}'
+	    f'_start_rs_queue: called by {ctx.author} using `{ctx.message.content}` in{ctx.channel.name}'
 	)
 
 	return
