@@ -53,10 +53,11 @@ def strip_flags(message: str = ''):
     #TODO Strip flag emoji from first line
     return message
 
-def s_(num: int = 0):
-  string ='  \u2800 '
+def s_(num: int = 0, num2: int = 0):
+  string ='\u2800'
   for i in range(0,num):
-    string += ' \u2800'
+    if i < num2 : string += ' '
+    string += '\u2800'
   return string
 
 
@@ -459,7 +460,7 @@ class Rs:
                         if p in Rs.afk_warned_players:
                             Rs.afk_warned_players.remove(p)
                         await Rs._delete_afk_check_msg(p.discord_id)
-            # finally dispatch diaalogue warnings
+            # finally dispatch dialogue warnings
             for p in afk_msgs:
                   msg = await Rs.channels[afk_msgs[p][0]].send(afk_msgs[p][1],delete_after=afk_msgs[p][2])
                   await msg.add_reaction(params.CONFIRM_EMOJI)
@@ -866,7 +867,7 @@ class Rs:
                               player_desc += ' ⚠️ ' + p.note
 
                           # print player
-                          team = team + f' {s_(1)}{player_desc} :watch: {secs2time(time.time() - p.timer)}\n'
+                          team = team + f'{s_(1,1)}{player_desc} :watch: {secs2time(time.time() - p.timer)}\n'
 
                       # add the entry to embed
                       if '♾' in team:
