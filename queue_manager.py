@@ -101,11 +101,8 @@ class QueueManager:
     def get_queue_age(self):
         return self.age
 
-    def set_queue_age(self, time_set):
-        self.age = time_set
-
-    def get_queue_updated(self):
-        return self.updated
+    def set_queue_updated(self):
+        self.updated = True
 
     def set_queue_displayed(self):
         self.updated = False
@@ -134,7 +131,8 @@ class QueueManager:
             self.queue = data[2]
             file.close()
             print(f'       queue {self.level:>2}: restored')
-            self.updated = True
+            # self.updated = True
         except FileNotFoundError:
             print(f'       queue {self.level:>2}: file not found')
+        finally: self.updated = True
     
