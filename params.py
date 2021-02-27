@@ -64,3 +64,8 @@ class params:
     clear_queue_aliases = ['c', 'C', 'Clear']
     SERVER_DISCORD_ICON = 'https://cdn.discordapp.com/icons/760481068959662081/12ed9c2aa500b992332a630dac7d101d.png?size:512'
     BOT_DISCORD_ICON = SERVER_DISCORD_ICON
+
+    if SERVER_RS_CHANNEL_ID == 814879133230301184:
+        RS11_EMOJI_ID = 814898233922945064
+        RS11_EMOJI = f'<:eleven:{RS11_EMOJI_ID}>'
+        RS_ICON = '<:redstar:814987855079669821>'
