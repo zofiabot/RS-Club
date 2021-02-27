@@ -413,8 +413,22 @@ class Rs:
                 # for each afk player
                 for p in afks:
 
+                    # already flagged and timer reached -> kick
+                    if params.TIME_AFK_KICK < p.afk_timer:
+                        # kick this player
+                        Rs.set_queue_updated(qm.level)
+                        print(
+                            f' task check_afk: {qm.name}: kicking player {p.discord_name}'
+                        )
+                        await Rs.leave_queue(None, 0, False, True, False, p)
+
+                        # reset afk trackers
+                        if p in Rs.afk_warned_players:
+                            Rs.afk_warned_players.remove(p)
+                        await Rs._delete_afk_check_msg(p.discord_id)
+
                     # not flagged as afk yet and no active warning -> flag and start timer
-                    if p.afk_flag is False:
+                    elif p.afk_flag is False:
                         print(f' task_check_afk: {qm.name} flagging player {p.discord_nick}')
                         p.afk_flag = True
                         # Rs.set_queue_updated(qm.level)
@@ -440,26 +454,13 @@ class Rs:
                         print(msg)
 
                     # already flagged and counting -> keep counting
-                    elif p.afk_timer < params.TIME_AFK_KICK:
+                    else: # p.afk_timer < params.TIME_AFK_KICK
                         Rs.set_queue_updated(qm.level) # might not be neccesary
                         print(
                             f' task check_afk: {qm.name}: {p.discord_nick} afk for {secs2time(p.afk_timer)}\n                 kicking after {secs2time(params.TIME_AFK_KICK - p.afk_timer)})'
                         )
                         p.afk_timer = p.afk_timer + params.TIME_BOT_AFK_TASK_RATE
 
-                    # already flagged and timer reached -> kick
-                    else:
-                        # kick this player
-                        Rs.set_queue_updated(qm.level)
-                        print(
-                            f' task check_afk: {qm.name}: kicking player {p.discord_name}'
-                        )
-                        await Rs.leave_queue(None, 0, False, True, False, p)
-
-                        # reset afk trackers
-                        if p in Rs.afk_warned_players:
-                            Rs.afk_warned_players.remove(p)
-                        await Rs._delete_afk_check_msg(p.discord_id)
             # finally dispatch dialogue warnings
             for p in afk_msgs:
                   msg = await Rs.channels[afk_msgs[p][0]].send(afk_msgs[p][1],delete_after=afk_msgs[p][2])
@@ -1192,8 +1193,7 @@ class Rs:
         qm.clear_queue()
 
         # update embed
-        # await asyncio.sleep(0)
-        # Rs.set_queue_updated(level)
+        Rs.set_queue_updated(level)
 
     @staticmethod
     def get_max_level_from_RS_roles(caller) -> int: # currently unused
