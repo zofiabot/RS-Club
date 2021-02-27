@@ -117,19 +117,19 @@ class QueueManager:
     def backup_queue(self):
         self.updated = True
         data = jsonpickle.encode((self.age, self.last_role_ping, self.queue))
-        file = open(f'rs/{self.name}.txt', 'w')
-        file.write(data)
-        file.close()
+        with open(f'rs/{self.name}.txt', 'w') as file:
+          file.write(data)
+        
         print(f'qm{self.level:>2} backup: done')
 
     def restore_queue(self):
         try:
-            file = open(f'rs/{self.name}.txt', 'r')
-            data = jsonpickle.decode(file.read())
+            with open(f'rs/{self.name}.txt', 'r') as file:
+              data = jsonpickle.decode(file.read())
             self.age = data[0]
             self.last_role_ping = data[1]
             self.queue = data[2]
-            file.close()
+            
             print(f'       queue {self.level:>2}: restored')
             # self.updated = True
         except FileNotFoundError:

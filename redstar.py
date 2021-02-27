@@ -1234,10 +1234,10 @@ class Rs:
         
         line = f'{time.asctime()}\trs{rs_level}\t{len(queue)}/4\t{plist}'
 
-        completed_queues_file = open("completed_queues.txt", "a", encoding="utf-8")
-        completed_queues_file.write(line + '\n')
-        completed_queues_file.flush()
-        completed_queues_file.close()
+        with open("completed_queues.txt", "a", encoding="utf-8") as completed_queues_file:
+          completed_queues_file.write(line + '\n')
+          completed_queues_file.flush()
+        
 
         Rs.stats[f'rs{rs_level}'] += 1
 
@@ -1247,10 +1247,8 @@ class Rs:
         completed_queues_path = Path("completed_queues.txt")
         if not completed_queues_path.exists():
             completed_queues_path.touch()
-        completed_queues_file = open(completed_queues_path,
-                                     "r",
-                                     encoding="utf-8")
-        queues = completed_queues_file.readlines()
+        with open(completed_queues_path, "r", encoding="utf-8") as completed_queues_file: 
+          queues = completed_queues_file.readlines()
 
         for q in queues:
             tokens = q.split('\t')
@@ -1259,8 +1257,6 @@ class Rs:
 
             if q_len > 0:
                 Rs.stats[qm_name] += 1
-
-        completed_queues_file.close()
 
     # Rs.lumberjack(sys.exc_info())
     def lumberjack(info):
