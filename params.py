@@ -11,9 +11,10 @@ class params:
       try:
         b = f"{x} = {y}"
         exec(b)
-        #print(b)
+        
       except Exception:
         continue
+    
     JOIN_EMOJI = '➕'
     UNQUEUE_EMOJI = '✖️'
     UNJOIN_EMOJI = '➖'

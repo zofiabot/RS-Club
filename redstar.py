@@ -1,8 +1,8 @@
-import asyncio
+#import asyncio
 from concurrent.futures import ProcessPoolExecutor
 import re
 import time
-from time import gmtime, strftime
+#from time import gmtime, strftime
 #from queue import Queue
 #from queue import Empty
 #from typing import Union, List, Dict, Tuple, Callable, Coroutine, Awaitable, Any, TypeVar
@@ -62,27 +62,6 @@ def s_(num: int = 0, num2: int = 0):
   return string
 
 
-# lumberjack(sys.exc_info())
-def lumberjack(info):
-    exc_type, exc_value, exc_traceback = info
-    print( f"{cr.Fore.YELLOW} print_tb:")
-    traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
-    print( f"{cr.Fore.YELLOW} print_exception:")
-    traceback.print_exception(exc_type, exc_value, exc_traceback,
-                              limit=2, file=sys.stdout)
-    print( f"{cr.Fore.YELLOW} print_exc:")
-    traceback.print_exc()
-    print( f"{cr.Fore.YELLOW} format_exc, first and last line:")
-    formatted_lines = traceback.format_exc().splitlines()
-    print( f"{formatted_lines[0]}")
-    print( f"{formatted_lines[-1]}")
-    print( f"{cr.Fore.YELLOW} format_exception:")
-    print( f"{repr(traceback.format_exception(exc_type, exc_value, exc_traceback))}")
-    print( f"{cr.Fore.YELLOW} extract_tb:")
-    print( f"{repr(traceback.extract_tb(exc_traceback))}")
-    print( f"{cr.Fore.YELLOW} format_tb:")
-    print( f"{repr(traceback.format_tb(exc_traceback))}")
-    print( f"{cr.Fore.YELLOW} tb_lineno: {exc_traceback.tb_lineno}") 
 
 ######################################################
 # THE RS CLASS                                       #
@@ -106,6 +85,8 @@ class Rs:
     channel = None #RS single channel or dash object
     channels = {} #RS channel objects
     teams = {} # current teams for each level
+    ping_mentions = {} # all pings
+    soft_ping_mentions = {} # 3/4 pings
 
     # dict to handle open user dialogues (expecting a reaction to be closed)
     # key: discord.Message.id
@@ -146,6 +127,12 @@ class Rs:
             Rs.qms.append(QueueManager(f'rs{i}', i, 0xff3300))
             Rs.teams.update({ i : {} })
             Rs.dashboard_queue_displayed.update({ i : False })
+            # all pings
+            role =  params.SERVER_PING_ROLES[i-4]
+            Rs.ping_mentions.update({ i : discord.utils.get(Rs.guild.roles, name=role).mention }) 
+            # 3/4 pings
+            role = params.SERVER_SOFT_PING_ROLES[i-4]
+            Rs.soft_ping_mentions.update({ i : discord.utils.get(Rs.guild.roles, name=role).mention }) 
 
         if params.SPLIT_CHANNELS:
 
@@ -344,7 +331,7 @@ class Rs:
     # async def add_job(callback, args):
     #     # execute
     #     await callback(*args)
-    #     lumberjack(sys.exc_info())
+    #     Rs.lumberjack(sys.exc_info())
         
     # @staticmethod
     # def add_job(callback, args):
@@ -403,6 +390,7 @@ class Rs:
             for qm in Rs.qms:
                 # ask QM for afk players
                 afks = qm.get_and_update_afk_players()
+
                 if len(afks) > 0:
                     msg = (f' task_check_afk: {qm.name} existing afk list\n')
                     for a in afks:
@@ -427,7 +415,7 @@ class Rs:
                         if p in Rs.afk_warned_players:
                             Rs.afk_warned_players.remove(p)
                         await Rs._delete_afk_check_msg(p.discord_id)
-
+                    
                     # not flagged as afk yet and no active warning -> flag and start timer
                     elif p.afk_flag is False:
                         print(f' task_check_afk: {qm.name} flagging player {p.discord_nick}')
@@ -467,7 +455,7 @@ class Rs:
                   msg = await Rs.channels[afk_msgs[p][0]].send(afk_msgs[p][1],delete_after=afk_msgs[p][2])
                   await msg.add_reaction(params.CONFIRM_EMOJI)
                   # create user dialogue
-                  Rs.dialogues[msg.id] = (p,params.SERVER_RS_CHANNEL_ID, [(params.CONFIRM_EMOJI,Rs._reset_afk)])
+                  Rs.dialogues[msg.id] = (p,Rs.channels[afk_msgs[p][0]].id, [(params.CONFIRM_EMOJI,Rs._reset_afk)])
 
                   Rs.afk_check_messages[p] = msg.id
 
@@ -484,7 +472,7 @@ class Rs:
             print(
                 f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[task_check_afk]: generic exception: {str(e)}'
             )
-            lumberjack(sys.exc_info())
+            Rs.lumberjack(sys.exc_info())
 
     @staticmethod
     @tasks.loop(seconds=params.TIME_BOT_QUEUE_TASK_RATE)
@@ -509,7 +497,7 @@ class Rs:
             print(
                 f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[task_repost_queues]: generic exception: {str(e)}'
             )
-            lumberjack(sys.exc_info())
+            Rs.lumberjack(sys.exc_info())
 
     @staticmethod
     async def start_queue( caller: discord.Member, level: int = 0 ):
@@ -571,7 +559,7 @@ class Rs:
             )
         except Exception as e:
             print(f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}[start_queue]: generic exception {str(e)}') 
-            lumberjack(sys.exc_info())
+            Rs.lumberjack(sys.exc_info())
 
     @staticmethod
     async def clear_queue(caller: discord.Member, level: int = 1):
@@ -669,13 +657,12 @@ class Rs:
         if queue is not None:
             queue_len = len(queue)
 
-        if queue_len in params.PING_THRESHOLDS and (
-                time.time() - qm.last_role_ping >= params.PING_COOLDOWN):
-            if queue_len < 3: ping_string = params.SERVER_PING_ROLES[level-4]
-            elif  queue_len == 3: ping_string = params.SERVER_SOFT_PING_ROLES[level-4]
+        ping_string = f'@rs{level}'
+        ping_cooldown = ((time.time()-qm.last_role_ping) >= params.PING_COOLDOWN) # we are on cooldown if False
+        if queue_len in params.PING_THRESHOLDS and ping_cooldown:
+            if queue_len < 3: ping_string = Rs.ping_mentions[qm.level]
+            else: ping_string = Rs.soft_ping_mentions[qm.level]
             qm.last_role_ping = time.time()
-        else:
-            ping_string = f'RS{level}'
 
         # new in this queue -> standard join
         if res == QueueManager.PLAYER_JOINED:
@@ -953,7 +940,7 @@ class Rs:
             if queue_len == 0:
 
                 embed_to_post = discord.Embed(color=params.QUEUE_EMBED_COLOR)
-                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} empty? {s_(11)}'
+                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} empty? {s_(10,8)}'
                 embed_to_post.description = f'{params.TEXT_EMPTY_QUEUE} {Rs.bugs_ch.mention}!'
 
                 if Rs.single_queue_messages[qm.level] is not None:
@@ -979,7 +966,7 @@ class Rs:
                 embed_to_post = discord.Embed(
                     color=params.QUEUE_EMBED_COLOR)
                 embed_to_post.set_author(name='', icon_url='')
-                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} ({queue_len}/4) {s_(10)}'
+                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} ({queue_len}/4) {s_(11,9)}'
                 team = ''
 
                 # for each player: make entry in embed
@@ -1026,7 +1013,7 @@ class Rs:
 
         except Exception as ex:
             print(f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}[display_individual_queue]: generic exception: {str(ex)}\n exception type: {type(ex).__name__} ')
-            lumberjack(sys.exc_info())
+            Rs.lumberjack(sys.exc_info())
         return
 
     @staticmethod
@@ -1096,7 +1083,7 @@ class Rs:
         except Exception as ex:
             print(
                 f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}[_post_individual_queue_embed]: generic exception: {str(ex)}\nexception type: {type(ex).__name__}')
-            lumberjack(sys.exc_info())
+            Rs.lumberjack(sys.exc_info())
 
         
 
@@ -1173,7 +1160,7 @@ class Rs:
             return
         except Exception as e:
             print(f'[_queue_ready](1): generic exception {str(e)}')
-            lumberjack(sys.exc_info())
+            Rs.lumberjack(sys.exc_info())
 
         # ping all players
         pings = [p.discord_mention for p in qm.queue]
@@ -1274,3 +1261,12 @@ class Rs:
                 Rs.stats[qm_name] += 1
 
         completed_queues_file.close()
+
+    # Rs.lumberjack(sys.exc_info())
+    def lumberjack(info):
+        exc_type, exc_value, exc_traceback = info
+        print( f"\n{cr.Fore.YELLOW} print_tb:")
+        traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
+        print( f"\n{cr.Fore.YELLOW}Exception:")
+        traceback.print_exception(exc_type, exc_value, exc_traceback,limit=2, file=sys.stdout)
+        print( f"\n{cr.Fore.CYAN}Line: {exc_traceback.tb_lineno}\n") 

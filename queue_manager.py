@@ -26,7 +26,7 @@ class QueueManager:
         self.color = queue_color
 
         # backed up in file as tuple:
-        self.last_role_ping = 0
+        self.last_role_ping = time.time()
         self.age = time.time()
         self.queue: List[Player] = []
 
