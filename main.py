@@ -3,7 +3,7 @@ import re
 import discord
 from discord.ext import commands
 from datetime import datetime, timedelta
-
+import sys
 from params import params
 from redstar import Rs
 from keep_awake import keep_awake  # used to keep the server awake otherwise it goes to sleep after 1h of inactivity
@@ -506,6 +506,7 @@ async def on_reaction_add(reaction, user):
         print(f'⚠️ [on_reaction_add]: generic discord exception {str(e)}')
     except Exception as e:
         print(f'⚠️ [on_reaction_add]: generic exception {str(e)} reaction:{reaction}')
+        Rs.lumberjack(sys.exc_info())
 
 
 @bot.event

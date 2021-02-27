@@ -14,6 +14,7 @@ class params:
         
       except Exception:
         continue
+    
     JOIN_EMOJI = '➕'
     UNQUEUE_EMOJI = '✖️'
     UNJOIN_EMOJI = '➖'
