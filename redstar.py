@@ -952,7 +952,7 @@ class Rs:
             if queue_len == 0:
 
                 embed_to_post = discord.Embed(color=params.QUEUE_EMBED_COLOR)
-                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} empty? {s_(9)}'
+                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} empty? {s_(11)}'
                 embed_to_post.description = f'{params.TEXT_EMPTY_QUEUE} {Rs.bugs_ch.mention}!'
 
                 if Rs.single_queue_messages[qm.level] is not None:
