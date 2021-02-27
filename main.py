@@ -12,7 +12,7 @@ import dotenv
 intents = discord.Intents.default()
 intents.typing = False  #spammy
 intents.presences = False  #spammy
-
+Last_help_message: discord.Message = None
 bot = discord.ext.commands.Bot(command_prefix=['!', '+', '-'], intents=intents)
 bot.remove_command('help')
 bot_ready = True
@@ -77,8 +77,7 @@ async def cmd_help(ctx: discord.ext.commands.Context):
 	    f'cmd_help(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}'
 	)
 
-	# last_help_message = Last_help_message
-	last_help_message = None
+	last_help_message = globals()['Last_help_message']
 
 	if last_help_message is not None:
 		await last_help_message.delete()

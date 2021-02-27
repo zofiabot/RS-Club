@@ -1,4 +1,5 @@
-#import asyncio
+import asyncio
+from concurrent.futures import ProcessPoolExecutor
 import re
 import time
 from time import gmtime, strftime
@@ -919,18 +920,19 @@ class Rs:
     @staticmethod
     async def display_individual_queues(force_repost: bool = False):
 
-        for qm in Rs.qms:
-            # check if last message in channel belongs to bot, force upddate otherwise
-            message = Rs.channels[qm.level].last_message
+        with ProcessPoolExecutor(max_workers=8) as executor:
+            for qm in Rs.qms:
+                # check if last message in channel belongs to bot, force upddate otherwise
+                message = Rs.channels[qm.level].last_message
 
-            last_posted = round(time.time() - Rs.time_last_queues_post[qm.level])
+                last_posted = round(time.time() - Rs.time_last_queues_post[qm.level])
 
-            if message is not None and message.author.id != bot.user.id: 
-                qm.set_queue_updated()
-                force_repost = True
+                if message is not None and message.author.id != bot.user.id: 
+                    qm.set_queue_updated()
+                    force_repost = True
 
-            if qm.updated or last_posted > params.TIME_SPAM_BRAKE: 
-                await Rs.display_individual_queue(qm, force_repost)
+                if qm.updated or last_posted > params.TIME_SPAM_BRAKE: 
+                    executor.submit(await Rs.display_individual_queue(qm, force_repost))
 
 
     @staticmethod
@@ -951,7 +953,7 @@ class Rs:
             if queue_len == 0:
 
                 embed_to_post = discord.Embed(color=params.QUEUE_EMBED_COLOR)
-                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} empty? {s_(9)}'
+                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} empty? {s_(11)}'
                 embed_to_post.description = f'{params.TEXT_EMPTY_QUEUE} {Rs.bugs_ch.mention}!'
 
                 if Rs.single_queue_messages[qm.level] is not None:
