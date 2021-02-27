@@ -403,6 +403,7 @@ class Rs:
             for qm in Rs.qms:
                 # ask QM for afk players
                 afks = qm.get_and_update_afk_players()
+
                 if len(afks) > 0:
                     msg = (f' task_check_afk: {qm.name} existing afk list\n')
                     for a in afks:
@@ -414,8 +415,21 @@ class Rs:
                 # for each afk player
                 for p in afks:
 
+                    # already flagged and timer reached -> kick
+                    if params.TIME_AFK_KICK < p.afk_timer:
+                        # kick this player
+                        Rs.set_queue_updated(qm.level)
+                        print(
+                            f' task check_afk: {qm.name}: kicking player {p.discord_name}'
+                        )
+                        await Rs.leave_queue(None, 0, False, True, False, p)
+
+                        # reset afk trackers
+                        if p in Rs.afk_warned_players:
+                            Rs.afk_warned_players.remove(p)
+                        await Rs._delete_afk_check_msg(p.discord_id)
                     # not flagged as afk yet and no active warning -> flag and start timer
-                    if p.afk_flag is False:
+                    elif p.afk_flag is False:
                         print(f' task_check_afk: {qm.name} flagging player {p.discord_nick}')
                         p.afk_flag = True
                         # Rs.set_queue_updated(qm.level)
@@ -448,25 +462,12 @@ class Rs:
                         )
                         p.afk_timer = p.afk_timer + params.TIME_BOT_AFK_TASK_RATE
 
-                    # already flagged and timer reached -> kick
-                    else:
-                        # kick this player
-                        Rs.set_queue_updated(qm.level)
-                        print(
-                            f' task check_afk: {qm.name}: kicking player {p.discord_name}'
-                        )
-                        await Rs.leave_queue(None, 0, False, True, False, p)
-
-                        # reset afk trackers
-                        if p in Rs.afk_warned_players:
-                            Rs.afk_warned_players.remove(p)
-                        await Rs._delete_afk_check_msg(p.discord_id)
             # finally dispatch dialogue warnings
             for p in afk_msgs:
                   msg = await Rs.channels[afk_msgs[p][0]].send(afk_msgs[p][1],delete_after=afk_msgs[p][2])
                   await msg.add_reaction(params.CONFIRM_EMOJI)
                   # create user dialogue
-                  Rs.dialogues[msg.id] = (p,params.SERVER_RS_CHANNEL_ID, [(params.CONFIRM_EMOJI,Rs._reset_afk)])
+                  Rs.dialogues[msg.id] = (p,Rs.channels[afk_msgs[p][0]].id, [(params.CONFIRM_EMOJI,Rs._reset_afk)])
 
                   Rs.afk_check_messages[p] = msg.id
 
