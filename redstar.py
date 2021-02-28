@@ -87,7 +87,7 @@ class Rs:
     teams = {} # current teams for each level
     ping_mentions = {} # all pings
     soft_ping_mentions = {} # 3/4 pings
-    Last_help_message: {int :discord.Message} = {}
+    Last_help_message: {int : discord.Message} = {0 : None} # for no split queues
 
     # dict to handle open user dialogues (expecting a reaction to be closed)
     # key: discord.Message.id
