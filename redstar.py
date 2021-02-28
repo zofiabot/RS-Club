@@ -91,15 +91,10 @@ class Rs:
     # dict to handle open user dialogues (expecting a reaction to be closed)
     # key: discord.Message.id
     # value: discord.Member.id, discord.Channel.id and a
-    #   List of Tuples, containing supported reaction emojis and their respective callback
-    dialogues: Dict[int, Tuple[int, int,
-                               List[Tuple[str,
-                                          Callable[[discord.Member],
-                                                   Awaitable[None]]]]]] = {}
-
-    # job queue: callback and its args as list
-    # jobs = Queue()
-    #Callable[..., Awaitable[None]], Tuple[Any, ...]]
+    # Tuple containing supported reaction emoji and their respective callback
+    # dialogues={discord.message.id, [discord.user.id, discord.channel.id, [str, Awaitable]]}
+    # Dict[[int], List[[[int], [int], Tuple[str,Awaitable]]]]
+    dialogues: Dict = {}
 
     @staticmethod
     def init(bot_ref):
@@ -185,6 +180,36 @@ class Rs:
 
 
     @staticmethod
+    async def handle_dialogue_reaction(user: discord.Member,
+                              reaction: discord.Reaction):
+        """
+        Reaction handler of Rs dashboard embed
+        :param user:
+        :param reaction:
+        :return:
+        """
+
+        msg_id = reaction.message.id
+        user_id, chan_id, emoji_callback = Rs.dialogues[msg_id]
+        # check if the user reacting is the dialogue owner
+        print(Rs.dialogues[msg_id])
+        if user_id == user.id:
+            # check supported emojis for this message
+            print(emoji_callback)
+            for emo, callback in emoji_callback:
+                print(emo)
+                # emoji found -> call its callback function and close the dialogue
+                if reaction.emoji == emo:
+                    print(
+                        f'handle reaction: {emo}'
+                    )
+                    await callback(*[user])
+                    await reaction.message.delete()
+                    Rs.dialogues.pop(msg_id)
+                    Rs.dashboard_updated = True
+                    break
+
+    @staticmethod
     async def handle_reaction(user: discord.Member,
                               reaction: discord.Reaction):
         """
@@ -196,26 +221,7 @@ class Rs:
 
         msg = reaction.message
         msg_id = reaction.message.id
-        # channel = reaction.message.channel.id  # not used?
 
-        # message is a dialogue message
-        if msg_id in Rs.dialogues.keys():
-            # check if the user reacting is the dialogue owner
-            owner_id, chan_id, emoji_callbacks = Rs.dialogues[msg_id]
-            if owner_id == user.id:
-                # check supported emojis for this message
-                for emo, callback in emoji_callbacks:
-                    # emoji found -> call its callback function and close the dialogue
-                    if reaction.emoji == emo:
-                        print(
-                            f'handle reaction: {emo}'
-                        )
-                        await callback(*[user])
-                        # Rs.add_job(callback, [user])
-                        
-                        Rs.dialogues.pop(msg_id)
-                        Rs.dashboard_updated = True
-                        break
 
         if Rs.dashboard_embed is not None and msg_id == Rs.dashboard_embed.id:
 
@@ -414,7 +420,7 @@ class Rs:
                         # reset afk trackers
                         if p in Rs.afk_warned_players:
                             Rs.afk_warned_players.remove(p)
-                        await Rs._delete_afk_check_msg(p.discord_id)
+                        Rs._delete_afk_check_msg(p.discord_id)
                     
                     # not flagged as afk yet and no active warning -> flag and start timer
                     elif p.afk_flag is False:
@@ -423,17 +429,14 @@ class Rs:
                         # Rs.set_queue_updated(qm.level)
 
                         # sanity checks: if warning already exists -> delete and repost / deregister player
-                        await Rs._delete_afk_check_msg(p.discord_id)
+                        Rs._delete_afk_check_msg(p.discord_id)
                         if p in Rs.afk_warned_players:
                             Rs.afk_warned_players.remove(p)
 
                         # prepare or relplace afk check msg for player
                         msg = f' {params.WARNING_EMOJI} {p.discord_mention} ` {params.TEXT_STILL_AROUND} `'
 
-                        afk_msgs[p.discord_id] = [qm.level]
-                        afk_msgs[p.discord_id].append(msg)
-                        afk_msgs[p.discord_id].append(params.TIME_AFK_KICK - params.TIME_AFK_WARN)
-
+                        afk_msgs[p.discord_id] = [qm.level, msg , (params.TIME_AFK_KICK-params.TIME_AFK_WARN)]
 
                         # mark player as afk
                         Rs.afk_warned_players.append(p)
@@ -452,12 +455,13 @@ class Rs:
 
             # finally dispatch dialogue warnings
             for p in afk_msgs:
-                  msg = await Rs.channels[afk_msgs[p][0]].send(afk_msgs[p][1],delete_after=afk_msgs[p][2])
-                  await msg.add_reaction(params.CONFIRM_EMOJI)
+                  lvl, msg, delay =  afk_msgs[p]
+                  message = await Rs.channels[lvl].send(msg,delete_after=delay)
+                  await message.add_reaction(params.CONFIRM_EMOJI)
                   # create user dialogue
-                  Rs.dialogues[msg.id] = (p,Rs.channels[afk_msgs[p][0]].id, [(params.CONFIRM_EMOJI,Rs._reset_afk)])
+                  Rs.dialogues[message.id] = [ p, (Rs.channels[lvl].id),[[params.CONFIRM_EMOJI, Rs._reset_afk]]]
 
-                  Rs.afk_check_messages[p] = msg.id
+                  Rs.afk_check_messages[p] = message.id
 
         except discord.errors.HTTPException:
             print(f'task_check_afk(): {discord.errors.HTTPException}')
@@ -604,7 +608,7 @@ class Rs:
             if len(q) > 0:
                 # remove potential afk check msgs
                 for p in qm.queue:
-                    await Rs._delete_afk_check_msg(p.discord_id)
+                    Rs._delete_afk_check_msg(p.discord_id)
                 qm.clear_queue()
                 await Rs.channel.send(
                     f'{caller.mention} ` rs{level} queue cleared! `',
@@ -744,7 +748,7 @@ class Rs:
                         f'` {player.discord_nick} timed out for {qm.name} ({len(q)}/4) `',
                         delete_after=params.MSG_DISPLAY_TIME)
                     msg.append(qm.name)
-                    await Rs._delete_afk_check_msg(player.discord_id)
+                    Rs._delete_afk_check_msg(player.discord_id)
             await Rs.channel.send(
                         f'` {player.discord_nick} timed out for {", ".join(msg)}`',
                         delete_after=params.MSG_DISPLAY_TIME)
@@ -785,7 +789,7 @@ class Rs:
                         await Rs.channels[level].send(
                             f'` {player.discord_nick} left {qm.name} ({lq}/4) `',
                             delete_after=params.MSG_DISPLAY_TIME)
-                        await Rs._delete_afk_check_msg(player.discord_id)
+                        Rs._delete_afk_check_msg(player.discord_id)
 
             return
 
@@ -810,7 +814,7 @@ class Rs:
                     await Rs.channel.send(
                         f'` {player.discord_nick} left {qm.name} ({lq}/4) `',
                         delete_after=params.MSG_DISPLAY_TIME)
-                    await Rs._delete_afk_check_msg(player.discord_id)
+                    Rs._delete_afk_check_msg(player.discord_id)
         return
 
     @staticmethod
@@ -1120,7 +1124,7 @@ class Rs:
                 if p in Rs.afk_warned_players:
                     Rs.afk_warned_players.remove(p)
                     Rs.set_queue_updated(qm.level)
-                await Rs._delete_afk_check_msg(p.discord_id)
+                Rs._delete_afk_check_msg(p.discord_id)
                 # collect all affected queues
                 players_queues.append(qm.name)
                 Rs.dashboard_queue_displayed.update({ qm.level : False })
@@ -1131,13 +1135,13 @@ class Rs:
         Rs.dashboard_updated = True
 
     @staticmethod
-    async def _delete_afk_check_msg(player_id):
+    def _delete_afk_check_msg(player_id):
 
         if player_id in Rs.afk_check_messages.keys():
             try:
-                msg = await Rs.channel.fetch_message(Rs.afk_check_messages[player_id])
-                await msg.delete()
+                #msg = await Rs.channel.fetch_message(Rs.afk_check_messages[player_id])
                 Rs.afk_check_messages.pop(player_id)
+                #await msg.delete()
             except discord.errors.NotFound:
                 pass
 
@@ -1173,7 +1177,7 @@ class Rs:
 
         # remove players from other queues and/or remove any pending afk checks if applicable
         for p in qm.queue:
-            await Rs._delete_afk_check_msg(p.discord_id)
+            Rs._delete_afk_check_msg(p.discord_id)
             await Rs.leave_queue(None, level=level, caused_by_other_queue_finished=True, player=p)
 
         # record & reset queue

@@ -487,17 +487,24 @@ async def on_reaction_add(reaction, user):
     try:
         if reaction.custom_emoji: emo = '⑾' 
         else: emo = reaction.emoji
+        
         print(f'on_reaction_add: {emo} by {user.display_name}')
         name = str(reaction.message.channel.name)
         level = int(Rs.get_level_from_rs_string(name))      
 
-        # dashboard
-        if level == 0:
-          await Rs.handle_reaction(user, reaction)
+        #dialogue
+        if reaction.message.id in Rs.dialogues.keys():
+            await Rs.handle_dialogue_reaction(user, reaction)
 
         # single que
         elif level in Rs.star_range:
+            #print('on_reaction_add: passing to single star Rs module')
             await Rs.handle_single_queue_reaction(user, reaction, level, name)
+
+        # dashboard 
+        else:
+            #print('on_reaction_add: passing to Rs module')
+            await Rs.handle_reaction(user, reaction)
             return
 
     except discord.errors.HTTPException as e:
