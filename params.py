@@ -73,10 +73,10 @@ class params:
         RS11_EMOJI = f'<:eleven:{RS11_EMOJI_ID}>'
         RS_ICON = '<:redstar:814987855079669821>'
     else:
-        JOIN_EMOJI = '<:joinadd:815660817541365761>'
+        JOIN_EMOJI = '<:join_add:815660817541365761>'
         UNQUEUE_EMOJI = '<:leave:815660817592614924>'
         UNJOIN_EMOJI = '<:remove:815660817479106591>'
-        START_EMOJI = '<:startearly:815660818205114428>'
+        START_EMOJI = '<:start_early:815660818205114428>'
             
         JOIN_EMOJI_ID = 815660817541365761
         UNQUEUE_EMOJI_ID = 815660817592614924
