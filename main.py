@@ -12,7 +12,6 @@ import dotenv
 intents = discord.Intents.default()
 intents.typing = False  #spammy
 intents.presences = False  #spammy
-Last_help_message: discord.Message = None
 bot = discord.ext.commands.Bot(command_prefix=['!', '+', '-'], intents=intents)
 bot.remove_command('help')
 bot_ready = True
@@ -66,88 +65,90 @@ async def clean_logs(period=24):
              help='general help page',
              aliases=params.help_aliases)  #TODO languages, params
 async def cmd_help(ctx: discord.ext.commands.Context):
-	"""
-    General help command
-    :param ctx:
-    :return:
     """
-	# standard handling of commands
-	await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
-	print(
-	    f'cmd_help(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}'
-	)
+      General help command
+      :param ctx:
+      :return:
+      """
+    # standard handling of commands
+    await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
+    print(
+        f'cmd_help(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}'
+    )
 
-	last_help_message = globals()['Last_help_message']
+    level=Rs.get_level_from_rs_string(ctx.channel.name)
 
-	if last_help_message is not None:
-		await last_help_message.delete()
+    last_help_message = Rs.Last_help_message[level]
 
-	embed = discord.Embed(color=params.EMBED_COLOR)
-	embed.set_author(name='RS Queue Help', icon_url=params.BOT_DISCORD_ICON)
-	embed.set_footer(
-	    text=
-	    f'Called by {ctx.author.display_name}\nDeleting in {params.HELP_DELETION_DELAY} sec'
-	)
-	embed.add_field(name="`!in`",
-	                value="Sign up for your highest RS level.",
-	                inline=False)
-	embed.add_field(name="`!in X [note]`",
-	                value="Sign up for RS level X (optional: with note).",
-	                inline=False)
-	embed.add_field(name="`!out`", value="Leave all queues.", inline=False)
-	embed.add_field(name="`!out X`",
-	                value="Leave queue of RS level X.",
-	                inline=False)
-	embed.add_field(name="`!q`", value="Display running queues.", inline=False)
-	embed.add_field(name="`!start X`",
-	                value="Early start RS level X queue.",
-	                inline=False)
-	embed.add_field(name="`!clear X`",
-	                value="Clear queue for RS level X.",
-	                inline=False)
-	last_help_message = await ctx.channel.send(embed=embed)
-	await last_help_message.delete(delay=params.HELP_DELETION_DELAY)
+    if last_help_message is not None:
+      await last_help_message.delete()
 
-	globals()['Last_help_message'] = last_help_message
+    embed = discord.Embed(color=params.EMBED_COLOR)
+    embed.set_author(name='RS Queue Help', icon_url=params.BOT_DISCORD_ICON)
+    embed.set_footer(
+        text=
+        f'Called by {ctx.author.display_name}\nDeleting in {params.HELP_DELETION_DELAY} sec'
+    )
+    embed.add_field(name="`!in`",
+                    value="Sign up for your highest RS level.",
+                    inline=False)
+    embed.add_field(name="`!in X [note]`",
+                    value="Sign up for RS level X (optional: with note).",
+                    inline=False)
+    embed.add_field(name="`!out`", value="Leave all queues.", inline=False)
+    embed.add_field(name="`!out X`",
+                    value="Leave queue of RS level X.",
+                    inline=False)
+    embed.add_field(name="`!q`", value="Display running queues.", inline=False)
+    embed.add_field(name="`!start X`",
+                    value="Early start RS level X queue.",
+                    inline=False)
+    embed.add_field(name="`!clear X`",
+                    value="Clear queue for RS level X.",
+                    inline=False)
+    last_help_message = await ctx.channel.send(embed=embed)
+    await last_help_message.delete(delay=params.HELP_DELETION_DELAY)
+
+    Rs.Last_help_message.update({level : last_help_message})
 
 
 @bot.command(name='rsstats',
-             help='RS statistics',
-             aliases=params.rs_stats_aliases)
+              help='RS statistics',
+              aliases=params.rs_stats_aliases)
 async def cmd_rs_stats(ctx: discord.ext.commands.Context):
-	"""
-    Display RS statistics
-    :param ctx: discord context
-    :return:
     """
+      Display RS statistics
+      :param ctx: discord context
+      :return:
+      """
 
-	# standard handling of commands
-	await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
-	print(
-	    f'cmd_rs_stats(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}'
-	)
+    # standard handling of commands
+    await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
+    print(
+        f'cmd_rs_stats(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}'
+    )
 
-	embed = discord.Embed(color=params.EMBED_COLOR)
-	embed.set_author(
-	    name=
-	    'RS Counter \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800   \u2800',
-	    icon_url=params.SERVER_DISCORD_ICON)
-	embed.set_footer(
-	    text=
-	    f'Called by {ctx.author.display_name}\nDeleting in {params.HELP_DELETION_DELAY} sec'
-	)
+    embed = discord.Embed(color=params.EMBED_COLOR)
+    embed.set_author(
+        name=
+        'RS Counter \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800   \u2800',
+        icon_url=params.SERVER_DISCORD_ICON)
+    embed.set_footer(
+        text=
+        f'Called by {ctx.author.display_name}\nDeleting in {params.HELP_DELETION_DELAY} sec'
+    )
 
-	text = 'Total Runs \n'  # in {rs_chan.mention}
-	total = sum(Rs.stats.values())
+    text = 'Total Runs \n'  # in {rs_chan.mention}
+    total = sum(Rs.stats.values())
 
-	for rs, cnt in Rs.stats.items():
-		lvl = int(rs.replace('rs', ''))
-		if lvl == params.SUPPORTED_RS_LEVELS_MAX + 1: break
-		text += f'**{rs}**: {cnt} _({round(cnt/total*100)}%)_\n'
+    for rs, cnt in Rs.stats.items():
+      lvl = int(rs.replace('rs', ''))
+      if lvl == params.SUPPORTED_RS_LEVELS_MAX + 1: break
+      text += f'**{rs}**: {cnt} _({round(cnt/total*100)}%)_\n'
 
-	embed.description = text
-	m = await ctx.send(embed=embed)
-	await m.delete(delay=params.HELP_DELETION_DELAY)
+    embed.description = text
+    m = await ctx.send(embed=embed)
+    await m.delete(delay=params.HELP_DELETION_DELAY)
 
 
 @bot.command(name='rsrules', help='rsrules', aliases=params.rs_rules_aliases)

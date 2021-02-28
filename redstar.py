@@ -87,6 +87,7 @@ class Rs:
     teams = {} # current teams for each level
     ping_mentions = {} # all pings
     soft_ping_mentions = {} # 3/4 pings
+    Last_help_message: {int :discord.Message} = {}
 
     # dict to handle open user dialogues (expecting a reaction to be closed)
     # key: discord.Message.id
@@ -127,7 +128,8 @@ class Rs:
             Rs.ping_mentions.update({ i : discord.utils.get(Rs.guild.roles, name=role).mention }) 
             # 3/4 pings
             role = params.SERVER_SOFT_PING_ROLES[i-4]
-            Rs.soft_ping_mentions.update({ i : discord.utils.get(Rs.guild.roles, name=role).mention }) 
+            Rs.soft_ping_mentions.update({ i : discord.utils.get(Rs.guild.roles, name=role).mention })
+            Rs.Last_help_message.update({ i : None})
 
         if params.SPLIT_CHANNELS:
 
