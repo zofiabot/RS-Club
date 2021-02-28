@@ -463,12 +463,12 @@ async def on_reaction_add(reaction, user):
     if not bot_ready:
         return
 
-    # early catch for own reactions
+    # early catch for bot own reactions
     elif user.id == bot.user.id:
         return
     
     try:
-        if reaction.custom_emoji: emo = '⑾' 
+        if reaction.custom_emoji: emo = (reaction.emoji.name)
         else: emo = reaction.emoji
         
         print(f'on_reaction_add: {emo} by {user.display_name}')
