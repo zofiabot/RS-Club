@@ -38,7 +38,7 @@ class params:
     RS10_EMOJI = '🔟'
     RS11_EMOJI = '<:eleven:760869824036601939>'
     RS11_EMOJI_ID = 760869824036601939
-    RS_EMOJIS =  [RS4_EMOJI, RS5_EMOJI, RS6_EMOJI, RS7_EMOJI, RS8_EMOJI, RS9_EMOJI, RS10_EMOJI, RS11_EMOJI]
+    
     TEXT_EMPTY_QUEUE = 'Start a new queue by reacting with `➕`!\nLeave by reacting with `✖️`\nStart queue without full squad using `✔️`\nRules? `!r` Questions? `!h`\nBugs or Ideas? Please report in '
     TEXT_EMPTY_QUEUE_DASH = 'Start a new queue by reacting below!\nLeave **all queues** by reacting with ❎\nBugs or Ideas? Please report them in '
     TEXT_RULES_FORMAT = 'Message'
@@ -66,7 +66,22 @@ class params:
     SERVER_DISCORD_ICON = 'https://cdn.discordapp.com/icons/760481068959662081/12ed9c2aa500b992332a630dac7d101d.png?size:512'
     BOT_DISCORD_ICON = SERVER_DISCORD_ICON
 
+    CUSTOM_Q_EMOJI = False
+
     if SERVER_RS_CHANNEL_ID == 814879133230301184:
         RS11_EMOJI_ID = 814898233922945064
         RS11_EMOJI = f'<:eleven:{RS11_EMOJI_ID}>'
         RS_ICON = '<:redstar:814987855079669821>'
+    else:
+        JOIN_EMOJI = '<:join_add:815660817541365761>'
+        UNQUEUE_EMOJI = '<:leave:815660817592614924>'
+        UNJOIN_EMOJI = '<:remove:815660817479106591>'
+        START_EMOJI = '<:start_early:815660818205114428>'
+            
+        JOIN_EMOJI_ID = 815660817541365761
+        UNQUEUE_EMOJI_ID = 815660817592614924
+        UNJOIN_EMOJI_ID = 815660817479106591
+        START_EMOJI_ID = 815660818205114428
+        CUSTOM_Q_EMOJI = True
+
+    RS_EMOJIS =  [RS4_EMOJI, RS5_EMOJI, RS6_EMOJI, RS7_EMOJI, RS8_EMOJI, RS9_EMOJI, RS10_EMOJI, RS11_EMOJI]

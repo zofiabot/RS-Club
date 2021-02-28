@@ -36,14 +36,14 @@ def secs2time(seconds: int) -> str:
         hours = int(round(seconds / 3600))
         return str(hours) + 'h'
 
-def emoji2int(reaction: str):
+def emoji2int(reaction: str) -> int:
     e2i = {}
     for i in Rs.star_range:
         e = (f'RS{i}_EMOJI')
         e2i[getattr(params, e)] = i
     return e2i[reaction]
 
-def int2emoji(number: int):
+def int2emoji(number: int) -> str:
     i2e = {}
     for i in Rs.star_range:
         n = (f'RS{i}_EMOJI')
@@ -87,7 +87,7 @@ class Rs:
     teams = {} # current teams for each level
     ping_mentions = {} # all pings
     soft_ping_mentions = {} # 3/4 pings
-    Last_help_message: {int :discord.Message} = {}
+    Last_help_message: {int : discord.Message} = {0 : None} # for no split queues
 
     # dict to handle open user dialogues (expecting a reaction to be closed)
     # key: discord.Message.id
@@ -276,11 +276,11 @@ class Rs:
 
             Rs.dashboard_updated = True
 
-            if reaction.emoji == params.UNQUEUE_EMOJI:
+            if str(reaction.emoji) == params.UNQUEUE_EMOJI:
                 print(f'handle reaction: {user} trying to leave ({qm.name}) queue')
                 await Rs.leave_queue(user, level, True, False, False, None)
                             
-            elif reaction.emoji == params.UNJOIN_EMOJI:
+            elif str(reaction.emoji) == params.UNJOIN_EMOJI:
                 p = qm.find_player_in_queue_by_discord(user)
                 if p is not None:
                     # check if player has mates
@@ -290,7 +290,7 @@ class Rs:
                         f'handle reaction: {user} trying to leave {qm.name} queue')
                     await Rs.leave_queue(None, level, True, False, False, p)
                         
-            elif reaction.emoji == params.START_EMOJI:
+            elif str(reaction.emoji) == params.START_EMOJI:
                 if qm.find_player_in_queue_by_discord(user) is not None:
                     # check if player has mates
                     #   # if yes unqueue mate
@@ -334,56 +334,6 @@ class Rs:
             return Rs.qms[level - min(Rs.star_range)]
         else:
             raise ValueError
-
-    # @staticmethod # add_job replacement
-    # async def add_job(callback, args):
-    #     # execute
-    #     await callback(*args)
-    #     Rs.lumberjack(sys.exc_info())
-        
-    # @staticmethod
-    # def add_job(callback, args):
-    #     if params.DEBUG_MODE: call_info = f'call:{callback} args:{args}'
-    #     # most rs commands have discord.Member as first arg -> add as additional log info
-    #     if len(args) > 0 and isinstance(args[0], discord.Member):
-    #         call_info = 'for ' + args[0].name
-    #         print(f'      job queue: {callback.__name__} {call_info}')
-
-    #     # schedule job via queue
-    #     Rs.jobs.put((callback, args))
-    #     print(f'  jobs in queue: {Rs.jobs.qsize()}')
-
-    # @staticmethod
-    # @tasks.loop(seconds=params.TIME_BOT_JOB_TASK_RATE)
-    # async def task_process_job_queue():
-
-    #     return
-    #     try:
-    #         #await asyncio.sleep(0)
-
-    #         # call to retrieve next job
-    #         job = Rs.jobs.get_nowait()
-    #         callback, args = job
-
-    #         print(f'\n  executing job: {callback.__name__}\n')
-    #         await callback(*args)
-
-    #         print(f'  jobs in queue: {Rs.jobs.qsize()}')
-
-    #     except Empty:
-    #         pass
-    #     except discord.errors.HTTPException as e:
-    #         print(
-    #             f'Rs.task_process_job_queue(): discord.errors.HTTPException {str(e)}'
-    #         )
-    #     except discord.DiscordException as e:
-    #         print(
-    #             f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[task_process_job_queue]: generic discord exception {str(e)}'
-    #         )
-    #     except Exception as e:
-    #         print(
-    #             f'[task_process_job_queue]: generic exception {str(e)} call:{callback} arg: {args}\njob: {job}\n'
-    #         )
 
     @staticmethod
     @tasks.loop(seconds=params.TIME_BOT_AFK_TASK_RATE)

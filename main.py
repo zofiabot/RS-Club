@@ -213,9 +213,7 @@ async def cmd_enter_rs_queue(ctx: discord.ext.commands.Context,
 	for level in levels:
 		if int(level) in Rs.star_range:
 			  await Rs.enter_queue(ctx.author, int(level), comment, False, False)
-			# Rs.add_job(
-			#     Rs.enter_queue,
-			#     [ctx.author, int(level), comment, False, False])
+			# Rs.add_job(Rs.enter_queue,[ctx.author, int(level), comment, False, False])
 
 	# standard handling of commands
 	await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
@@ -256,10 +254,7 @@ async def cmd_leave_rs_queue(ctx: discord.ext.commands.Context,
 		if int(level) == 0:  # 0 leaves all queues
 			  await Rs.leave_queue(ctx.author, int(level), False, False, False, None)
 			  break
-			# Rs.add_job(
-			#     Rs.leave_queue,
-			#     [ctx.author, int(level), False, False, False, None])
-			# break
+			# Rs.add_job(Rs.leave_queue,[ctx.author, int(level), False, False, False, None]) break
 
 		if int(level) in Rs.star_range:
 			await Rs.leave_queue(ctx.author, int(level), False, False, False,
@@ -270,9 +265,7 @@ async def cmd_leave_rs_queue(ctx: discord.ext.commands.Context,
 	print(
 	    f'_leave_rs_queue: called by {ctx.author} using `{ctx.message.content}` in{ctx.channel.name}'
 	)
-
 	return
-
 
 @bot.command(name='display',
              help='Display the current RS queues',
@@ -288,11 +281,11 @@ async def cmd_display_rs_queues(ctx: discord.ext.commands.Context):
     if ctx.message.channel.id not in Rs.channels:
       return
     else:
+    # relay command to module
       level = Rs.get_level_from_rs_string(ctx.message.channel.name)
       Rs.display_individual_queue(level)
     # standard handling of commands
     await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
-    # relay command to module
     # Rs.add_job(Rs.display_individual_queue, [level])
 
 
@@ -341,7 +334,6 @@ async def cmd_start_rs_queue(ctx: discord.ext.commands.Context,
 	print(
 	    f'_start_rs_queue: called by {ctx.author} using `{ctx.message.content}` in{ctx.channel.name}'
 	)
-
 	return
 
 
@@ -420,10 +412,6 @@ async def on_message(message):
 
 	await bot.process_commands(message)
 
-
-dotenv.load_dotenv(verbose=True)
-
-
 @bot.event
 async def on_ready():
 
@@ -435,11 +423,7 @@ async def on_ready():
 	await clean_dead_embeds()
 	await clean_logs()
 
-	# launch loop tasks
-
-	# if not Rs.task_process_job_queue.is_running():
-	# 	Rs.task_process_job_queue.start()
-	# 	print('    Starting up: launching task process_job_q')
+	# launch loop tasks #TODO (maybe) revert back to async loops
 
 	if not Rs.task_check_afk.is_running():
 		Rs.task_check_afk.start()
@@ -449,13 +433,11 @@ async def on_ready():
 		Rs.task_repost_queues.start()
 		print('    Starting up: launching task repost_queues')
 
-
 	global bot_ready
 	bot_ready = True
 	print(f'    Starting up: {bot.user.name} is ready')
 	if dbg_ch:
 		await dbg_ch.send('ℹ️ on_ready(): Bot Initialization complete')
-
 
 @bot.event
 async def on_connect():
@@ -481,12 +463,12 @@ async def on_reaction_add(reaction, user):
     if not bot_ready:
         return
 
-    # early catch for own reactions
+    # early catch for bot own reactions
     elif user.id == bot.user.id:
         return
     
     try:
-        if reaction.custom_emoji: emo = '⑾' 
+        if reaction.custom_emoji: emo = (reaction.emoji.name)
         else: emo = reaction.emoji
         
         print(f'on_reaction_add: {emo} by {user.display_name}')
