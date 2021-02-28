@@ -276,11 +276,11 @@ class Rs:
 
             Rs.dashboard_updated = True
 
-            if reaction.emoji == params.UNQUEUE_EMOJI:
+            if str(reaction.emoji) == params.UNQUEUE_EMOJI:
                 print(f'handle reaction: {user} trying to leave ({qm.name}) queue')
                 await Rs.leave_queue(user, level, True, False, False, None)
                             
-            elif reaction.emoji == params.UNJOIN_EMOJI:
+            elif str(reaction.emoji) == params.UNJOIN_EMOJI:
                 p = qm.find_player_in_queue_by_discord(user)
                 if p is not None:
                     # check if player has mates
@@ -290,7 +290,7 @@ class Rs:
                         f'handle reaction: {user} trying to leave {qm.name} queue')
                     await Rs.leave_queue(None, level, True, False, False, p)
                         
-            elif reaction.emoji == params.START_EMOJI:
+            elif str(reaction.emoji) == params.START_EMOJI:
                 if qm.find_player_in_queue_by_discord(user) is not None:
                     # check if player has mates
                     #   # if yes unqueue mate
