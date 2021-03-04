@@ -18,9 +18,7 @@ bot_ready = True
 dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
 disconnect_time = datetime.now()
 
-
-# Helper functions
-
+# HELPER FUNCTIONS for Rs module only
 # Clean dead embedds
 async def clean_dead_embeds(channel=False):
     try:
