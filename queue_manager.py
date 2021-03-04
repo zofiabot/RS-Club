@@ -120,7 +120,7 @@ class QueueManager:
         with open(f'rs/{self.name}.txt', 'w') as file:
           file.write(data)
         
-        print(f'qm{self.level:>2} backup: done')
+        # print(f'    qm{self.level:>2} backup: done')
 
     def restore_queue(self):
         try:

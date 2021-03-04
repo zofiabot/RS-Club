@@ -9,8 +9,8 @@ class params:
     c = zip(a,b)
     for x,y in c:
       try:
-        b = f"{x} = {y}"
-        exec(b)
+        param = f"{x} = {y}"
+        exec(param)
         
       except Exception:
         continue
@@ -48,7 +48,7 @@ class params:
     TEXT_STILL_AROUND = 'still around? Confirm below.'
     TEXT_FOOTER_TEXT = '\u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800   \u2800'
     TEXT_FOOTER_SINGLE_Q_TEXT = ''
-    SERVER_DISCORD_NAME = ''
+    SERVER_DISCORD_NAME = 'Red Star Club'
     QUEUE_EMBED_ICON = ''
     QUEUE_EMBED_TITLE = ''
     RS_ICON = '<:redstar:807239811068329985>'
@@ -57,11 +57,11 @@ class params:
     rs_stats_aliases = ['st', 't']
     rs_rules_aliases = ['r', 'rsr', 'rsrule', 'rule', 'rules']
     display_queue_aliases = ['q', 'Q', 'queue', 'Queue']
-    enter_queue_aliases = ['i', 'I', 'in', 'In', 'IN', 'iN', 'join', 'Join']
+    enter_queue_aliases = ['i', 'I', 'in', 'In', 'IN', 'iN', 'join', 'Join', '1']
     leave_queue_aliases = ['o', 'O', 'out', 'Out', 'OUT']
     start_queue_aliases = ['s', 'S', 'Start']
     clear_queue_aliases = ['c', 'C', 'Clear']
-    SERVER_DISCORD_ICON = 'https://cdn.discordapp.com/icons/760481068959662081/12ed9c2aa500b992332a630dac7d101d.png?size:512'
+    SERVER_DISCORD_ICON = 'https://cdn.discordapp.com/icons/760481068959662081/12ed9c2aa500b992332a630dac7d101d.png?size=512'
     BOT_DISCORD_ICON = SERVER_DISCORD_ICON
 
     CUSTOM_Q_EMOJI = False
@@ -85,3 +85,9 @@ class params:
     RS_EMOJIS =  [RS4_EMOJI, RS5_EMOJI, RS6_EMOJI, RS7_EMOJI, RS8_EMOJI, RS9_EMOJI, RS10_EMOJI, RS11_EMOJI]
     TEXT_EMPTY_QUEUE = f'Start a new queue by reacting with {JOIN_EMOJI}\nLeave by reacting with {UNQUEUE_EMOJI}\nStart queue without full squad using {START_EMOJI}\nRules? `!r` Questions? `!h`\nBugs or Ideas? Please report in '
     TEXT_EMPTY_QUEUE_DASH = 'Start a new queue by reacting below!\nLeave **all queues** by reacting with ❎\nBugs or Ideas? Please report them in '
+    TEXT_R_NOMSG = "I'm sorry, but no messages are allowed in relay channel.\nPlease ask <@{}> to secure the chnnel or remove relay with `relayremove`"
+    TEXT_R_SET = '` Setting up ` Your Relay will display here soon'
+    TEXT_R_REMOVE = 'Sorry to see you go.\nPlease remember to uninvite the bot. **Leaving it connected to your server while not using it might have unintended consequences**.'
+    TEXT_R_FOOTER = f'[Join the {SERVER_DISCORD_NAME} to join the queue!](https://discord.gg/m8BSBfpj8J)'
+    TEXT_EMPTY_R_DASH = f'[Join the {SERVER_DISCORD_NAME} server to join the queue!](https://discord.gg/m8BSBfpj8J)'
+    TEXT_CHECKOUT_DEMO = f'Go to [demo server](https://discord.gg/39PQUNwR95) to install on your server'
