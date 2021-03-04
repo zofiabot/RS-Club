@@ -416,7 +416,8 @@ async def on_message(message):
                 await message.delete()
             return
     except discord.errors.HTTPException as e:
-        print(f'on_reaction_add: discord.errors.HTTPException {str(e)}')
+        print(f'    on_messaage: discordHTTPException {str(e)}')
+        pass
 
     # skip event if: msg from bot itself or debug_mode / debug_channel
     if message.author == bot.user or message.guild.id != params.SERVER_DISCORD_ID:
@@ -447,7 +448,11 @@ async def on_ready():
 
     print('    Starting up: modules initialized')
 
-    await clean_dead_embeds()
+    await clean_dead_embeds() # on our serwer
+
+    for channel in Rs.relays.values(): # on relied servers
+        await clean_dead_embeds(channel)
+
     await clean_logs()
 
     #CHECK IF WEE ARE ON MAIN SERVER
@@ -481,13 +486,13 @@ async def on_connect():
 @bot.event
 async def on_disconnect():
     disconnect_time = datetime.now()
-    print('on_disconnect(): Bot has disconnected aat {disconnect_time}')
+    print(f'on_disconnect(): Bot has disconnected aat {disconnect_time}')
 
 
 @bot.event
 async def on_resumed():
     after = datetime.now() - disconnect_time
-    print(f'\non_resumed(): {bot.user.name} has resumed\n')
+    print(f'\non_resumed(): {bot.user.name} has resumed after {after}\n')
 
 
 @bot.event

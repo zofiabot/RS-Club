@@ -2,7 +2,7 @@
 from concurrent.futures import ProcessPoolExecutor
 import re
 import time
-import jsonpickle
+# import jsonpickle
 #from time import gmtime, strftime
 #from queue import Queue
 #from queue import Empty
@@ -91,6 +91,7 @@ class Rs:
     soft_ping_mentions = {} # 3/4 pings
     Last_help_message: {int : discord.Message} = {0 : None} # for no split queues
     relays: { int : discord.channel } = {}
+    relay_embeds = {int : discord.Message }
 
     # dict to handle open user dialogues (expecting a reaction to be closed)
     # key: discord.Message.id
@@ -169,6 +170,8 @@ class Rs:
         Rs._read_RS_records()
 
         Rs.restore_relays()
+        for channel in Rs.relays.values():
+          Rs.relay_embeds.update({channel.id : None})
 
     @staticmethod
     async def exit():
@@ -354,12 +357,12 @@ class Rs:
                 # ask QM for afk players
                 afks = qm.get_and_update_afk_players()
 
-                if len(afks) > 0:
-                    msg = (f' task_check_afk: {qm.name} existing afk list\n')
-                    for a in afks:
-                       msg += f'                 {a.discord_nick} {secs2time(a.afk_timer)}\n'
+                # if len(afks) > 0:
+                #     msg = (f' task_check_afk: {qm.name} existing afk list\n')
+                #     for a in afks:
+                #        msg += f'                 {a.discord_nick} {secs2time(a.afk_timer)}\n'
                     
-                    print(msg)
+                #     print(msg)
 
                 
                 # for each afk player
@@ -697,7 +700,7 @@ class Rs:
                 if res == QueueManager.PLAYER_LEFT:
                     Rs.set_queue_updated(qm.level)
                     print(
-                        f'{player.discord_name} leaving {qm.name} (afk_kick)'
+                        f'    {player.discord_nick} leaving {qm.name} (afk_kick)'
                     )
                     await Rs.channels[qm.level].send(
                         f'` {player.discord_nick} timed out for {qm.name} ({len(q)}/4) `',
@@ -738,7 +741,7 @@ class Rs:
                     if res == QueueManager.PLAYER_LEFT: 
                         Rs.set_queue_updated(qm.level)
                         print(
-                            f'{player.discord_name} leaving {qm.name} (reaction)'
+                            f'    {player.discord_nick} leaving {qm.name} (reaction)'
                         )
                         await Rs.channels[level].send(
                             f'` {player.discord_nick} left {qm.name} ({lq}/4) `',
@@ -763,7 +766,7 @@ class Rs:
                 if res == QueueManager.PLAYER_LEFT:
                     Rs.set_queue_updated(qm.level)
                     print(
-                        f'{caller} leaving {qm.name} (command)'
+                        f'    {caller.discord_nick} leaving {qm.name} (command)'
                     )
                     if not params.SPLIT_CHANNELS: 
                       await Rs.channel.send(
@@ -844,6 +847,7 @@ class Rs:
         # post embed (first time)
         if Rs.dashboard_embed is None:
             await Rs._post_dashboard_embed(embed)
+            await Rs.display_relay_embeds(embed)
         
         else:
         # edit or repost
@@ -851,6 +855,7 @@ class Rs:
             # if we are running split channels no need to repost
             if params.SPLIT_CHANNELS:
                 await Rs.dashboard_embed.edit(embed=embed)
+                await Rs.display_relay_embeds(embed)
                 #print('dashboard embed: updated')
 
             else:
@@ -881,6 +886,16 @@ class Rs:
                 if qm.updated or last_posted > params.TIME_SPAM_BRAKE: 
                     executor.submit(await Rs.display_individual_queue(qm, force_repost))
 
+    @staticmethod
+    async def display_relay_embeds(embed: discord.Embed = None):
+
+        # check if we got an embed
+        if embed is None: return
+
+        servers = len(Rs.relays)
+        with ProcessPoolExecutor(max_workers=servers) as r_executor:
+            for channel in Rs.relays.values():
+               r_executor.submit(await Rs._post_relay_embed(embed, channel))
 
     @staticmethod
     async def display_individual_queue(qm: QueueManager, force_repost: bool = False):
@@ -1006,12 +1021,12 @@ class Rs:
     @staticmethod
     async def _post_relay_embed(embed: discord.Embed, channel: discord.channel = None):
 
-        if channel==None:
+        if channel == None:
             return
         try:
 
-            if Rs.relay_embed == None:
-                Rs.relay_embed = await channel.send(embed=embed)
+            if Rs.relay_embeds[channel.id] == None:
+                Rs.relay_embeds.update({channel.id : await channel.send(embed=embed)})
 
                 # for i in Rs.star_range:
                 #     e = (f'RS{i}_EMOJI')
@@ -1020,11 +1035,13 @@ class Rs:
                 # await Rs.dashboard_embed.add_reaction(params.LEAVE_EMOJI)
 
             else:
-                await channel.edit(embed=embed)
+                message = Rs.relay_embeds[channel.id]
+                await message.edit(embed=embed)
 
         except discord.errors.NotFound:
-            print('_post_dashboard_embed: lost message handle (NotFound)')
-            Rs.relay_embed = None
+            print('    _post_relay_embed: lost message handle (NotFound)')
+            Rs.relay_embeds[channel.id] = None
+            pass
         
         except discord.DiscordException as e:
             print(
@@ -1281,8 +1298,7 @@ class Rs:
             file.write(server)
           file.flush()
 
-
-        print(f'relays backup: done')
+        print(f' relay remove: done')
 
     @staticmethod
     def restore_relays():
@@ -1290,6 +1306,7 @@ class Rs:
             with open(f'relays.txt', 'r') as file:
                 servers = file.readlines()
                 count = 0
+                relays = ''
                 for server in servers:
                     tokens = server.split('\t')
                     guild_id = int(tokens[0])
@@ -1297,11 +1314,13 @@ class Rs:
                     if guild is None: continue
                     channel : discord.channel = guild.get_channel(int(tokens[2]))
                     if channel is None: continue
-                    print(str(guild))
+                    relays += f"               {(str(guild))}\n"
                     Rs.relays.update( { guild_id : channel } )
                     count += 1
+                file.flush()
                             
             print(f'       relays: connecting {count} servers')
+            print(relays)
             return
 
         except FileNotFoundError:
