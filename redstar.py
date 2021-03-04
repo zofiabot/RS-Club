@@ -704,9 +704,8 @@ class Rs:
                         delete_after=params.MSG_DISPLAY_TIME)
                     msg.append(qm.name)
                     Rs._delete_afk_check_msg(player.discord_id)
-            await Rs.channel.send(
-                        f'` {player.discord_nick} timed out for {", ".join(msg)}`',
-                        delete_after=params.MSG_DISPLAY_TIME)
+            if not params.SPLIT_CHANNELS:
+              await Rs.channel.send(f'` {player.discord_nick} timed out for {", ".join(msg)}`',delete_after=params.MSG_DISPLAY_TIME)
             return
 
         # automatic removal due to another queue finishing [in this case, <rs> will be skipped!]
@@ -766,7 +765,8 @@ class Rs:
                     print(
                         f'{caller} leaving {qm.name} (command)'
                     )
-                    await Rs.channel.send(
+                    if not params.SPLIT_CHANNELS: 
+                      await Rs.channel.send(
                         f'` {player.discord_nick} left {qm.name} ({lq}/4) `',
                         delete_after=params.MSG_DISPLAY_TIME)
                     Rs._delete_afk_check_msg(player.discord_id)

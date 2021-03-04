@@ -16,6 +16,7 @@ bot = discord.ext.commands.Bot(command_prefix=['!', '+', '-'], intents=intents)
 bot.remove_command('help')
 bot_ready = True
 dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
+disconnect_time = datetime.now()
 
 
 # Helper functions
@@ -479,11 +480,13 @@ async def on_connect():
 
 @bot.event
 async def on_disconnect():
-    print('on_disconnect(): Bot has disconnected')
+    disconnect_time = datetime.now()
+    print('on_disconnect(): Bot has disconnected aat {disconnect_time}')
 
 
 @bot.event
 async def on_resumed():
+    after = datetime.now() - disconnect_time
     print(f'\non_resumed(): {bot.user.name} has resumed\n')
 
 
