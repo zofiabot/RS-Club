@@ -3,14 +3,15 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+
 class params:
     a = os.environ
     b = os.environ.values()
     c = zip(a,b)
     for x,y in c:
       try:
-        b = f"{x} = {y}"
-        exec(b)
+        param = f"{x} = {y}"
+        exec(param)
         
       except Exception:
         continue
@@ -57,7 +58,7 @@ class params:
     rs_stats_aliases = ['st', 't']
     rs_rules_aliases = ['r', 'rsr', 'rsrule', 'rule', 'rules']
     display_queue_aliases = ['q', 'Q', 'queue', 'Queue']
-    enter_queue_aliases = ['i', 'I', 'in', 'In', 'IN', 'iN', 'join', 'Join']
+    enter_queue_aliases = ['i', 'I', 'in', 'In', 'IN', 'iN', 'join', 'Join', '1']
     leave_queue_aliases = ['o', 'O', 'out', 'Out', 'OUT']
     start_queue_aliases = ['s', 'S', 'Start']
     clear_queue_aliases = ['c', 'C', 'Clear']
@@ -85,3 +86,6 @@ class params:
     RS_EMOJIS =  [RS4_EMOJI, RS5_EMOJI, RS6_EMOJI, RS7_EMOJI, RS8_EMOJI, RS9_EMOJI, RS10_EMOJI, RS11_EMOJI]
     TEXT_EMPTY_QUEUE = f'Start a new queue by reacting with {JOIN_EMOJI}\nLeave by reacting with {UNQUEUE_EMOJI}\nStart queue without full squad using {START_EMOJI}\nRules? `!r` Questions? `!h`\nBugs or Ideas? Please report in '
     TEXT_EMPTY_QUEUE_DASH = 'Start a new queue by reacting below!\nLeave **all queues** by reacting with ❎\nBugs or Ideas? Please report them in '
+    TEXT_R_NOMSG = "I'm sorry, but no messages are allowed in relay channel.\nPlease ask <@{}> to secure the chnnel or remove relay with `relayremove`"
+    TEXT_R_SET = '` Setting up ` Your Relay will display here soon'
+    TEXT_R_REMOVE = 'Sorry to see you go.\nPlease remember to uninvite the bot. **Leaving it connected to your server while not using it might have unintended consequences**.'

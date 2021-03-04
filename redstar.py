@@ -2,12 +2,14 @@
 from concurrent.futures import ProcessPoolExecutor
 import re
 import time
+import jsonpickle
 #from time import gmtime, strftime
 #from queue import Queue
 #from queue import Empty
 #from typing import Union, List, Dict, Tuple, Callable, Coroutine, Awaitable, Any, TypeVar
 from typing import Union, List, Dict, Tuple, Callable, Awaitable
 from pathlib import Path
+import discord
 
 # lumberjack: sys, traceback, colorama
 import sys, traceback
@@ -88,6 +90,7 @@ class Rs:
     ping_mentions = {} # all pings
     soft_ping_mentions = {} # 3/4 pings
     Last_help_message: {int : discord.Message} = {0 : None} # for no split queues
+    relays: { int : discord.channel } = {}
 
     # dict to handle open user dialogues (expecting a reaction to be closed)
     # key: discord.Message.id
@@ -164,6 +167,8 @@ class Rs:
                 Rs.stats[f'rs{i}'] = 0
 
         Rs._read_RS_records()
+
+        Rs.restore_relays()
 
     @staticmethod
     async def exit():
@@ -364,9 +369,7 @@ class Rs:
                     if params.TIME_AFK_KICK < p.afk_timer:
                         # kick this player
                         Rs.set_queue_updated(qm.level)
-                        print(
-                            f' task check_afk: {qm.name}: kicking player {p.discord_name}'
-                        )
+                        # print(f' task check_afk: {qm.name}: kicking player {p.discord_name}')
                         await Rs.leave_queue(None, 0, False, True, False, p)
 
                         # reset afk trackers
@@ -376,7 +379,7 @@ class Rs:
                     
                     # not flagged as afk yet and no active warning -> flag and start timer
                     elif p.afk_flag is False:
-                        print(f' task_check_afk: {qm.name} flagging player {p.discord_nick}')
+                        #print(f' task_check_afk: {qm.name} flagging player {p.discord_nick}')
                         p.afk_flag = True
                         # Rs.set_queue_updated(qm.level)
 
@@ -392,17 +395,17 @@ class Rs:
 
                         # mark player as afk
                         Rs.afk_warned_players.append(p)
-                        msg=f' task_check_afk: new active warnings in {qm.name}\n'
-                        for a in Rs.afk_warned_players:
-                            msg +=f'                 {a.discord_nick}\n'
-                        print(msg)
+                        # msg=f' task_check_afk: new active warnings in {qm.name}\n'
+                        # for a in Rs.afk_warned_players:
+                        #     msg +=f'                 {a.discord_nick}\n'
+                        # print(msg)
 
                     # already flagged and counting -> keep counting
                     else: # p.afk_timer < params.TIME_AFK_KICK
                         Rs.set_queue_updated(qm.level) # might not be neccesary
-                        print(
-                            f' task check_afk: {qm.name}: {p.discord_nick} afk for {secs2time(p.afk_timer)}\n                 kicking after {secs2time(params.TIME_AFK_KICK - p.afk_timer)})'
-                        )
+                        # print(
+                        #     f' task check_afk: {qm.name}: {p.discord_nick} afk for {secs2time(p.afk_timer)}\n                 kicking after {secs2time(params.TIME_AFK_KICK - p.afk_timer)})'
+                        # )
                         p.afk_timer = p.afk_timer + params.TIME_BOT_AFK_TASK_RATE
 
             # finally dispatch dialogue warnings
@@ -812,7 +815,8 @@ class Rs:
                               player_desc += ' ⚠️ ' + p.note
 
                           # print player
-                          team = team + f'{s_(1,1)}{player_desc} :watch: {secs2time(time.time() - p.timer)}\n'
+                          team = team + f'{s_(1,1)}{player_desc}\n'
+                          # :watch: {secs2time(time.time() - p.timer)}\n'
 
                       # add the entry to embed
                       if '♾' in team:
@@ -847,12 +851,12 @@ class Rs:
             # if we are running split channels no need to repost
             if params.SPLIT_CHANNELS:
                 await Rs.dashboard_embed.edit(embed=embed)
-                print('dashboard embed: updated')
+                #print('dashboard embed: updated')
 
             else:
             # last message is not the embed -> delete and repost, otherwise just edit
                 if Rs.channel.last_message.author.id != bot.user.id:
-                    print('dashboard embed: reposting')
+                    #print('dashboard embed: reposting')
                     await Rs.dashboard_embed.delete
                     await Rs._post_dashboard_embed(embed)
 
@@ -1000,25 +1004,54 @@ class Rs:
             pass
 
     @staticmethod
+    async def _post_relay_embed(embed: discord.Embed, channel: discord.channel = None):
+
+        if channel==None:
+            return
+        try:
+
+            if Rs.relay_embed == None:
+                Rs.relay_embed = await channel.send(embed=embed)
+
+                # for i in Rs.star_range:
+                #     e = (f'RS{i}_EMOJI')
+                #     await Rs.dashboard_embed.add_reaction(getattr(params, e))
+
+                # await Rs.dashboard_embed.add_reaction(params.LEAVE_EMOJI)
+
+            else:
+                await channel.edit(embed=embed)
+
+        except discord.errors.NotFound:
+            print('_post_dashboard_embed: lost message handle (NotFound)')
+            Rs.relay_embed = None
+        
+        except discord.DiscordException as e:
+            print(
+                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}[_post_relay_embed]: generic discord exception {str(e)}'
+            )
+            pass
+
+    @staticmethod
     async def _post_individual_queue_embed(embed_to_post: discord.Embed,level: int, old_embed: discord.Embed = None, force_repost: bool = False):
 
         try:
 
             if force_repost or old_embed is None:
             # delete old embed and post a new one or post for first time
-                print(f' queue {level:>2} embed: reposting')
+                #print(f' queue {level:>2} embed: reposting')
                 if old_embed != None: await old_embed.delete()
                 return_embed = await Rs.channels[level].send(embed=embed_to_post)
 
             elif embed_to_post.description == old_embed.embeds[0].description:
             # if embed is the same, do nothing, return old one
-                print(f' queue {level:>2} embed: skipping')
+                #print(f' queue {level:>2} embed: skipping')
                 return old_embed
 
             else:
             # new embed is diferent than the old one: update (edit)
                 await old_embed.edit(embed=embed_to_post)
-                print(f' queue {level:>2} embed: updated')
+                #print(f' queue {level:>2} embed: updated')
                 return await Rs.channels[level].fetch_message(old_embed.id)
 
             await return_embed.add_reaction(params.JOIN_EMOJI)
@@ -1213,6 +1246,66 @@ class Rs:
 
             if q_len > 0:
                 Rs.stats[qm_name] += 1
+
+    @staticmethod
+    async def add_relay(guild: discord.Guild = None, channel : discord.channel = None, caller : discord.User = None):
+
+        if guild.id in Rs.relays.keys(): return
+        Rs.relays.update( { guild.id : channel } )
+        Rs.save_relay(guild.id, guild.name, channel.id, guild.owner_id, caller.id, caller.name)
+        await channel.send(content = params.TEXT_R_SET, delete_after = 15)
+        for role in guild.roles: #make channel read only
+          overwrite = discord.PermissionOverwrite()
+          overwrite.send_messages = False
+          overwrite.read_messages = True
+          await channel.set_permissions(role, overwrite=overwrite)
+        return
+
+    @staticmethod
+    def save_relay(guild_id, guild_name, channel_id, guild_ownerid, caller_id, caller_name):
+        with open('relays.txt', 'a+') as file:
+          data = f'{guild_id}\t{guild_name}\t{channel_id}\t{guild_ownerid}'
+          file.write(data + '\n')
+          file.flush()
+        print(f' relays added: {guild_name}')
+
+    @staticmethod
+    async def delete_relay(guild_id):
+        with open('relays.txt', 'r') as file:
+          servers = file.readlines()
+        with open('relays.txt', 'w+') as file:
+          for server in servers:
+            if str(guild_id) in server:
+              del Rs.relays[guild_id]
+              continue
+            file.write(server)
+          file.flush()
+
+
+        print(f'relays backup: done')
+
+    @staticmethod
+    def restore_relays():
+        try:
+            with open(f'relays.txt', 'r') as file:
+                servers = file.readlines()
+                count = 0
+                for server in servers:
+                    tokens = server.split('\t')
+                    guild_id = int(tokens[0])
+                    guild = bot.get_guild(guild_id)
+                    if guild is None: continue
+                    channel : discord.channel = guild.get_channel(int(tokens[2]))
+                    if channel is None: continue
+                    print(str(guild))
+                    Rs.relays.update( { guild_id : channel } )
+                    count += 1
+                            
+            print(f'       relays: connecting {count} servers')
+            return
+
+        except FileNotFoundError:
+            print(f'       relays: backup file not found')
 
     # Rs.lumberjack(sys.exc_info())
     def lumberjack(info):
