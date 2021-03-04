@@ -404,11 +404,13 @@ async def on_message(message):
                     await Rs.relays[guild.id].send(params.TEXT_R_REMOVE,
                                                    delete_after=60 * 60 * 24)
                     await Rs.delete_relay(guild.id)
-                else:
+                    return
+                elif message.channel == Rs.relays[guild.id]:
                     await Rs.relays[guild.id].send(params.TEXT_R_NOMSG.format(
                         (message.guild.owner_id)),
                                                    delete_after=30)
                     await message.delete()
+                    return
 
             elif 'addrelay' in message.content:
                 await Rs.add_relay(message.guild, message.channel,

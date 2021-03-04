@@ -57,10 +57,10 @@ def strip_flags(message: str = ''):
     return message
 
 def s_(num: int = 0, num2: int = 0):
-  string ='\u2800'
+  string =''
   for i in range(0,num):
-    if i < num2 : string += ' '
-    string += '\u2800'
+    if i <= num2 : string += ' '
+    if i <= num : string += '\u2800'
   return string
 
 
@@ -818,13 +818,13 @@ class Rs:
                               player_desc += ' ⚠️ ' + p.note
 
                           # print player
-                          team = team + f'{s_(1,1)}{player_desc}\n'
+                          team = team + f'{s_(3,0)} {player_desc}\n'
                           # :watch: {secs2time(time.time() - p.timer)}\n'
 
                       # add the entry to embed
                       if '♾' in team:
                           team = team.replace('♾', '\\♾') # do we need this?
-                      rs_name=f'{params.RS_ICON}  {(qm.level)} ({len(qm.queue)}/4)'
+                      rs_name=f'{int2emoji(qm.level)}{s_(1,2)}{len(qm.queue)}/4'
                       inl = False
                       Rs.teams.update({qm.level : {'name' : rs_name, 'value' : team, 'inline' : inl}})
                       embed.add_field(**Rs.teams[qm.level])
@@ -891,6 +891,19 @@ class Rs:
 
         # check if we got an embed
         if embed is None: return
+
+        # if all queues empty display relay invite
+        if params.TEXT_EMPTY_QUEUE_DASH in str(embed.description):
+            embed.description = params.TEXT_EMPTY_R_DASH + '\n' + s_(1,0) + params.TEXT_CHECKOUT_DEMO
+            embed.set_image(url=params.SERVER_DISCORD_ICON)
+            #embed.add_field(name = '\u2800', value =, inline = True)
+            embed.set_footer(text='')
+        #else put invite in footer
+        else:
+            embed.set_thumbnail(url=params.SERVER_DISCORD_ICON)
+            footer = params.TEXT_R_FOOTER + '\n' + params.TEXT_CHECKOUT_DEMO
+            embed.add_field(name = '\u2800', value = footer, inline = False)
+            embed.set_footer(text='')
 
         servers = len(Rs.relays)
         with ProcessPoolExecutor(max_workers=servers) as r_executor:
