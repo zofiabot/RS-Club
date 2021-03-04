@@ -906,6 +906,7 @@ class Rs:
             embed.set_footer(text='')
 
         servers = len(Rs.relays)
+        if servers < 1 : servers = 1 # max_workers must be greater than 0
         with ProcessPoolExecutor(max_workers=servers) as r_executor:
             for channel in Rs.relays.values():
                r_executor.submit(await Rs._post_relay_embed(embed, channel))
