@@ -202,7 +202,7 @@ class Rs:
         msg_id = reaction.message.id
         user_id, chan_id, emoji_callback = Rs.dialogues[msg_id]
         # check if the user reacting is the dialogue owner
-        print(Rs.dialogues[msg_id])
+        
         if user_id == user.id:
             # check supported emojis for this message
             print(emoji_callback)
@@ -1312,12 +1312,12 @@ class Rs:
             file.write(server)
           file.flush()
 
-        print(f' relay remove: done')
+        print(' relay remove: done')
 
     @staticmethod
     def restore_relays():
         try:
-            with open(f'relays.txt', 'r') as file:
+            with open('relays.txt', 'r') as file:
                 servers = file.readlines()
                 count = 0
                 relays = ''
@@ -1338,7 +1338,7 @@ class Rs:
             return
 
         except FileNotFoundError:
-            print(f'       relays: backup file not found')
+            print('       relays: backup file not found')
 
     # Rs.lumberjack(sys.exc_info())
     def lumberjack(info):
