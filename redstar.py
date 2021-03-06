@@ -1374,14 +1374,15 @@ class Rs:
 
         for invite in invites_o:
             if 0 == invite.max_uses == invite.max_age and invite.inviter.display_name not in invites.values():
-                invites.update({invite.uses : invite.inviter.display_name })
+                invites.update({invite.inviter.display_name : invite.uses })
         i = 1
         c = 'Current standings'
         embed.description +=  f"\n ```{' '*(28)} "
         embed.description +=  f"\n {' '*int((23-len(c)))}{c}\n"
-        for a in sorted(invites, reverse=True):
-          if a >= 0 :
-              embed.description +=  f"\n{i:>3}. {invites[a]} {' '*(18-len(invites[a]))} {a:>4}  "
+        sorted_invites = sorted(invites.items(), key=lambda kv: kv[1], reverse=True)
+        for a in sorted_invites:
+          if True :
+              embed.description +=  f"\n{i:>3}. {a[0]} {' '*(18-len(a[0]))} {a[1]:>4}  "
               i += 1
 
         embed.description +=  f"\n {' '*(28)}  ``` "
