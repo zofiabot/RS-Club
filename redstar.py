@@ -1360,15 +1360,17 @@ class Rs:
         embed.description = (params.INVITE_RANKING_DESC+ '\n')
 
         for invite in invites_o:
-            if 0 == invite.max_uses == invite.max_age:
+            if 0 == invite.max_uses == invite.max_age and invite.inviter.display_name not in invites.values():
                 invites.update({invite.uses : invite.inviter.display_name })
         i = 1
         c = 'Current standings'
         embed.description +=  f"\n ```{' '*(28)} "
         embed.description +=  f"\n {' '*int((23-len(c)))}{c}\n"
         for a in sorted(invites, reverse=True):
-          embed.description +=  f"\n{i:>3}. {invites[a]} {' '*(18-len(invites[a]))} {a:>4}  "
-          i += 1
+          if invites[a] >= 0 :
+              embed.description +=  f"\n{i:>3}. {invites[a]} {' '*(18-len(invites[a]))} {a:>4}  "
+              i += 1
+
         embed.description +=  f"\n {' '*(28)}  ``` "
         
         message = await channel.fetch_message(params.CONTEST_MESSAGE_ID)
