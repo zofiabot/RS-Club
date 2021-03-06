@@ -1367,7 +1367,7 @@ class Rs:
         embed.description +=  f"\n ```{' '*(28)} "
         embed.description +=  f"\n {' '*int((23-len(c)))}{c}\n"
         for a in sorted(invites, reverse=True):
-          if invites[a] >= 0 :
+          if a >= 0 :
               embed.description +=  f"\n{i:>3}. {invites[a]} {' '*(18-len(invites[a]))} {a:>4}  "
               i += 1
 
