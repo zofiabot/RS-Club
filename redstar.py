@@ -1071,6 +1071,13 @@ class Rs:
                 f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}[_post_relay_embed]: generic discord exception {str(e)}'
             )
             pass
+        
+        except Exception as e:
+            print(
+                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}[_post_relay_embed]: generic exception {str(e)}'
+            )
+            Rs.lumberjack(sys.exc_info())
+            pass
 
     @staticmethod
     async def _post_individual_queue_embed(embed_to_post: discord.Embed,level: int, old_embed: discord.Embed = None, force_repost: bool = False):
