@@ -897,7 +897,7 @@ class Rs:
 
     @staticmethod
     async def display_relay_embeds(embed: discord.Embed = None):
-
+      try:
         # check if we got an embed
         if embed is None: return
 
@@ -919,7 +919,13 @@ class Rs:
         with ProcessPoolExecutor(max_workers=servers) as r_executor:
             for channel in Rs.relays.values():
                r_executor.submit(await Rs._post_relay_embed(embed, channel))
-
+        
+      except Exception as e:
+            print(
+                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}[display_relay_embed]: generic exception {str(e)}'
+            )
+            Rs.lumberjack(sys.exc_info())
+            pass
     @staticmethod
     async def display_individual_queue(qm: QueueManager, force_repost: bool = False):
         """
@@ -1070,6 +1076,13 @@ class Rs:
             print(
                 f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}[_post_relay_embed]: generic discord exception {str(e)}'
             )
+            pass
+        
+        except Exception as e:
+            print(
+                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}[_post_relay_embed]: generic exception {str(e)}'
+            )
+            Rs.lumberjack(sys.exc_info())
             pass
 
     @staticmethod
