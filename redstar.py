@@ -1363,11 +1363,11 @@ class Rs:
             if 0 == invite.max_uses == invite.max_age:
                 invites.update({invite.uses : invite.inviter.display_name })
         i = 1
-        c = 'Current standings:'
+        c = 'Current standings'
         embed.description +=  f"\n ```{' '*(28)} "
-        embed.description +=  f"\n  {c+' '*(26-len(c))}  "
-        for a in sorted(invites):
-          embed.description +=  f"\n {i:>3}. {invites[a]} {' '*(17-len(invites[a]))} {a:>4}  "
+        embed.description +=  f"\n {' '*int((23-len(c)))}{c}\n"
+        for a in sorted(invites, reverse=True):
+          embed.description +=  f"\n{i:>3}. {invites[a]} {' '*(18-len(invites[a]))} {a:>4}  "
           i += 1
         embed.description +=  f"\n {' '*(28)}  ``` "
         
