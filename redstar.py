@@ -1373,7 +1373,11 @@ class Rs:
         embed.description = (params.INVITE_RANKING_DESC+ '\n')
 
         for invite in invites_o:
-            if 0 == invite.max_uses == invite.max_age and invite.inviter.display_name not in invites.values():
+            if 0 == invite.max_uses == invite.max_age:
+              if invite.inviter.display_name in invites.keys():
+                uses = invite.uses + invites[invite.inviter.display_name]
+                invites.update({invite.inviter.display_name : uses })
+              else:
                 invites.update({invite.inviter.display_name : invite.uses })
         i = 1
         c = 'Current standings'
