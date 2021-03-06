@@ -920,7 +920,7 @@ class Rs:
             for channel in Rs.relays.values():
                r_executor.submit(await Rs._post_relay_embed(embed, channel))
         
-        except Exception as e:
+      except Exception as e:
             print(
                 f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}[display_relay_embed]: generic exception {str(e)}'
             )
