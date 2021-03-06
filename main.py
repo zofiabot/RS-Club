@@ -58,9 +58,33 @@ async def clean_logs(period=24):
     mgs = []  #Empty list to avoid trouble with other code
 
 
+async def invite_ranking(channel_id: int = params.INVITE_RANKING_CH):
+    channel = bot.get_channel(channel_id)
+    guild = bot.get_guild(params.SERVER_DISCORD_ID)
+    invites_o = await guild.invites()
+    invites: dict = {}
+    embed = discord.Embed(color=params.QUEUE_EMBED_COLOR)
+    space = '\u2800'*12
+    embed.title = (f'Invite Contest {space} 🏆')
+    embed.description = (params.INVITE_RANKING_DESC+ '\n')
+
+    for invite in invites_o:
+        if 0 == invite.max_uses == invite.max_age:
+            invites.update({invite.uses : invite.inviter.display_name })
+    i = 1
+    c = 'Current standings:'
+    embed.description +=  f"\n ```{' '*(28)} "
+    embed.description +=  f"\n  {c+' '*(26-len(c))}  "
+    for a in invites:
+      embed.description +=  f"\n {i:>3}. {invites[a]} {' '*(17-len(invites[a]))} {a:>4}  "
+      i += 1
+    embed.description +=  f"\n {' '*(28)}  ``` "
+    await channel.send(embed=embed)
+    #print(embed)
+    return
+
+
 # Help command
-
-
 @bot.command(name='help',
              help='general help page',
              aliases=params.help_aliases)  #TODO languages, params
@@ -474,6 +498,8 @@ async def on_ready():
     print(f'    Starting up: {bot.user.name} is ready')
     if dbg_ch:
         await dbg_ch.send('ℹ️ on_ready(): Bot Initialization complete')
+    
+    if params.INVITE_RANKING: await invite_ranking()
 
 
 @bot.event
