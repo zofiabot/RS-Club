@@ -7,7 +7,7 @@ import time
 #from queue import Queue
 #from queue import Empty
 #from typing import Union, List, Dict, Tuple, Callable, Coroutine, Awaitable, Any, TypeVar
-from typing import Union, List, Dict, Tuple, Callable, Awaitable
+from typing import Union, List, Dict #, Tuple, Callable, Awaitable
 from pathlib import Path
 import discord
 
@@ -56,8 +56,12 @@ def strip_flags(message: str = ''):
     #TODO Strip flag emoji from first line
     return message
 
-
-
+def s_(num: int = 0, num2: int = 0):
+    string =''
+    for i in range(0,num):
+        if i <= num2 : string += ' '
+        if i <= num : string += '\u2800'
+    return string
 
 ######################################################
 # THE RS CLASS                                       #
@@ -95,12 +99,6 @@ class Rs:
     # Dict[[int], List[[[int], [int], Tuple[str,Awaitable]]]]
     dialogues: Dict = {}
 
-    def s_(num: int = 0, num2: int = 0):
-      string =''
-      for i in range(0,num):
-        if i <= num2 : string += ' '
-        if i <= num : string += '\u2800'
-      return string
     
     @staticmethod
     def init(bot_ref):
@@ -343,6 +341,16 @@ class Rs:
             return Rs.qms[level - min(Rs.star_range)]
         else:
             raise ValueError
+
+    @staticmethod
+    @tasks.loop(seconds=params.TIME_BOT_AFK_TASK_RATE*10)
+    async def task_invite_ranking():
+        """
+        Cyclic task to refresh invite ranking
+        :return: never returns
+        """
+        await Rs.invite_ranking()
+            
 
     @staticmethod
     @tasks.loop(seconds=params.TIME_BOT_AFK_TASK_RATE)
@@ -819,13 +827,13 @@ class Rs:
                               player_desc += ' ⚠️ ' + p.note
 
                           # print player
-                          team = team + f'{Rs.s_(3,0)} {player_desc}\n'
+                          team = team + f'{s_(3,0)} {player_desc}\n'
                           # :watch: {secs2time(time.time() - p.timer)}\n'
 
                       # add the entry to embed
                       if '♾' in team:
                           team = team.replace('♾', '\\♾') # do we need this?
-                      rs_name=f'{int2emoji(qm.level)}{Rs.s_(1,2)}{len(qm.queue)}/4'
+                      rs_name=f'{int2emoji(qm.level)}{s_(1,2)}{len(qm.queue)}/4'
                       inl = False
                       Rs.teams.update({qm.level : {'name' : rs_name, 'value' : team, 'inline' : inl}})
                       embed.add_field(**Rs.teams[qm.level])
@@ -895,7 +903,7 @@ class Rs:
 
         # if all queues empty display relay invite
         if params.TEXT_EMPTY_QUEUE_DASH in str(embed.description):
-            embed.description = params.TEXT_EMPTY_R_DASH + '\n' + Rs.s_(1,0) + params.TEXT_CHECKOUT_DEMO
+            embed.description = params.TEXT_EMPTY_R_DASH + '\n' + s_(1,0) + params.TEXT_CHECKOUT_DEMO
             embed.set_image(url=params.SERVER_DISCORD_ICON)
             #embed.add_field(name = '\u2800', value =, inline = True)
             embed.set_footer(text='')
@@ -930,7 +938,7 @@ class Rs:
             if queue_len == 0:
 
                 embed_to_post = discord.Embed(color=params.QUEUE_EMBED_COLOR)
-                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} empty? {Rs.s_(10,8)}'
+                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} empty? {s_(10,8)}'
                 embed_to_post.description = f'{params.TEXT_EMPTY_QUEUE} {Rs.bugs_ch.mention}!'
 
                 if Rs.single_queue_messages[qm.level] is not None:
@@ -956,7 +964,7 @@ class Rs:
                 embed_to_post = discord.Embed(
                     color=params.QUEUE_EMBED_COLOR)
                 embed_to_post.set_author(name='', icon_url='')
-                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)}\u2800{queue_len}/4 {Rs.s_(10,9)}'
+                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)}\u2800{queue_len}/4 {s_(10,9)}'
                 team = ''
 
                 # for each player: make entry in embed
@@ -1340,6 +1348,34 @@ class Rs:
 
         except FileNotFoundError:
             print('       relays: backup file not found')
+
+    async def invite_ranking(channel_id: int = params.INVITE_RANKING_CH):
+        channel = bot.get_channel(channel_id)
+        guild = bot.get_guild(params.SERVER_DISCORD_ID)
+        invites_o = await guild.invites()
+        invites: dict = {}
+        embed = discord.Embed(color=params.QUEUE_EMBED_COLOR)
+        space = '\u2800'*12
+        embed.title = (f'Invite Contest {space} 🏆')
+        embed.description = (params.INVITE_RANKING_DESC+ '\n')
+
+        for invite in invites_o:
+            if 0 == invite.max_uses == invite.max_age:
+                invites.update({invite.uses : invite.inviter.display_name })
+        i = 1
+        c = 'Current standings:'
+        embed.description +=  f"\n ```{' '*(28)} "
+        embed.description +=  f"\n  {c+' '*(26-len(c))}  "
+        for a in sorted(invites):
+          embed.description +=  f"\n {i:>3}. {invites[a]} {' '*(17-len(invites[a]))} {a:>4}  "
+          i += 1
+        embed.description +=  f"\n {' '*(28)}  ``` "
+        
+        message = await channel.fetch_message(params.CONTEST_MESSAGE_ID)
+        
+        await message.edit(embed=embed)
+        return
+
 
     # Rs.lumberjack(sys.exc_info())
     def lumberjack(info):
