@@ -94,5 +94,5 @@ class params:
 
 
     INVITE_RANKING = True
-    INVITE_RANKING_DESC = 'The contest ends on March 31ˢᵗ\nTo participate, create an invite link\n(never expiring, no limit of users)\nand spread the word wherever you can.\n Please obey other server\'s rules,\nreasonable complaints will result\nin disqualification.\n\n'
+    INVITE_RANKING_DESC = 'The contest ends on March 31ˢᵗ ᴳᴹᵀ\nTo participate, create an invite link\n(never expiring, no limit of users)\nand spread the word wherever you can.\n Please obey other server\'s rules,\nreasonable complaints will result\nin disqualification.\n\n'
     INVITE_RANKING_DESC += f'\u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 \u2800 **Rewards**\n\u2800 \u2800 \u2800 :first_place: ` 20 level 10 artifacts `\n\u2800 \u2800 \u2800 :second_place: ` 10 level 10 artifacts `\n\u2800 \u2800 \u2800 :third_place: `  5 level 10 artifacts `'
