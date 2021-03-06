@@ -56,12 +56,6 @@ def strip_flags(message: str = ''):
     #TODO Strip flag emoji from first line
     return message
 
-def s_(num: int = 0, num2: int = 0):
-  string =''
-  for i in range(0,num):
-    if i <= num2 : string += ' '
-    if i <= num : string += '\u2800'
-  return string
 
 
 
@@ -101,6 +95,13 @@ class Rs:
     # Dict[[int], List[[[int], [int], Tuple[str,Awaitable]]]]
     dialogues: Dict = {}
 
+    def s_(num: int = 0, num2: int = 0):
+      string =''
+      for i in range(0,num):
+        if i <= num2 : string += ' '
+        if i <= num : string += '\u2800'
+      return string
+    
     @staticmethod
     def init(bot_ref):
         global bot
@@ -818,13 +819,13 @@ class Rs:
                               player_desc += ' ⚠️ ' + p.note
 
                           # print player
-                          team = team + f'{s_(3,0)} {player_desc}\n'
+                          team = team + f'{Rs.s_(3,0)} {player_desc}\n'
                           # :watch: {secs2time(time.time() - p.timer)}\n'
 
                       # add the entry to embed
                       if '♾' in team:
                           team = team.replace('♾', '\\♾') # do we need this?
-                      rs_name=f'{int2emoji(qm.level)}{s_(1,2)}{len(qm.queue)}/4'
+                      rs_name=f'{int2emoji(qm.level)}{Rs.s_(1,2)}{len(qm.queue)}/4'
                       inl = False
                       Rs.teams.update({qm.level : {'name' : rs_name, 'value' : team, 'inline' : inl}})
                       embed.add_field(**Rs.teams[qm.level])
@@ -894,7 +895,7 @@ class Rs:
 
         # if all queues empty display relay invite
         if params.TEXT_EMPTY_QUEUE_DASH in str(embed.description):
-            embed.description = params.TEXT_EMPTY_R_DASH + '\n' + s_(1,0) + params.TEXT_CHECKOUT_DEMO
+            embed.description = params.TEXT_EMPTY_R_DASH + '\n' + Rs.s_(1,0) + params.TEXT_CHECKOUT_DEMO
             embed.set_image(url=params.SERVER_DISCORD_ICON)
             #embed.add_field(name = '\u2800', value =, inline = True)
             embed.set_footer(text='')
@@ -929,7 +930,7 @@ class Rs:
             if queue_len == 0:
 
                 embed_to_post = discord.Embed(color=params.QUEUE_EMBED_COLOR)
-                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} empty? {s_(10,8)}'
+                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} empty? {Rs.s_(10,8)}'
                 embed_to_post.description = f'{params.TEXT_EMPTY_QUEUE} {Rs.bugs_ch.mention}!'
 
                 if Rs.single_queue_messages[qm.level] is not None:
@@ -955,7 +956,7 @@ class Rs:
                 embed_to_post = discord.Embed(
                     color=params.QUEUE_EMBED_COLOR)
                 embed_to_post.set_author(name='', icon_url='')
-                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)} ({queue_len}/4) {s_(11,9)}'
+                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)}\u2800{queue_len}/4 {Rs.s_(10,9)}'
                 team = ''
 
                 # for each player: make entry in embed
