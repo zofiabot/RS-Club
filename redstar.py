@@ -1305,6 +1305,7 @@ class Rs:
 
         if guild.id in Rs.relays.keys(): return
         Rs.relays.update( { guild.id : channel } )
+        Rs.relay_embeds.update( { channel.id : None } )
         Rs.save_relay(guild.id, guild.name, channel.id, guild.owner_id, caller.id, caller.name)
         await channel.send(content = params.TEXT_R_SET, delete_after = 15)
         for role in guild.roles: #make channel read only
