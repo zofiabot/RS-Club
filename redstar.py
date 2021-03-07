@@ -1386,7 +1386,10 @@ class Rs:
         embed.description +=  f"\n {' '*int((23-len(c)))}{c}\n"
         sorted_invites = sorted(invites.items(), key=lambda kv: kv[1], reverse=True)
         for a in sorted_invites:
-          if True :
+          if a[0] in ('Zofia', 'Zo') :
+              embed.description +=  f"\n{' '*3}. {a[0]} {' '*(18-len(a[0]))} {a[1]:>4}  "
+                      
+          else :
               embed.description +=  f"\n{i:>3}. {a[0]} {' '*(18-len(a[0]))} {a[1]:>4}  "
               i += 1
 
