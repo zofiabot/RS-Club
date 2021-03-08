@@ -1374,7 +1374,7 @@ class Rs:
         embed.description = (params.INVITE_RANKING_DESC+ '\n')
 
         for invite in invites_o:
-            if 0 == invite.max_uses == invite.max_age:
+            if 0 == invite.max_age:
               if invite.inviter.display_name in invites.keys():
                 uses = invite.uses + invites[invite.inviter.display_name]
                 invites.update({invite.inviter.display_name : uses })
@@ -1386,8 +1386,8 @@ class Rs:
         embed.description +=  f"\n {' '*int((23-len(c)))}{c}\n"
         sorted_invites = sorted(invites.items(), key=lambda kv: kv[1], reverse=True)
         for a in sorted_invites:
-          if a[0] in ('Zofia', 'Zo') :
-              embed.description +=  f"\n{' '*3}. {a[0]} {' '*(18-len(a[0]))} {a[1]:>4}  "
+          if a[0] in ('Zofia', 'Zo', 'anfibionic') :
+              embed.description +=  f"\n{' '*3}  {a[0]} {' '*(18-len(a[0]))} {a[1]:>4}  "
                       
           else :
               embed.description +=  f"\n{i:>3}. {a[0]} {' '*(18-len(a[0]))} {a[1]:>4}  "
