@@ -319,13 +319,15 @@ async def cmd_start_rs_queue(ctx: discord.ext.commands.Context,
     counter = 0
     for level in levels:
         if int(level) in Rs.star_range:
+          if len(Rs.get_qm(int(level)).queue) > 1 :
             await Rs.start_queue(ctx.author, int(level))
             # Rs.add_job(Rs.start_queue, [ctx.author, int(level)])
-            counter += 1
-        if counter == 2:
-            await bot.get_channel(
-                ctx.message.channel.id
-            ).send("You can only start one star with this command")
+          else:
+            await bot.get_channel(ctx.message.channel.id).send("You can only start queue early if you are not alone")
+            break
+          counter += 1
+        if counter == 1:
+            await bot.get_channel(ctx.message.channel.id).send("You can only start one star with this command")
             break
 
     # standard handling of commands
