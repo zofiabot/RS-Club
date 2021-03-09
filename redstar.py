@@ -305,7 +305,11 @@ class Rs:
                         print(
                             f'handle reaction: {user} trying to start {qm.name} queue'
                         )
-                        await Rs.start_queue(user, level)
+                        if len(qm.queue) > 1 :
+                          await Rs.start_queue(user, level)
+                        else:
+                          await Rs.channels[level].send("You can only start queue early if you are not alone")
+                        
 
             else: # equivent to elif reaction.emoji == params.JOIN_EMOJI:
                 # this case is already handled (impossibe to react on something you can't see)
@@ -922,7 +926,7 @@ class Rs:
         
       except Exception as e:
             print(
-                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}[display_relay_embed]: generic exception {str(e)}'
+                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}[display_relay_embeds]: generic exception {str(e)}'
             )
             Rs.lumberjack(sys.exc_info())
             pass
@@ -1389,7 +1393,7 @@ class Rs:
           if a[0] in ('Zofia', 'Zo', 'anfibionic') :
               embed.description +=  f"\n{' '*3}  {a[0]} {' '*(18-len(a[0]))} {a[1]:>4}  "
                       
-          else :
+          elif int(a[1]) > 0:
               embed.description +=  f"\n{i:>3}. {a[0]} {' '*(18-len(a[0]))} {a[1]:>4}  "
               i += 1
 
