@@ -159,12 +159,11 @@ class Rs:
         Rs.afk_check_messages = {}  # dict: key=discord_id, value=msg_id
 
         # rs run stats
+        for i in Rs.star_range:
+            Rs.stats[f'rs{i}'] = 0
         if params.OLD_STARS:  # if present add earlier stats
             for o in params.OLD_STARS:
                 Rs.stats[o] = params.OLD_STARS.get(o)
-        else:
-            for i in Rs.star_range:
-                Rs.stats[f'rs{i}'] = 0
 
         Rs._read_RS_records()
 
@@ -1301,7 +1300,7 @@ class Rs:
             qm_name = tokens[1]
             q_len = int(tokens[2].split('/')[1])
 
-            if q_len > 0:
+            if q_len > 0 and qm_name:
                 Rs.stats[qm_name] += 1
 
     @staticmethod
