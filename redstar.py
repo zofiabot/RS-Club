@@ -1394,10 +1394,12 @@ class Rs:
               i += 1
 
         embed.description +=  f"\n {' '*(28)}  ``` "
-        
-        message = await channel.fetch_message(params.CONTEST_MESSAGE_ID)
-        
-        await message.edit(embed=embed)
+        try:
+          message = await channel.fetch_message(params.CONTEST_MESSAGE_ID)
+          await message.edit(embed=embed)
+        except Exception:
+          await channel.send(embed=embed)
+          print('Posting new Invite message')
         return
 
 
