@@ -1381,6 +1381,9 @@ class Rs:
               if invite.inviter.display_name in invites.keys():
                 uses = invite.uses + invites[invite.inviter.display_name]
                 invites.update({invite.inviter.display_name : uses })
+              elif invite.inviter.display_name == 'Zo':
+                uses = invite.uses + invites['Zofia']
+                invites.update({ 'Zofia' : uses })
               else:
                 invites.update({invite.inviter.display_name : invite.uses })
         i = 1
