@@ -634,14 +634,15 @@ class Rs:
         ping_string = f'@rs{level}'
         ping_cooldown = ((time.time()-qm.last_role_ping) >= params.PING_COOLDOWN) # we are on cooldown if False
         if queue_len in params.PING_THRESHOLDS and ping_cooldown:
-            if queue_len < 3: ping_string = Rs.ping_mentions[qm.level]
-            else: ping_string = Rs.soft_ping_mentions[qm.level]
-            qm.last_role_ping = time.time()
+            if queue_len < 3: ping_string = [Rs.ping_mentions[qm.level], '']
+            else: 
+              ping_string = [ Rs.ping_mentions[qm.level], Rs.soft_ping_mentions[qm.level] ]
+              qm.last_role_ping = time.time()
 
         # new in this queue -> standard join
         if res == QueueManager.PLAYER_JOINED:
             Rs.set_queue_updated(level)
-            msg = f'` {player.discord_nick} joined ` {ping_string} ` ({queue_len}/4) `'
+            msg = f'` {player.discord_nick} joined ` {ping_string[0]} ` ({queue_len}/4) `{ping_string[1]}'
             if params.SPLIT_CHANNELS:
                 await Rs.channels[level].send(msg, delete_after=params.MSG_DISPLAY_TIME)
             else:
@@ -1406,6 +1407,46 @@ class Rs:
         except Exception:
           await channel.send(embed=embed)
           print('Posting new Invite message')
+        return
+
+    async def welcome_message(channel_id: int = params.WELCOME_CHANNEL):
+        channel = bot.get_channel(channel_id)
+        embed = discord.Embed(color=params.QUEUE_EMBED_COLOR)
+        embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/805642819980754944/819648954097729586/w.gif")
+        # embed.title = (f'{space} 👋')
+        welcomes = ''
+        styles = ['***', '', '*', '**', '`']
+
+        for i, welcome in enumerate(params.WELCOME_STRINGS):
+          welcomes += styles[i%5] + welcome + styles[i%5] + ' \u00A0'
+        
+        embed.description = welcomes + '\n\n'
+
+        for language in params.LANGUAGES:
+          flag = f':flag_{(language).lower()}:'
+          text = getattr(params, f'RULES_MESSAGE_LABEL_{language}')
+          id = getattr(params, f'RULES_MESSAGE_ID_{language}')
+          rules_ch = bot.get_channel(params.RULES_CHANNEL_ID)
+          link = await rules_ch.fetch_message(id).jump_url
+          embed.description += f'{flag}\u2800[{text}]({link})\u2800 '
+
+        embed.description += '\n'
+        embed.set_footer(text='confirm\u2009👍\u2009confirmar\u2009👍\u2009confirme\u2009👍\u2009confirmer\u2009👍\u2009bestätige\u2009👍\u2009potwierdź\u2009👍\u2009подтвердить')
+        embed.set_image(url=params.REMEMBER_TO_CONFIRM_IMG)
+
+            
+        try:
+            mgs = []  #Empty list to put all the messages in the log
+
+            async for message in channel.history(limit=100):
+                    mgs.append(message)
+            await channel.delete_messages(mgs)
+
+        except discord.errors.NotFound:
+            print('        Welcome: Messages already deleted')
+
+        await channel.send(embed=embed)
+        print('Posting new Welcome message')
         return
 
 

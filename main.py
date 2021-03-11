@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 from datetime import datetime, timedelta
 import sys
+import random
 from params import params
 from redstar import Rs
 from keep_awake import keep_awake  # used to keep the server awake otherwise it goes to sleep after 1h of inactivity
@@ -11,12 +12,13 @@ from keep_awake import keep_awake  # used to keep the server awake otherwise it 
 intents = discord.Intents.default()
 intents.typing = False  #spammy
 intents.presences = False  #spammy
+intents.members = True # needdedd for on_member_join
 intents.guilds = True  # for Relays
 bot = discord.ext.commands.Bot(command_prefix=['!', '+', '-'], intents=intents)
 bot.remove_command('help')
 bot_ready = True
-dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
 disconnect_time = datetime.now()
+dbg_ch = False
 
 # HELPER FUNCTIONS for Rs module only
 # Clean dead embedds
@@ -38,6 +40,7 @@ async def clean_dead_embeds(channel=False):
 
     except discord.errors.NotFound:
         print('    Starting up: Queue  Messages already deleted')
+
 
 
 # Clean logs older than given hours
@@ -453,6 +456,9 @@ async def on_ready():
         await clean_dead_embeds(channel)
 
     await clean_logs()
+    
+    # post welcome message
+    if params.POST_WELCOME_MESSAGE: await Rs.welcome_message()
 
     #CHECK IF WEE ARE ON MAIN SERVER
     # if message.guild.id != params.SERVER_DISCORD_ID: return
@@ -474,6 +480,10 @@ async def on_ready():
 
     global bot_ready
     bot_ready = True
+    global dbg_ch
+    dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
+    global welcome_channel
+    welcome_channel = bot.get_channel(params.WELCOME_CHANNEL)
     print(f'    Starting up: {bot.user.name} is ready')
     if dbg_ch:
         await dbg_ch.send('ℹ️ on_ready(): Bot Initialization complete')
@@ -578,11 +588,24 @@ async def on_command_error(ctx, error):
             f'{ctx.author.mention} I\'m missing permissions to do that!',
             delete_after=params.MSG_DISPLAY_TIME)
 
+@bot.event
+async def on_member_join(member): 
+    if member.id in params.SPECIAL_WELCOME_MEMBERS:
+        message = (params.TEXT_SPECIAL_WELCOME).format(member.mention)
+    else:
+        message = random.choice(params.TEXT_WELCOME_MESSAGES)+ '\u2800**' + member.mention +'**!'
 
+    await welcome_channel.send(message)
+    # dump(member._abc_impl)
+    # print()
+    # dump(bot.get_user(member.id))
 # kill handler to trigger a clean exit (e.g. to clear up any open chat clutter)
 def handle_exit():
     pass
 
+# def dump(obj):
+#   for attr in dir(obj):
+#     print("obj.%s = %r" % (attr, getattr(obj, attr)))
 
 # kill handler -> cleanup before exiting
 # atexit.register(handle_exit)
