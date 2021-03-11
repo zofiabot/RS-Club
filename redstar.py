@@ -1412,7 +1412,7 @@ class Rs:
     async def welcome_message(channel_id: int = params.WELCOME_CHANNEL):
         channel = bot.get_channel(channel_id)
         embed = discord.Embed(color=params.QUEUE_EMBED_COLOR)
-        embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/805642819980754944/819648954097729586/w.gif")
+        # embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/805642819980754944/819648954097729586/w.gif")
         # embed.title = (f'{space} 👋')
         welcomes = ''
         styles = ['***', '', '*', '**', '`']
