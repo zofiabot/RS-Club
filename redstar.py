@@ -1440,15 +1440,15 @@ class Rs:
         embed.set_image(url=params.REMEMBER_TO_CONFIRM_IMG)
 
             
-        try:
-            mgs = []  #Empty list to put all the messages in the log
+        # try:
+        #     mgs = []  #Empty list to put all the messages in the log
 
-            async for message in channel.history(limit=100):
-                    mgs.append(message)
-            await channel.delete_messages(mgs)
+        #     async for message in channel.history(limit=100):
+        #             mgs.append(message)
+        #     await channel.delete_messages(mgs)
 
-        except discord.errors.NotFound:
-            print('        Welcome: Messages already deleted')
+        # except discord.errors.NotFound:
+        #     print('        Welcome: Messages already deleted')
 
         await channel.send(embed=embed)
         print('Posting new Welcome message')
