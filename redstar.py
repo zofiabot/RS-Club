@@ -1422,7 +1422,7 @@ class Rs:
         
         embed.description = welcomes + '\n\n'
 
-        for language in params.LANGUAGES:
+        for i, language in enumerate(params.LANGUAGES):
           flag = f':flag_{(language).lower()}:'
           text = getattr(params, f'RULES_MESSAGE_LABEL_{language}')
           id = getattr(params, f'RULES_MESSAGE_ID_{language}')
@@ -1430,7 +1430,7 @@ class Rs:
           msg = await rules_ch.fetch_message(id)
           link = msg.jump_url
           embed.description += f'{flag}\u2800[{text}]({link})'
-          if i%2 : 
+          if i%2: 
             embed.description += '\u2800 ' 
           else:
             embed.description += '\n'
