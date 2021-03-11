@@ -1427,7 +1427,8 @@ class Rs:
           text = getattr(params, f'RULES_MESSAGE_LABEL_{language}')
           id = getattr(params, f'RULES_MESSAGE_ID_{language}')
           rules_ch = bot.get_channel(params.RULES_CHANNEL_ID)
-          link = await rules_ch.fetch_message(id).jump_url
+          msg = await rules_ch.fetch_message(id)
+          link = msg.jump_url
           embed.description += f'{flag}\u2800[{text}]({link})\u2800 '
 
         embed.description += '\n'
