@@ -1429,7 +1429,11 @@ class Rs:
           rules_ch = bot.get_channel(params.RULES_CHANNEL_ID)
           msg = await rules_ch.fetch_message(id)
           link = msg.jump_url
-          embed.description += f'{flag}\u2800[{text}]({link})\u2800 '
+          embed.description += f'{flag}\u2800[{text}]({link})'
+          if i%2 : 
+            embed.description += '\u2800 ' 
+          else:
+            embed.description += '\n'
 
         embed.description += '\n'
         embed.set_footer(text='confirm\u2009👍\u2009confirmar\u2009👍\u2009confirme\u2009👍\u2009confirmer\u2009👍\u2009bestätige\u2009👍\u2009potwierdź\u2009👍\u2009подтвердить')
