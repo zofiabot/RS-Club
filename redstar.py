@@ -255,10 +255,21 @@ class Rs:
                         delete_after=params.MSG_DISPLAY_TIME)
 
                 elif level in Rs.star_range:
-                    print(
-                        f'handle reaction: {user} trying to join rs{level}'
-                    )
-                    await Rs.enter_queue(user, level, '', True, False)
+                    qm = Rs.get_qm(level)
+                    p = qm.find_player_in_queue_by_discord(user)
+
+                    if p not in qm.queue:
+                        # check if player has mates
+                        #   # if yes unqueue mate
+                        #   # else
+                        
+                        await Rs.enter_queue(user, level, '', True, False)
+                        print(f'handle reaction: {user} trying to join rs{level}')
+
+                    else:
+                        await Rs.leave_queue(user, level, True, False, False, p)
+                        print(f'handle reaction: {user} trying to leave {qm.name} (toggle)')
+
 
             await Rs.dashboard_embed.remove_reaction(reaction.emoji, user)
             Rs.dashboard_updated = True
