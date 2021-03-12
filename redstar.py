@@ -715,26 +715,25 @@ class Rs:
         else:
             leaving_all_queues = True
 
-        # afk timeout
-        if caused_by_afk is True:
-            # try all queues and check if player can be removed from it
-            msg = [] # message for dashboard
-            for qm in Rs.qms:
-                res, q = qm.player_left(player)
-                if res == QueueManager.PLAYER_LEFT:
-                    Rs.set_queue_updated(qm.level)
-                    print(
-                        f'    {player.discord_nick} leaving {qm.name} (afk_kick)'
-                    )
-                    await Rs.channels[qm.level].send(
-                        f'` {player.discord_nick} timed out for {qm.name} ({len(q)}/4) `',
-                        delete_after=params.MSG_DISPLAY_TIME)
-                    msg.append(qm.name)
-                    Rs._delete_afk_check_msg(player.discord_id)
-            if not params.SPLIT_CHANNELS:
-              await Rs.channel.send(f'` {player.discord_nick} timed out for {", ".join(msg)}`',delete_after=params.MSG_DISPLAY_TIME)
-            return
+        # reaction used
+        if caused_by_reaction:
 
+            # try all queues and check if player can be removed from it
+            for qm in Rs.qms:
+                if leaving_all_queues or qm.level == level:
+                    res, q = qm.player_left(player)
+                    lq = len(q)
+                    if res == QueueManager.PLAYER_LEFT: 
+                        Rs.set_queue_updated(qm.level)
+                        print(
+                            f'    {player.discord_nick} leaving {qm.name} (reaction)'
+                        )
+                        await Rs.channels[level].send(
+                            f'` {player.discord_nick} left {qm.name} ({lq}/4) `',
+                            delete_after=params.MSG_DISPLAY_TIME)
+                        Rs._delete_afk_check_msg(player.discord_id)
+
+            return
         # automatic removal due to another queue finishing [in this case, <rs> will be skipped!]
         elif caused_by_other_queue_finished is True:
             # try all queues and check if player can be removed from it
@@ -754,24 +753,24 @@ class Rs:
                         delete_after=params.MSG_DISPLAY_TIME)
             return
 
-        # reaction used
-        elif caused_by_reaction:
-
+        # afk timeout
+        elif caused_by_afk is True:
             # try all queues and check if player can be removed from it
+            msg = [] # message for dashboard
             for qm in Rs.qms:
-                if leaving_all_queues or qm.level == level:
-                    res, q = qm.player_left(player)
-                    lq = len(q)
-                    if res == QueueManager.PLAYER_LEFT: 
-                        Rs.set_queue_updated(qm.level)
-                        print(
-                            f'    {player.discord_nick} leaving {qm.name} (reaction)'
-                        )
-                        await Rs.channels[level].send(
-                            f'` {player.discord_nick} left {qm.name} ({lq}/4) `',
-                            delete_after=params.MSG_DISPLAY_TIME)
-                        Rs._delete_afk_check_msg(player.discord_id)
-
+                res, q = qm.player_left(player)
+                if res == QueueManager.PLAYER_LEFT:
+                    Rs.set_queue_updated(qm.level)
+                    print(
+                        f'    {player.discord_nick} leaving {qm.name} (afk_kick)'
+                    )
+                    await Rs.channels[qm.level].send(
+                        f'` {player.discord_nick} timed out for {qm.name} ({len(q)}/4) `',
+                        delete_after=params.MSG_DISPLAY_TIME)
+                    msg.append(qm.name)
+                    Rs._delete_afk_check_msg(player.discord_id)
+            if not params.SPLIT_CHANNELS:
+              await Rs.channel.send(f'` {player.discord_nick} timed out for {", ".join(msg)}`',delete_after=params.MSG_DISPLAY_TIME)
             return
 
         # command used
