@@ -335,9 +335,7 @@ async def cmd_start_rs_queue(ctx: discord.ext.commands.Context,
 
     # standard handling of commands
     await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
-    print(
-        f'_start_rs_queue: called by {ctx.author} using `{ctx.message.content}` in{ctx.channel.name}'
-    )
+    print(f'_start_rs_queue: called by {ctx.author} using `{ctx.message.content}` in {ctx.channel.name}')
     return
 
 
@@ -357,9 +355,7 @@ async def cmd_clear_rs_queue(ctx: discord.ext.commands.Context, level: str):
 
     # standard handling of commands
     await ctx.message.delete(delay=params.MSG_DELETION_DELAY)
-    print(
-        f'cmd_clear_rs_queue(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}'
-    )
+    print( f'cmd_clear_rs_queue(): called by {ctx.author} using "{ctx.message.content}" in #{ctx.channel.name}')
 
     # relay command to module
     await Rs.clear_queue(ctx.author, int(level))

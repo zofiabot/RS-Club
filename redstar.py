@@ -1182,9 +1182,9 @@ class Rs:
                 Rs.dashboard_queue_displayed.update({ qm.level : False })
 
         print(
-            f'\n     _reset_afk: pending afk warning for {discord_user} was reset'
+            f'\n     _reset_afk: pending afk warning for {discord_user.display_name} was reset'
         )
-        Rs.dashboard_updated = True
+        Rs.dashboard_updated = True #TODO liquidate dialogue as well
 
     @staticmethod
     def _delete_afk_check_msg(player_id):
