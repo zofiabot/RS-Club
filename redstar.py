@@ -1392,7 +1392,7 @@ class Rs:
               if invite.inviter.display_name in invites.keys():
                 uses = invite.uses + invites[invite.inviter.display_name]
                 invites.update({invite.inviter.display_name : uses })
-              elif invite.inviter.display_name == 'Zo':
+              elif invite.inviter.display_name == 'Red Star Club':
                 uses = invite.uses + invites['Zofia']
                 invites.update({ 'Zofia' : uses })
               else:
