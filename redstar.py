@@ -1444,7 +1444,7 @@ class Rs:
           msg = await rules_ch.fetch_message(id)
           link = msg.jump_url
           embed.description += f'{flag}\u2800[{text}]({link})'
-          if i%2: 
+          if not i%2: 
             embed.description += '\u2800 ' 
           else:
             embed.description += '\n'
