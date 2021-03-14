@@ -1322,11 +1322,15 @@ class Rs:
         Rs.relay_embeds.update( { channel.id : None } )
         Rs.save_relay(guild.id, guild.name, channel.id, guild.owner_id, caller.id, caller.name)
         await channel.send(content = params.TEXT_R_SET, delete_after = 15)
-        for role in guild.roles: #make channel read only
-          overwrite = discord.PermissionOverwrite()
-          overwrite.send_messages = False
-          overwrite.read_messages = True
-          await channel.set_permissions(role, overwrite=overwrite)
+        try:
+            for role in guild.roles: #make channel read only
+              overwrite = discord.PermissionOverwrite()
+              overwrite.send_messages = False
+              overwrite.read_messages = True
+              await channel.set_permissions(role, overwrite=overwrite)
+        except Exception as e:
+            print(f'       relays: {guild.name} \n       relays: {e}')
+            pass
         return
 
     @staticmethod
