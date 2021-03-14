@@ -109,6 +109,7 @@ class params:
     LANGUAGE_LABEL_DE = 'Deutsch'
     LANGUAGE_LABEL_PL = 'Polski'
     LANGUAGE_LABEL_RU = 'Русский'
+    LANGUAGE_LABEL_TR = 'Türkçe'
     RULES_MESSAGE_LABEL_GB = 'Rules in English'
     RULES_MESSAGE_LABEL_ES = 'Reglas en español'
     RULES_MESSAGE_LABEL_PT = 'Regras em português'
