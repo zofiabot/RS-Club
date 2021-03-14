@@ -346,8 +346,8 @@ class Rs:
                     )
                     await Rs.enter_queue(user, level, '', True, False)
 
-        await msg.remove_reaction(reaction.emoji, user)
-        return
+            await msg.remove_reaction(reaction.emoji, user)
+            return
 
     @staticmethod
     def get_qm(level: int):
