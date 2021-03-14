@@ -116,6 +116,7 @@ class params:
     RULES_MESSAGE_LABEL_DE = 'Regeln auf Deutsch'
     RULES_MESSAGE_LABEL_PL = 'Zasady po polsku\u2009 '
     RULES_MESSAGE_LABEL_RU = 'Правила на русском'
+    RULES_MESSAGE_LABEL_TR = 'Türkçe Kurallar'
     
     WELCOME_STRINGS = [ 'ciao', 'bem-vinda', 'Willkommen', 'ようこそ', 'bienvenida', 'dobrodošli', 'karibu', 'приве́т', 'chào mừng', 'hosgeldiniz', 'witamy', 'καλως ΗΡΘΑΤΕ', '欢迎', 'merhba', '환영', 'bine ati venit' ]
 
