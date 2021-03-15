@@ -591,7 +591,7 @@ async def on_member_join(member):
     else:
         message = random.choice(params.TEXT_WELCOME_MESSAGES)+ '\u2800**' + member.mention +'**!'
 
-    await welcome_channel.send(message, delete_after = 600)
+    await welcome_channel.send(message) #, delete_after = 600)
     # dump(member._abc_impl)
     # print()
     # dump(bot.get_user(member.id))
