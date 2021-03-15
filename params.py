@@ -104,7 +104,7 @@ class params:
 
     LANGUAGE_LABEL_GB = 'English'
     LANGUAGE_LABEL_ES = 'Español'
-    LANGUAGE_LABEL_PT = 'Português'
+    LANGUAGE_LABEL_BR = 'Português'
     LANGUAGE_LABEL_FR = 'Français'
     LANGUAGE_LABEL_DE = 'Deutsch'
     LANGUAGE_LABEL_PL = 'Polski'
@@ -112,7 +112,7 @@ class params:
     LANGUAGE_LABEL_TR = 'Türkçe'
     RULES_MESSAGE_LABEL_GB = 'Rules in English\u2009 \u2800 \u2800\u2800'
     RULES_MESSAGE_LABEL_ES = 'Reglas en español'
-    RULES_MESSAGE_LABEL_PT = 'Regras em português'
+    RULES_MESSAGE_LABEL_BR = 'Regras em português'
     RULES_MESSAGE_LABEL_FR = 'Règles en français\u2009 '
     RULES_MESSAGE_LABEL_DE = 'Regeln auf Deutsch\u2800 '
     RULES_MESSAGE_LABEL_PL = 'Zasady po polsku'
