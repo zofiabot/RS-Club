@@ -1028,6 +1028,8 @@ class Rs:
         except discord.errors.NotFound:
             print('[display_individual_queue]: lost message handle (NotFound)')
             Rs.single_queue_messages[qm.level] = None
+            Rs.single_queue_messages[qm.name] = None
+            Rs.display_individual_queue(qm)
 
         except Exception as ex:
             print(f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}[display_individual_queue]: generic exception: {str(ex)}\n exception type: {type(ex).__name__} ')
@@ -1054,6 +1056,7 @@ class Rs:
         except discord.errors.NotFound:
             print('_post_dashboard_embed: lost message handle (NotFound)')
             Rs.dashboard_embed = None
+            Rs._post_dashboard_embed(embed)
         
         except discord.DiscordException as e:
             print(
@@ -1131,6 +1134,7 @@ class Rs:
         except discord.errors.NotFound as e:
             print(f'[_post_individual_queue_embed]: lost message handle (NotFound)\n{str(e)}')
             return_embed = None
+            return return_embed
         except discord.DiscordException as e:
             print(
                 f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}[_post_individual_queue_embed]: generic discord exception {str(e)}'
