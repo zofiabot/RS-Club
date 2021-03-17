@@ -226,53 +226,72 @@ class Rs:
         :param reaction:
         :return:
         """
+        try:
 
-        msg = reaction.message
-        msg_id = reaction.message.id
+            msg = reaction.message
+            msg_id = reaction.message.id
+            if user is None: 
+              users = await reaction.users().flatten()
+              if users[0].id == bot.user.id:
+                user=users[1]
+              else:
+                user=users[0]
 
 
-        if Rs.dashboard_embed is not None and msg_id == Rs.dashboard_embed.id:
+            if Rs.dashboard_embed is not None and msg_id == Rs.dashboard_embed.id:
 
-            # player_own_queue = None
+                # player_own_queue = None
 
-            if reaction.emoji == params.LEAVE_EMOJI:
-                print(
-                    f'handle reaction: {user} trying to leave all queues'
-                )
-                await Rs.leave_queue(user, 0, True, False, False, None)
+                if reaction.emoji == params.LEAVE_EMOJI:
+                    print(
+                        f'handle reaction: {user} trying to leave all queues'
+                    )
+                    await Rs.leave_queue(user, 0, True, False, False, None)
 
-            else:
-                level = emoji2int(str(reaction.emoji))
+                else:
+                    level = emoji2int(str(reaction.emoji))
 
-                if params.RS_ROLES[level - 4] not in [ro.name for ro in user.roles]:
-                    await msg.channel.send(
-                        f"` {user.display_name}, {params.TEXT_NOROLESET} rs{level} role `",
-                        delete_after=params.MSG_DISPLAY_TIME)
+                    if params.RS_ROLES[level - 4] not in [ro.name for ro in user.roles]:
+                        await msg.channel.send(
+                            f"` {user.display_name}, {params.TEXT_NOROLESET} rs{level} role `",
+                            delete_after=params.MSG_DISPLAY_TIME)
 
-                elif params.RESTRICTING_ROLES[level - 4] in [ro.name for ro in user.roles]:
-                    await msg.channel.send(
-                        f"` We are sorry {user.display_name}, but you can't join rs{level} queue `",
-                        delete_after=params.MSG_DISPLAY_TIME)
+                    elif params.RESTRICTING_ROLES[level - 4] in [ro.name for ro in user.roles]:
+                        await msg.channel.send(
+                            f"` We are sorry {user.display_name}, but you can't join rs{level} queue `",
+                            delete_after=params.MSG_DISPLAY_TIME)
 
-                elif level in Rs.star_range:
-                    qm = Rs.get_qm(level)
-                    p = qm.find_player_in_queue_by_discord(user)
+                    elif level in Rs.star_range:
+                        qm = Rs.get_qm(level)
+                        p = qm.find_player_in_queue_by_discord(user)
 
-                    if p not in qm.queue:
-                        # check if player has mates
-                        #   # if yes unqueue mate
-                        #   # else
-                        
-                        await Rs.enter_queue(user, level, '', True, False)
-                        print(f'handle reaction: {user} trying to join rs{level}')
+                        if p not in qm.queue:
+                            # check if player has mates
+                            #   # if yes unqueue mate
+                            #   # else
+                            
+                            await Rs.enter_queue(user, level, '', True, False)
+                            print(f'handle reaction: {user} trying to join rs{level}')
 
-                    else:
-                        await Rs.leave_queue(user, level, True, False, False, p)
-                        print(f'handle reaction: {user} trying to leave {qm.name} (toggle)')
+                        else:
+                            await Rs.leave_queue(user, level, True, False, False, p)
+                            print(f'handle reaction: {user} trying to leave {qm.name} (toggle)')
 
 
             await Rs.dashboard_embed.remove_reaction(reaction.emoji, user)
             Rs.dashboard_updated = True
+
+        except Exception as e:
+            print(
+                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[task_check_afk]: generic exception: {str(e)}'
+            )
+            print(
+                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[task_check_afk]: generic exception: {str(e)}'
+            )
+            Rs.lumberjack(sys.exc_info())
+            await Rs.dashboard_embed.remove_reaction(reaction.emoji, user)
+            Rs.dashboard_updated = True
+            pass
 
     @staticmethod
     async def handle_single_queue_reaction(user: discord.Member, reaction: discord.Reaction, level: int, name: str):
