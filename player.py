@@ -23,4 +23,7 @@ class Player:
         self.afk_timer = 0
 
     def __eq__(self, other):
+      if type(other) !=type(None):
         return self.discord_id == other.discord_id
+      else:
+        return False
