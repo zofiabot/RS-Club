@@ -91,7 +91,7 @@ class params:
     TEXT_R_FOOTER = f'[Join the {SERVER_DISCORD_NAME} to join the queue!](https://discord.gg/m8BSBfpj8J)'
     TEXT_EMPTY_R_DASH = f'[Join the {SERVER_DISCORD_NAME} server to join the queue!](https://discord.gg/m8BSBfpj8J)'
     TEXT_CHECKOUT_DEMO = 'Go to [demo server](https://discord.gg/39PQUNwR95) to install on your server'
-    TEXT_WELCOME_MESSAGES = [':flag_gb:\u2800Hi', ':flag_tr:\u2800Selam', ':flag_pl:\u2800Cześć', ':flag_es:\u2800¡Hola', ':flag_th:\u2800หวัดดี', ':flag_hu:\u2800Szia', ':flag_ru:\u2800Привет', ':flag_fr:\u2800Salut', ':flag_pt:\u2800Oi', ':flag_nl:\u2800Hoi!', ':flag_vn:\u2800Chào!', ':flag_it:\u2800Ciao', ':flag_cn:\u2800你好', ':flag_kr:\u2800안녕', ':flag_gr:\u2800\u2800Γεια', ':flag_il:\u2800היי', ':flag_ir:\u2800سلام', ':flag_de:\u2800Hallo', ':flag_ro:\u2800Bună']
+    TEXT_WELCOME_MESSAGES = [':flag_gb:\u2800Hi', ':flag_tr:\u2009Selam', ':flag_pl:\u2009Cześć', ':flag_es:\u2009¡Hola', ':flag_th:\u2009หวัดดี', ':flag_hu:\u2009Szia', ':flag_ru:\u2009Привет', ':flag_fr:\u2009Salut', ':flag_pt:\u2009Oi', ':flag_nl:\u2009Hoi!', ':flag_vn:\u2009Chào!', ':flag_it:\u2009Ciao', ':flag_cn:\u2009你好', ':flag_kr:\u2009안녕', ':flag_gr:\u2009\Γεια', ':flag_il:\u2009היי', ':flag_ir:\u2009سلام', ':flag_de:\u2009Hallo', ':flag_ro:\u2009Bună']
     TEXT_SPECIAL_WELCOME = 'Oh.. Hi {}! You have finally arrived!\nThe next round of rum is on you!'
     INVITE_RANKING = True
 
