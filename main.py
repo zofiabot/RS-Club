@@ -591,9 +591,8 @@ async def on_member_join(member):
         await welcome_channel.send(message, delete_after = 24*60)
 
     else:
-        k = 6
-        weights=[1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19]
-        message = "!\u2800 ".join( random.choices(params.TEXT_WELCOME_MESSAGES, weights = weights, k = k))
+        n = 6 # number of languages in personal greeting
+        message = "!\u2800 ".join( random.sample(params.TEXT_WELCOME_MESSAGES, n) )
         message += '\u2800**' + member.mention +'**!'
         await welcome_channel.send(message, delete_after = 600)
 
