@@ -283,10 +283,10 @@ class Rs:
 
         except Exception as e:
             print(
-                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[task_check_afk]: generic exception: {str(e)}'
+                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:handle_reaction: generic exception: {str(e)}'
             )
             print(
-                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[task_check_afk]: generic exception: {str(e)}'
+                f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:handle_reaction: generic exception: {str(e)}'
             )
             Rs.lumberjack(sys.exc_info())
             await Rs.dashboard_embed.remove_reaction(reaction.emoji, user)
@@ -436,14 +436,11 @@ class Rs:
                         # prepare or relplace afk check msg for player
                         msg = f' {params.WARNING_EMOJI} {p.discord_mention} ` {params.TEXT_STILL_AROUND} `'
 
-                        afk_msgs[p.discord_id] = [qm.level, msg , (params.TIME_AFK_KICK-params.TIME_AFK_WARN)]
-
-                        # mark player as afk
-                        Rs.afk_warned_players.append(p)
-                        # msg=f' task_check_afk: new active warnings in {qm.name}\n'
-                        # for a in Rs.afk_warned_players:
-                        #     msg +=f'                 {a.discord_nick}\n'
-                        # print(msg)
+                        # don't warn Klaus
+                        if p.discord_id not in params.NO_AFK_DIALOGUE:
+                            afk_msgs[p.discord_id] = [qm.level, msg , (params.TIME_AFK_KICK-params.TIME_AFK_WARN)]
+                            # mark player as afk
+                            Rs.afk_warned_players.append(p)
 
                     # already flagged and counting -> keep counting
                     else: # p.afk_timer < params.TIME_AFK_KICK
@@ -1449,8 +1446,7 @@ class Rs:
     async def welcome_message(channel_id: int = params.WELCOME_CHANNEL):
         channel = bot.get_channel(channel_id)
         embed = discord.Embed(color=params.QUEUE_EMBED_COLOR)
-        # embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/805642819980754944/819648954097729586/w.gif")
-        # embed.title = (f'{space} 👋')
+
         welcomes = ''
         styles = ['***', '', '*', '**', '`']
 

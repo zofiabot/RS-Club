@@ -588,16 +588,15 @@ async def on_command_error(ctx, error):
 async def on_member_join(member): 
     if member.id in params.SPECIAL_WELCOME_MEMBERS:
         message = (params.TEXT_SPECIAL_WELCOME).format(member.mention)
-    else:
-        k = 6
-        weights=[1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19,1/19]
-        message = "!\u2800 ".join( random.choices(params.TEXT_WELCOME_MESSAGES, weights = weights, k = k))
-        message += '\u2800**' + member.mention +'**!'
+        await welcome_channel.send(message, delete_after = 24*60)
 
-    await welcome_channel.send(message) #, delete_after = 600)
-    # dump(member._abc_impl)
-    # print()
-    # dump(bot.get_user(member.id))
+    else:
+        n = 6 # number of languages in personal greeting
+        message = "!\u2800 ".join( random.sample(params.TEXT_WELCOME_MESSAGES, n) )
+        message += '\u2800**' + member.mention +'**!'
+        await welcome_channel.send(message, delete_after = 600)
+
+
 # kill handler to trigger a clean exit (e.g. to clear up any open chat clutter)
 def handle_exit():
     pass
