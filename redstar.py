@@ -1405,7 +1405,7 @@ class Rs:
         channel = bot.get_channel(channel_id)
         guild = bot.get_guild(params.SERVER_DISCORD_ID)
         invites_o = await guild.invites()
-        invites: dict = {}
+        invites: dict = { 'SWARM' : 15 }
         embed = discord.Embed(color=params.QUEUE_EMBED_COLOR)
         space = '\u2800'*12
         embed.title = (f'Invite Contest {space} 🏆')
@@ -1427,7 +1427,7 @@ class Rs:
         embed.description +=  f"\n {' '*int((23-len(c)))}{c}\n"
         sorted_invites = sorted(invites.items(), key=lambda kv: kv[1], reverse=True)
         for a in sorted_invites:
-          if a[0] in ('Zofia', 'Zo', 'anfibionic') :
+          if a[0] in params.INVITES_NO_REWARDS:
               embed.description +=  f"\n{' '*3}  {a[0]} {' '*(18-len(a[0]))} {a[1]:>4}  "
                       
           elif int(a[1]) > 0:
