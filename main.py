@@ -195,14 +195,14 @@ async def cmd_enter_rs_queue(ctx: discord.ext.commands.Context,
     :return:
     """
     # handle rs commands outside of channels
-    if ctx.message.channel.id != params.SERVER_RS_CHANNEL_ID and ctx.message.channel.name not in params.RS_CHANNELS.keys(
+    if ctx.message.channel.id != params.SERVER_RS_CHANNEL_ID and ctx.message.channel.name not in params.SERVER_RS_CHANNELS.keys(
     ):
         bot.get_channel(
             ctx.message.channel.id).send("I am sorry, this won't work")
         return
 
     # handle rs commands in single rs channels
-    elif ctx.message.channel.name in params.RS_CHANNELS:
+    elif ctx.message.channel.name in params.SERVER_RS_CHANNELS:
         levels = [int(ctx.message.channel.name[2:])]
 
     # handle rs commands in unified rs channel
@@ -452,9 +452,18 @@ async def on_ready():
         await clean_dead_embeds(channel)
 
     await clean_logs()
+
+    global bot_ready
+    bot_ready = True
+
+    global dbg_ch
+    dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
+
+    global welcome_channel
+    welcome_channel = bot.get_channel(params.SERVER_WELCOME_CHANNEL)
     
     # post welcome message
-    if params.POST_WELCOME_MESSAGE: await Rs.welcome_message()
+    if params.POST_WELCOME_MESSAGE: await Rs.welcome_message(welcome_channel)
 
     #CHECK IF WEE ARE ON MAIN SERVER
     # if message.guild.id != params.SERVER_DISCORD_ID: return
@@ -474,12 +483,6 @@ async def on_ready():
         Rs.task_invite_ranking.start()
         print('    Starting up: launching task check_afk')
 
-    global bot_ready
-    bot_ready = True
-    global dbg_ch
-    dbg_ch = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
-    global welcome_channel
-    welcome_channel = bot.get_channel(params.WELCOME_CHANNEL)
     print(f'    Starting up: {bot.user.name} is ready')
     if dbg_ch:
         await dbg_ch.send('ℹ️ on_ready(): Bot Initialization complete')
