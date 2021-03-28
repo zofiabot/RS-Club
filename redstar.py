@@ -145,7 +145,7 @@ class Rs:
           #  get RS channel objects
           Rs.channels[0] = Rs.channel # for compatibility
           for i in Rs.star_range:
-              Rs.channels[i] = bot.get_channel(params.RS_CHANNELS.get(f'rs{i}'))
+              Rs.channels[i] = bot.get_channel(params.SERVER_RS_CHANNELS.get(f'rs{i}'))
 
         # Rs.dashboard_embed = None # alredy set
 
@@ -1443,7 +1443,7 @@ class Rs:
           print('Posting new Invite message')
         return
 
-    async def welcome_message(channel_id: int = params.WELCOME_CHANNEL):
+    async def welcome_message(channel_id: int = params.SERVER_WELCOME_CHANNEL):
         channel = bot.get_channel(channel_id)
         embed = discord.Embed(color=params.QUEUE_EMBED_COLOR)
 
@@ -1462,11 +1462,11 @@ class Rs:
           rules_ch = bot.get_channel(params.RULES_CHANNEL_ID)
           msg = await rules_ch.fetch_message(id)
           link = msg.jump_url
-          embed.description += f'{flag}\u2800[{text}]({link})'
+          embed.description += f'{flag}\u2009\u2009[{text}]({link})'
           if not i%2: 
-            embed.description += '\u2800 ' 
+            embed.description += ' ' 
           else:
-            embed.description += '\n'
+            embed.description += ' '
 
         embed.description += '\n'
         embed.set_footer(text='confirm\u2009👍\u2009confirmar\u2009👍\u2009confirme\u2009👍\u2009confirmer\u2009👍\u2009bestätige\u2009👍\u2009potwierdź\u2009👍\u2009подтвердить')
@@ -1483,7 +1483,10 @@ class Rs:
         # except discord.errors.NotFound:
         #     print('        Welcome: Messages already deleted')
 
-        await channel.send(embed=embed)
+        # await channel.send(embed=embed)
+
+        msg = await channel.fetch_message(820976946866815049)
+        await msg.edit(embed=embed)
         print('Posting new Welcome message')
         return
 

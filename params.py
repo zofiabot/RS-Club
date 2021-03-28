@@ -110,14 +110,23 @@ class params:
     LANGUAGE_LABEL_PL = 'Polski'
     LANGUAGE_LABEL_RU = 'Русский'
     LANGUAGE_LABEL_TR = 'Türkçe'
-    RULES_MESSAGE_LABEL_GB = 'Rules in English\u2009 \u2800 \u2800\u2800'
-    RULES_MESSAGE_LABEL_ES = 'Reglas en español'
-    RULES_MESSAGE_LABEL_BR = 'Regras em português'
-    RULES_MESSAGE_LABEL_FR = 'Règles en français\u2009 '
-    RULES_MESSAGE_LABEL_DE = 'Regeln auf Deutsch\u2800 '
-    RULES_MESSAGE_LABEL_PL = 'Zasady po polsku'
-    RULES_MESSAGE_LABEL_RU = 'Правила на русском'
-    RULES_MESSAGE_LABEL_TR = 'Türkçe Kurallar'
+    RULES_MESSAGE_LABEL_GB = 'Rules\u2009\u2009\u2009 '
+    RULES_MESSAGE_LABEL_ES = 'Reglas\u2009\u2009 '
+    RULES_MESSAGE_LABEL_BR = 'Regras\u2009\u2009 '
+    RULES_MESSAGE_LABEL_FR = 'Règles\u2009\u2009 '
+    RULES_MESSAGE_LABEL_DE = 'Regeln\u2009\u2009 '
+    RULES_MESSAGE_LABEL_PL = 'Zasady\u2009\u2009 '
+    RULES_MESSAGE_LABEL_RU = 'Правила\u2009 '
+    RULES_MESSAGE_LABEL_TR = 'Kurallar '
     
     WELCOME_STRINGS = [ 'ciao', 'bem-vinda', 'Willkommen', 'ようこそ', 'bienvenida', 'dobrodošli', 'karibu', 'приве́т', 'chào mừng', 'hosgeldiniz', 'witamy', 'καλως ΗΡΘΑΤΕ', '欢迎', 'merhba', '환영', 'bine ati venit' ]
+
+    if DEBUG_SERVER:
+      SERVER_DISCORD_ID = DEBUG_SERVER_DISCORD_ID
+      SERVER_BUG_CHANNEL_ID = DEBUG_SERVER_BUG_CHANNEL_ID
+      SERVER_RS_CHANNELS = DEBUG_SERVER_RS_CHANNELS
+      SERVER_WELCOME_CHANNEL = DEBUG_SERVER_WELCOME_CHANNEL
+      SERVER_RS_CHANNELS = DEBUG_SERVER_RS_CHANNELS
+      SERVER_MEMBER_ROLE_ID = DEBUG_SERVER_MEMBER_ROLE_ID
+      LANGUAGES = DEBUG_LANGUAGES
 
