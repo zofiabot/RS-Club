@@ -203,14 +203,11 @@ class Rs:
         
         if user_id == user.id:
             # check supported emojis for this message
-            print(emoji_callback)
             for emo, callback in emoji_callback:
                 print(emo)
                 # emoji found -> call its callback function and close the dialogue
                 if reaction.emoji == emo:
-                    print(
-                        f'handle reaction: {emo}'
-                    )
+                    print(f'handle reaction: {emo}')
                     await callback(*[user])
                     await reaction.message.delete()
                     Rs.dialogues.pop(msg_id)
@@ -337,8 +334,15 @@ class Rs:
                         if len(qm.queue) > 1 :
                           await Rs.start_queue(user, level)
                         else:
-                          await Rs.channels[level].send("You can only start queue early if you are not alone")
-                        
+                          await Rs.channels[level].send(f"{user.mention} you can only start queue early if you are not alone")
+
+            elif str(reaction.emoji) == params.CROID_EMOJI:
+                if qm.find_player_in_queue_by_discord(user) is not None:
+                    # check if player has mates
+                        print(
+                            f'handle reaction: {user} adding croid in {qm.name} run'
+                        )
+
 
             else: # equivent to elif reaction.emoji == params.JOIN_EMOJI:
                 # this case is already handled (impossibe to react on something you can't see)
