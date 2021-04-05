@@ -380,14 +380,13 @@ class Rs:
             raise ValueError
 
     @staticmethod
-    @tasks.loop(seconds=params.TIME_BOT_AFK_TASK_RATE*10)
+    @tasks.loop(seconds=params.TIME_BOT_CONTEST_TASK_RATE)
     async def task_invite_ranking():
         """
         Cyclic task to refresh invite ranking
         :return: never returns
         """
         await Rs.invite_ranking()
-            
 
     @staticmethod
     @tasks.loop(seconds=params.TIME_BOT_AFK_TASK_RATE)
@@ -1004,7 +1003,7 @@ class Rs:
                 embed_to_post = discord.Embed(
                     color=params.QUEUE_EMBED_COLOR)
                 embed_to_post.set_author(name='', icon_url='')
-                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)}\u2800{queue_len}/4 {s_(10,9)}'
+                embed_to_post.title = f':regional_indicator_r::regional_indicator_s:{int2emoji(qm.level)}\u2800{params.SUSCRIPT[queue_len]}∕₄ {s_(10,9)}'
                 team = ''
 
                 # for each player: make entry in embed
@@ -1408,6 +1407,7 @@ class Rs:
     async def invite_ranking(channel_id: int = params.INVITE_RANKING_CH):
         channel = bot.get_channel(channel_id)
         guild = bot.get_guild(params.SERVER_DISCORD_ID)
+        end_time = (2021,3,31,24,0,0,0,0,0)
         invites_o = await guild.invites()
         invites: dict = { 'SWARM' : 15 }
         embed = discord.Embed(color=params.QUEUE_EMBED_COLOR)
@@ -1415,36 +1415,44 @@ class Rs:
         embed.title = (f'Invite Contest {space} 🏆')
         embed.description = (params.INVITE_RANKING_DESC+ '\n')
 
-        for invite in invites_o:
-            if 0 == invite.max_age:
-              if invite.inviter.display_name in invites.keys():
-                uses = invite.uses + invites[invite.inviter.display_name]
-                invites.update({invite.inviter.display_name : uses })
-              elif invite.inviter.display_name == 'Red Star Club':
-                uses = invite.uses + invites['Zofia']
-                invites.update({ 'Zofia' : uses })
-              else:
-                invites.update({invite.inviter.display_name : invite.uses })
-        i = 1
-        c = 'Current standings'
-        embed.description +=  f"\n ```{' '*(28)} "
-        embed.description +=  f"\n {' '*int((23-len(c)))}{c}\n"
-        sorted_invites = sorted(invites.items(), key=lambda kv: kv[1], reverse=True)
-        for a in sorted_invites:
-          if a[0] in params.INVITES_NO_REWARDS:
-              embed.description +=  f"\n{' '*3}  {a[0]} {' '*(18-len(a[0]))} {a[1]:>4}  "
-                      
-          elif int(a[1]) > 0:
-              embed.description +=  f"\n{i:>3}. {a[0]} {' '*(18-len(a[0]))} {a[1]:>4}  "
-              i += 1
+        if ( time.mktime(end_time) - time.time() )>0:
+          for invite in invites_o:
+              if 0 == invite.max_age:
+                if invite.inviter.display_name in invites.keys():
+                  uses = invite.uses + invites[invite.inviter.display_name]
+                  invites.update({invite.inviter.display_name : uses })
+                elif invite.inviter.display_name == 'Red Star Club':
+                  uses = invite.uses + invites['Zofia']
+                  invites.update({ 'Zofia' : uses })
+                else:
+                  invites.update({invite.inviter.display_name : invite.uses })
+          i = 1
+          c = 'Current standings'
+          nr = 'Waiving Rewards'
+          embed.description +=  f"\n ```{' '*(28)} "
+          embed.description +=  f"\n {' '*int((23-len(c)))}{c}\n"
+          norewards = f"\n\n {' '*int((22-len(nr)))}{nr}"
+          sorted_invites = sorted(invites.items(), key=lambda kv: kv[1], reverse=True)
+          for a in sorted_invites:
+            if a[0] in params.INVITES_NO_REWARDS:
+                norewards +=  f"\n  {a[0]} {' '*(21-len(a[0]))} {a[1]:>4}  "
+                        
+            elif int(a[1]) > 0:
+                embed.description +=  f"\n{i:>3}. {a[0]} {' '*(18-len(a[0]))} {a[1]:>4}  "
+                i += 1
+          embed.description += norewards
+          if ( time.mktime(end_time) - time.time() ) > 30:
+            embed.set_footer(text=f'time left {secs2time(time.mktime(end_time) - time.time() )}')
+          else:
+            embed.set_footer(text="Official Results")
 
-        embed.description +=  f"\n {' '*(28)}  ``` "
-        try:
-          message = await channel.fetch_message(params.CONTEST_MESSAGE_ID)
-          await message.edit(embed=embed)
-        except Exception:
-          await channel.send(embed=embed)
-          print('Posting new Invite message')
+          embed.description +=  f"\n {' '*(28)}  ``` "
+          try:
+            message = await channel.fetch_message(params.CONTEST_MESSAGE_ID)
+            await message.edit(embed=embed)
+          except Exception:
+            await channel.send(embed=embed)
+            print('Posting new Invite message')
         return
 
     async def welcome_message(channel_id: int = params.SERVER_WELCOME_CHANNEL):

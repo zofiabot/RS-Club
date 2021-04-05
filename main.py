@@ -50,12 +50,15 @@ async def clean_logs(period=24):
         channel = bot.get_channel(params.SERVER_DEBUG_CHANNEL_ID)
         time_differennce = timedelta(hours=period)
         init_time = datetime.now()
+        intern_user = bot.get_user(204255221017214977)
 
     except discord.errors.NotFound:
         print('    Starting up: Log Messages already deleted')
 
     async for message in channel.history(limit=100):
         if init_time - message.created_at > time_differennce and message.author == bot.user:
+            mgs.append(message)
+        if init_time - message.created_at > time_differennce/24 and message.author == intern_user:
             mgs.append(message)
     await channel.delete_messages(mgs)
     mgs = []  #Empty list to avoid trouble with other code

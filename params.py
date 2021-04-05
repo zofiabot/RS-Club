@@ -136,3 +136,6 @@ class params:
       RS11_EMOJI_ID = 814898233922945064
       CROID_EMOJI = '<:croid:825984015256649769>'
       CROID_EMOJI_ID = 825984015256649769
+    
+    TIME_BOT_CONTEST_TASK_RATE = 30
+    SUSCRIPT = {1 : '¹', 2 : '²', 3 : '³', 4 : '⁴'}
