@@ -416,6 +416,11 @@ async def on_message(message):
                                    message.author)
                 await message.delete()
             return
+        intern_user = bot.get_user(204255221017214977)
+        if message.author == intern_user and  message.content == '!pig':
+          now = datetime.now()
+          await message.channel.send(f'{now.strftime("%H:%M")} Latency: {round(bot.latency, 3)}s.')
+          await message.delete()
     except discord.errors.HTTPException as e:
         print(f'    on_messaage: discordHTTPException {str(e)}')
         pass
