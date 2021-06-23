@@ -386,7 +386,8 @@ class Rs:
         Cyclic task to refresh invite ranking
         :return: never returns
         """
-        await Rs.invite_ranking()
+        # await Rs.invite_ranking() 
+        # Unhandled exception in internal background task 'task_invite_ranking'.
 
     @staticmethod
     @tasks.loop(seconds=params.TIME_BOT_AFK_TASK_RATE)
@@ -489,9 +490,9 @@ class Rs:
             await Rs.display_dashboard()
             if params.SPLIT_CHANNELS: await Rs.display_individual_queues()
 
-        except discord.errors.HTTPException:
-            print(f'Rs.task_repost_queues(): {discord.errors.HTTPException}')
-            pass
+        # except discord.errors.HTTPException:
+        #     print(f'Rs.task_repost_queues(): {discord.errors.HTTPException}')
+        #     pass
         except discord.DiscordException as e:
             print(
                 f'{cr.Fore.RED}⚠️ {cr.Style.BRIGHT}:[task_repost_queues] generic discord exception {str(e)}'
